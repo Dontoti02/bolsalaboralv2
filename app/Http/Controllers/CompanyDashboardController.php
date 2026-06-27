@@ -99,6 +99,8 @@ class CompanyDashboardController extends Controller
             $recentApplicants = collect();
         }
 
+        $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+
         return view('company.dashboard', compact(
             'company',
             'offersCount',
@@ -106,7 +108,8 @@ class CompanyDashboardController extends Controller
             'applicantsCount',
             'pendingApplicantsCount',
             'recentOffers',
-            'recentApplicants'
+            'recentApplicants',
+            'config'
         ));
     }
 
