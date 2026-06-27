@@ -55,9 +55,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/offers/{id}/toggle-state', [JobOpportunityController::class, 'toggleState']);
     
     Route::get('/student/dashboard', [\App\Http\Controllers\StudentController::class, 'dashboard'])->name('student.dashboard');
+    // Student CV & Apply routes
+    Route::post('/student/cv/upload', [\App\Http\Controllers\StudentController::class, 'uploadCv'])->name('student.cv.upload');
+    Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');
+    Route::get('/student/cv/download/{id}', [\App\Http\Controllers\StudentController::class, 'downloadCv'])->name('student.cv.download');
+    Route::post('/student/apply/{offer_id}', [\App\Http\Controllers\StudentController::class, 'applyToOffer'])->name('student.apply');
 
     Route::get('/company/dashboard', [\App\Http\Controllers\CompanyDashboardController::class, 'showDashboard'])->name('company.dashboard');
     Route::post('/company/profile', [\App\Http\Controllers\CompanyDashboardController::class, 'updateProfile']);
+    // Company actions
+    Route::post('/company/offers', [\App\Http\Controllers\CompanyDashboardController::class, 'storeOffer'])->name('company.offers.store');
+    Route::post('/company/offers/{id}/toggle-state', [\App\Http\Controllers\CompanyDashboardController::class, 'toggleOfferState'])->name('company.offers.toggle-state');
+    Route::post('/company/applications/{id}/status', [\App\Http\Controllers\CompanyDashboardController::class, 'updateApplicationStatus'])->name('company.applications.status');
 
     Route::get('/teacher/dashboard', [\App\Http\Controllers\TeacherController::class, 'dashboard'])->name('teacher.dashboard');
 });
