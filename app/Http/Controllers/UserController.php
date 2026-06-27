@@ -583,6 +583,48 @@ class UserController extends Controller
     }
 
     /**
+     * Delete a specific settings image (logo, favicon or banner).
+     */
+    public function deleteSettingsImage(Request $request)
+    {
+        $type = $request->input('type');
+        if (!in_array($type, ['logo', 'favicon', 'banner'], true)) {
+            return response()->json(['success' => false, 'message' => 'Tipo de imagen no válido.'], 422);
+        }
+
+        try {
+            $currentPath = DB::table('system_configuration')->where('key', $type)->value('value');
+
+            // Delete the physical file if it exists in uploads/
+            if ($currentPath && str_starts_with($currentPath, '/uploads/')) {
+                $fullPath = public_path(ltrim($currentPath, '/'));
+                if (file_exists($fullPath)) {
+                    @unlink($fullPath);
+                }
+            }
+
+            // Reset to empty (blank) in the config
+            DB::table('system_configuration')
+                ->where('key', $type)
+                ->update(['value' => '', 'updated_at' => now()]);
+
+            $placeholders = [
+                'logo'    => '/assets/logo.png',
+                'favicon' => '/assets/favicon.png',
+                'banner'  => '/assets/banner.png',
+            ];
+
+            return response()->json([
+                'success'     => true,
+                'message'     => "Imagen '{$type}' eliminada correctamente.",
+                'placeholder' => $placeholders[$type],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar imagen: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * List all companies.
      */
     public function listCompanies()

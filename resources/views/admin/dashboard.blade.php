@@ -1064,22 +1064,37 @@
                         </div>
                     </div>
 
-                    <!-- Sección 2: Iconos e Imagenes -->
+                    <!-- Sección 2: Iconos e Imágenes -->
                     <div class="space-y-lg pt-lg border-t border-outline-variant">
-                        <h3 class="font-headline-sm text-headline-sm text-on-surface">Iconos</h3>
+                        <div>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface">Iconos e Imágenes</h3>
+                            <p class="text-body-sm text-on-surface-variant mt-1">Sube los archivos en los formatos y medidas recomendadas para mejor calidad visual.</p>
+                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
                             <!-- Logo Upload Card -->
-                            <div
-                                class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-md">
-                                <span class="font-bold text-body-sm text-on-surface">Logo</span>
-                                <div
-                                    class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
-                                    <img id="preview-logo" src="{{ $config['logo'] ?? '/assets/logo.png' }}"
-                                        class="max-w-full max-h-full object-contain" alt="Logo actual">
+                            <div class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-sm">
+                                <div class="w-full flex items-center justify-between">
+                                    <span class="font-bold text-body-sm text-on-surface">Logo</span>
+                                    @if(!empty($config['logo']))
+                                    <button type="button" onclick="deleteSettingsImage('logo', 'preview-logo')"
+                                        title="Eliminar logo actual"
+                                        class="p-1 rounded-lg hover:bg-error-container text-error transition-colors flex items-center gap-1 text-[11px] font-semibold">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
+                                    </button>
+                                    @endif
                                 </div>
-                                <label
-                                    class="px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all">
+                                <div class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
+                                    <img id="preview-logo" src="{{ $config['logo'] ?? '/assets/logo.png' }}"
+                                        class="max-w-full max-h-full object-contain" alt="Logo actual"
+                                        onerror="this.src='/assets/logo.png'">
+                                </div>
+                                <div class="space-y-1 w-full">
+                                    <p class="text-[11px] text-on-surface-variant font-medium">📐 Recomendado: <strong>200 × 60 px</strong></p>
+                                    <p class="text-[10px] text-on-surface-variant">PNG/SVG transparente · máx. 500 KB</p>
+                                </div>
+                                <label class="w-full px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all flex items-center justify-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">upload</span>
                                     Seleccionar Logo
                                     <input type="file" name="logo" class="hidden" accept="image/*"
                                         onchange="previewImage(this, 'preview-logo')">
@@ -1087,16 +1102,28 @@
                             </div>
 
                             <!-- Favicon Upload Card -->
-                            <div
-                                class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-md">
-                                <span class="font-bold text-body-sm text-on-surface">Favicon</span>
-                                <div
-                                    class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
-                                    <img id="preview-favicon" src="{{ $config['favicon'] ?? '/assets/favicon.png' }}"
-                                        class="max-w-full max-h-full object-contain" alt="Favicon actual">
+                            <div class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-sm">
+                                <div class="w-full flex items-center justify-between">
+                                    <span class="font-bold text-body-sm text-on-surface">Favicon</span>
+                                    @if(!empty($config['favicon']))
+                                    <button type="button" onclick="deleteSettingsImage('favicon', 'preview-favicon')"
+                                        title="Eliminar favicon actual"
+                                        class="p-1 rounded-lg hover:bg-error-container text-error transition-colors flex items-center gap-1 text-[11px] font-semibold">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
+                                    </button>
+                                    @endif
                                 </div>
-                                <label
-                                    class="px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all">
+                                <div class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
+                                    <img id="preview-favicon" src="{{ $config['favicon'] ?? '/assets/favicon.png' }}"
+                                        class="max-w-full max-h-full object-contain" alt="Favicon actual"
+                                        onerror="this.src='/assets/favicon.png'">
+                                </div>
+                                <div class="space-y-1 w-full">
+                                    <p class="text-[11px] text-on-surface-variant font-medium">📐 Recomendado: <strong>32 × 32 px</strong></p>
+                                    <p class="text-[10px] text-on-surface-variant">ICO/PNG cuadrado · máx. 100 KB</p>
+                                </div>
+                                <label class="w-full px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all flex items-center justify-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">upload</span>
                                     Seleccionar Favicon
                                     <input type="file" name="favicon" class="hidden" accept="image/*"
                                         onchange="previewImage(this, 'preview-favicon')">
@@ -1104,21 +1131,42 @@
                             </div>
 
                             <!-- Banner Upload Card -->
-                            <div
-                                class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-md">
-                                <span class="font-bold text-body-sm text-on-surface">Banner de Login</span>
-                                <div
-                                    class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
-                                    <img id="preview-banner" src="{{ $config['banner'] ?? '/assets/banner.png' }}"
-                                        class="max-w-full max-h-full object-cover" alt="Banner actual">
+                            <div class="flex flex-col items-center p-md border border-outline-variant rounded-2xl bg-surface-container-low text-center space-y-sm">
+                                <div class="w-full flex items-center justify-between">
+                                    <span class="font-bold text-body-sm text-on-surface">Banner de Login</span>
+                                    @if(!empty($config['banner']))
+                                    <button type="button" onclick="deleteSettingsImage('banner', 'preview-banner')"
+                                        title="Eliminar banner actual"
+                                        class="p-1 rounded-lg hover:bg-error-container text-error transition-colors flex items-center gap-1 text-[11px] font-semibold">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
+                                    </button>
+                                    @endif
                                 </div>
-                                <label
-                                    class="px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all">
+                                <div class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
+                                    <img id="preview-banner" src="{{ $config['banner'] ?? '/assets/banner.png' }}"
+                                        class="max-w-full max-h-full object-cover" alt="Banner actual"
+                                        onerror="this.src='/assets/banner.png'">
+                                </div>
+                                <div class="space-y-1 w-full">
+                                    <p class="text-[11px] text-on-surface-variant font-medium">📐 Recomendado: <strong>1920 × 1080 px</strong></p>
+                                    <p class="text-[10px] text-on-surface-variant">JPG/PNG horizontal · máx. 2 MB</p>
+                                </div>
+                                <label class="w-full px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all flex items-center justify-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">upload</span>
                                     Seleccionar Banner
                                     <input type="file" name="banner" class="hidden" accept="image/*"
                                         onchange="previewImage(this, 'preview-banner')">
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Image actions submission -->
+                        <div class="flex justify-end pt-md">
+                            <button type="submit" form="settings-form"
+                                class="px-6 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md rounded-xl hover:opacity-95 shadow-sm transition-all font-semibold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">save</span>
+                                Guardar Imágenes
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -1602,9 +1650,27 @@
                     </div>
                 </div>
 
-                <!-- Dynamic Companies Cards Container -->
-                <div id="companies-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
-                    <div class="col-span-full text-center py-xl text-on-surface-variant">Cargando empresas...</div>
+                <!-- Companies Table -->
+                <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
+                                    <th class="px-4 py-3.5 w-12">Logo</th>
+                                    <th class="px-4 py-3.5">Empresa</th>
+                                    <th class="px-4 py-3.5">RUC</th>
+                                    <th class="px-4 py-3.5">Email</th>
+                                    <th class="px-4 py-3.5">Teléfono</th>
+                                    <th class="px-4 py-3.5 text-center">Ofertas</th>
+                                    <th class="px-4 py-3.5 text-center">Estado</th>
+                                    <th class="px-4 py-3.5 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="companies-cards-container" class="divide-y divide-outline-variant/60 font-body-sm text-body-sm text-on-surface">
+                                <tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -3898,6 +3964,34 @@
                 });
         }
 
+        // Delete a settings image (logo, favicon, banner)
+        function deleteSettingsImage(type, previewId) {
+            if (!confirm(`¿Deseas eliminar la imagen "${type}" actual? No se puede deshacer.`)) return;
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch('/admin/settings/delete-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ type })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Imagen "${type}" eliminada correctamente.`);
+                    const preview = document.getElementById(previewId);
+                    if (preview) preview.src = data.placeholder || `/assets/${type}.png`;
+                    const btn = document.querySelector(`button[onclick="deleteSettingsImage('${type}', '${previewId}')"]`);
+                    if (btn) btn.classList.add('hidden');
+                } else {
+                    showToast(data.message || 'Error al eliminar la imagen.', 'error');
+                }
+            })
+            .catch(() => showToast('Error de red al eliminar imagen.', 'error'));
+        }
+
         // Toast show message with support for types
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -4859,7 +4953,7 @@
         function loadCompanies() {
             const container = document.getElementById('companies-cards-container');
             if (container) {
-                container.innerHTML = '<div class="col-span-full text-center py-xl text-on-surface-variant">Cargando empresas...</div>';
+                container.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>';
             }
 
             fetch('/admin/companies', {
@@ -4893,59 +4987,50 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="col-span-full text-center py-xl text-on-surface-variant">No se encontraron empresas registradas.</div>';
+                container.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">No se encontraron empresas registradas.</td></tr>';
                 return;
             }
 
-            container.innerHTML = '';
-            filtered.forEach(company => {
-                const card = document.createElement('div');
-                card.id = `company-card-${company.id}`;
-                card.className = 'bg-surface rounded-2xl p-6 border border-outline-variant shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4 relative duration-200';
-
-                // Verification Chip
+            container.innerHTML = filtered.map(company => {
                 const isVerified = company.is_verified;
-                const statusChip = isVerified
-                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                    <span class="material-symbols-outlined text-[12px] mr-1">verified</span> Verificado
-                   </span>`
-                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">
-                    No verificado
-                   </span>`;
-
-                // Logo image or letter circle
-                let logoHTML = '';
-                if (company.logo) {
-                    logoHTML = `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\\'text-headline-md font-bold text-primary\\'>${company.name.charAt(0).toUpperCase()}</span>'">`;
-                } else {
-                    logoHTML = `<span class="text-headline-md font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
-                }
-
-                card.innerHTML = `
-                <!-- Avatar / Logo -->
-                <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-outline-variant overflow-hidden bg-surface-container">
-                    ${logoHTML}
-                </div>
-                <!-- Details -->
-                <div class="flex-1 min-w-0 space-y-1">
-                    <h4 class="font-bold text-on-background truncate uppercase tracking-wide text-body-lg" title="${company.name}">${company.name}</h4>
-                    <div class="space-y-0.5 text-body-sm text-on-surface-variant font-medium">
-                        <p><span class="text-outline">Email:</span> <span class="text-on-background truncate block max-w-[200px] sm:max-w-none md:max-w-[150px] lg:max-w-[200px] xl:max-w-none" title="${company.email}">${company.email}</span></p>
-                        <p><span class="text-outline">RUC:</span> <span class="text-on-background font-semibold">${company.ruc}</span></p>
-                        <p><span class="text-outline">Teléfono:</span> <span class="text-on-background">${company.phone || '-'}</span></p>
-                        <p><span class="text-outline">NÂ° Ofertas:</span> <span class="text-on-background font-bold">${company.offers_count || 0}</span></p>
-                    </div>
-                    <div class="pt-2">
-                        ${statusChip}
-                    </div>
-                </div>
-                <!-- Context Menu Trigger -->
-                <button type="button" onclick="toggleCompanyActions(event, ${company.id}, ${isVerified})" class="w-10 h-10 rounded-full bg-primary/5 hover:bg-primary/15 text-primary flex items-center justify-center shrink-0 transition-colors">
-                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                </button>
-            `;
-                container.appendChild(card);
-            });
+                const verifiedBadge = isVerified
+                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
+                    : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
+                const logoHTML = company.logo
+                    ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-sm font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
+                    : `<span class="text-sm font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
+                const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
+                const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
+                const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50';
+                return `<tr id="company-card-${company.id}" class="hover:bg-surface-container-low transition-colors">
+                    <td class="px-4 py-3">
+                        <div class="w-10 h-10 rounded-lg bg-surface-container border border-outline-variant overflow-hidden flex items-center justify-center shrink-0">${logoHTML}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="font-semibold text-on-surface text-body-sm truncate max-w-[180px]" title="${company.name}">${company.name}</p>
+                    </td>
+                    <td class="px-4 py-3 font-mono text-body-sm text-on-surface-variant">${company.ruc}</td>
+                    <td class="px-4 py-3 text-body-sm text-on-surface-variant truncate max-w-[180px]" title="${company.email}">${company.email}</td>
+                    <td class="px-4 py-3 text-body-sm text-on-surface-variant">${company.phone || '-'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-body-sm">${company.offers_count || 0}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">${verifiedBadge}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editCompany(${company.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 rounded-lg transition-colors ${verifyColor}">
+                                <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
+                            </button>
+                            <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         // Toggle Company Actions menu
