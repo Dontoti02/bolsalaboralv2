@@ -2,7 +2,7 @@
     // Configuración por defecto del sidebar
     $sidebarConfig = $sidebarConfig ?? [];
     $sidebarLogo = $sidebarConfig['logo'] ?? ($config['logo'] ?? '/assets/logo.png');
-    $sidebarBrand = $sidebarConfig['brand'] ?? 'Talentum';
+    $sidebarBrand = $sidebarConfig['brand'] ?? 'Bolsa Laboral';
     $sidebarSubtitle = $sidebarConfig['subtitle'] ?? '';
     $sidebarActive = $sidebarConfig['active'] ?? '';
     $sidebarItems = $sidebarConfig['items'] ?? [];
@@ -11,6 +11,8 @@
     $sidebarPublishLabel = $sidebarConfig['publish_label'] ?? 'Publicar Oferta';
     $sidebarShowHelp = $sidebarConfig['show_help'] ?? true;
     $sidebarHelpLabel = $sidebarConfig['help_label'] ?? 'Soporte';
+    $sidebarHelpTab = $sidebarConfig['help_tab'] ?? null;
+    $sidebarHelpUrl = $sidebarConfig['help_url'] ?? null;
 @endphp
 
 <!-- SideNavBar -->
@@ -24,17 +26,17 @@
                 onerror="this.onerror=null;this.src='/assets/logo.png';">
         </div>
         <!-- Close sidebar button for mobile -->
-        <button id="close-sidebar-btn"
+        <button type="button" id="close-sidebar-btn"
             class="md:hidden text-on-surface-variant hover:bg-surface-variant p-1 rounded-full absolute right-2 top-1/2 -translate-y-1/2">
             <span class="material-symbols-outlined">close</span>
         </button>
     </div>
 
     @if($sidebarShowPublish)
-        <button onclick="switchTab('{{ $sidebarPublishTab }}')"
+        <button type="button" onclick="switchTab('{{ $sidebarPublishTab }}')"
             class="mb-lg w-full bg-primary text-on-primary text-label-md font-label-md py-3 rounded-lg hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">
             <span class="material-symbols-outlined">add</span>
-            {{ $sidebarPublishLabel }}
+            <span class="sidebar-label">{{ $sidebarPublishLabel }}</span>
         </button>
     @endif
 
@@ -42,22 +44,22 @@
         @foreach($sidebarItems as $group)
             <div>
                 @if(!empty($group['label']))
-                    <p class="px-4 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider mb-2">
+                    <p class="sidebar-section-label px-4 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider mb-2">
                         {{ $group['label'] }}
                     </p>
                 @endif
                 @foreach($group['items'] ?? [] as $item)
                     @php
                         $isActive = ($sidebarActive === ($item['key'] ?? ''));
-                        $baseClasses = 'tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg scale-95 active:scale-90 transition-transform text-left';
+                        $baseClasses = 'tab-btn w-full flex items-center gap-3 px-4 py-3 scale-95 active:scale-90 transition-all text-left';
                         $stateClasses = $isActive
-                            ? 'bg-primary/10 text-primary font-semibold border-l-4 border-primary rounded-r-lg rounded-l-none'
-                            : 'text-on-surface-variant hover:bg-surface-variant transition-colors duration-200';
+                            ? 'bg-surface-container-high text-on-surface font-semibold border-l-4 border-primary rounded-r-lg rounded-l-none shadow-sm'
+                            : 'text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors duration-200';
                     @endphp
-                    <button data-tab="{{ $item['key'] ?? '' }}" class="{{ $baseClasses }} {{ $stateClasses }}">
+                    <button type="button" data-tab="{{ $item['key'] ?? '' }}" class="{{ $baseClasses }} {{ $stateClasses }}">
                         <span class="material-symbols-outlined">{{ $item['icon'] ?? 'circle' }}</span>
                         <span
-                            class="text-label-md font-label-md {{ $isActive ? 'font-semibold' : '' }}">{{ $item['label'] ?? '' }}</span>
+                            class="sidebar-label text-label-md font-label-md {{ $isActive ? 'font-semibold' : '' }}">{{ $item['label'] ?? '' }}</span>
                     </button>
                 @endforeach
             </div>
@@ -66,16 +68,31 @@
 
     <div class="mt-auto pt-4 border-t border-outline-variant space-y-1">
         @if($sidebarShowHelp)
-            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform"
-                href="#">
-                <span class="material-symbols-outlined">help</span>
-                <span class="text-label-md font-label-md">{{ $sidebarHelpLabel }}</span>
-            </a>
+            @if($sidebarHelpTab)
+                <button type="button" data-tab="{{ $sidebarHelpTab }}"
+                    class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform text-left">
+                    <span class="material-symbols-outlined">help</span>
+                    <span class="sidebar-label text-label-md font-label-md">{{ $sidebarHelpLabel }}</span>
+                </button>
+            @elseif($sidebarHelpUrl)
+                <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform"
+                    href="{{ $sidebarHelpUrl }}">
+                    <span class="material-symbols-outlined">help</span>
+                    <span class="sidebar-label text-label-md font-label-md">{{ $sidebarHelpLabel }}</span>
+                </a>
+            @else
+                <button type="button"
+                    onclick="if (typeof showToast === 'function') { showToast('El centro de ayuda aún no está configurado.', 'warning'); } else { alert('El centro de ayuda aún no está configurado.'); }"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform text-left">
+                    <span class="material-symbols-outlined">help</span>
+                    <span class="sidebar-label text-label-md font-label-md">{{ $sidebarHelpLabel }}</span>
+                </button>
+            @endif
         @endif
-        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform"
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg scale-95 active:scale-90 transition-transform"
             href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <span class="material-symbols-outlined">logout</span>
-            <span class="text-label-md font-label-md">Cerrar Sesión</span>
+            <span class="sidebar-label text-label-md font-label-md">Cerrar Sesión</span>
         </a>
         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
             @csrf

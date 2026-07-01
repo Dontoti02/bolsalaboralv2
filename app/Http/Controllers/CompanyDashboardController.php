@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Mail\ApplicationApprovedMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\UserNotification;
+use App\Models\User;
+
 use Illuminate\Support\Str;
 
 class CompanyDashboardController extends Controller
@@ -280,7 +285,7 @@ class CompanyDashboardController extends Controller
                 'locations'      => DB::table('job_opportunity_location')->get(),
                 'work_schedules' => DB::table('job_opportunity_work_schedules')->get(),
                 'contract_types' => DB::table('job_opportunity_contract_types')->get(),
-                'states'         => DB::table('job_opportunity_offer_states')->get(),
+                'states'         => DB::table('job_opportunity_offer_state')->get(),
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -297,6 +302,13 @@ class CompanyDashboardController extends Controller
 
         if (!$company) {
             return response()->json(['success' => false, 'message' => 'Empresa no encontrada.'], 404);
+        }
+
+        if (!$company->is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu empresa aún no ha sido verificada por el administrador. No tienes permisos para realizar esta acción.'
+            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -346,6 +358,21 @@ class CompanyDashboardController extends Controller
 
             DB::commit();
 
+            // Notify admins about new offer
+            try {
+                $admins = User::where('rol_id', 1)->get();
+                foreach ($admins as $admin) {
+                    UserNotification::create([
+                        'user_id' => $admin->id,
+                        'title' => 'Nueva oferta laboral',
+                        'message' => "La empresa {$company->name} ha publicado la oferta: {$offer->title}",
+                        'link' => '/admin/dashboard?tab=offers',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                logger()->error('Error creating notification for new offer: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => '¡Oferta laboral creada exitosamente!',
@@ -384,6 +411,17 @@ class CompanyDashboardController extends Controller
     {
         $user    = Auth::user();
         $company = $user->company;
+
+        if (!$company) {
+            return response()->json(['success' => false, 'message' => 'Empresa no encontrada.'], 404);
+        }
+
+        if (!$company->is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu empresa aún no ha sido verificada por el administrador. No tienes permisos para realizar esta acción.'
+            ], 403);
+        }
 
         $offer = JobOpportunityOffer::where('id', $id)->where('company_id', $company->id)->first();
 
@@ -448,6 +486,17 @@ class CompanyDashboardController extends Controller
     {
         $user    = Auth::user();
         $company = $user->company;
+
+        if (!$company) {
+            return response()->json(['success' => false, 'message' => 'Empresa no encontrada.'], 404);
+        }
+
+        if (!$company->is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu empresa aún no ha sido verificada por el administrador. No tienes permisos para realizar esta acción.'
+            ], 403);
+        }
 
         $offer = JobOpportunityOffer::where('id', $id)->where('company_id', $company->id)->first();
 
@@ -536,6 +585,8 @@ class CompanyDashboardController extends Controller
         }
 
         try {
+            $previousStatus = $application->status;
+
             DB::table('job_opportunity_applications')
                 ->where('id', $id)
                 ->update([
@@ -544,9 +595,106 @@ class CompanyDashboardController extends Controller
                     'updated_at' => now(),
                 ]);
 
+            // Send email notification when application is approved (accepted)
+            if ($request->status === 'accepted' && $previousStatus !== 'accepted') {
+                $appModel = \App\Models\JobOpportunityApplication::with(['offer.company', 'user.person'])
+                    ->find($id);
+                if ($appModel && $appModel->user && $appModel->user->email) {
+                    try {
+                        Mail::to($appModel->user->email)
+                            ->send(new ApplicationApprovedMail($appModel));
+                    } catch (\Exception $mailEx) {
+                        logger()->error('Error sending approval email from company: ' . $mailEx->getMessage());
+                    }
+                }
+            }
+
+            // Notify student about status change
+            if ($application->user_id) {
+                try {
+                    $statusText = match($request->status) {
+                        'accepted' => 'aceptada',
+                        'rejected' => 'rechazada',
+                        default => 'actualizada',
+                    };
+                    UserNotification::create([
+                        'user_id' => $application->user_id,
+                        'title' => 'Estado de postulación actualizado',
+                        'message' => "Tu postulación ha sido {$statusText} por la empresa.",
+                        'link' => '/student/dashboard?tab=applications',
+                    ]);
+                } catch (\Exception $e) {
+                    logger()->error('Error creating notification for application status change: ' . $e->getMessage());
+                }
+            }
+
             return response()->json(['success' => true, 'message' => 'Estado del postulante actualizado.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Add custom metadata item.
+     */
+    public function addOfferMetaItem(Request $request)
+    {
+        $user    = Auth::user();
+        $company = $user->company;
+
+        if (!$company) {
+            return response()->json(['success' => false, 'message' => 'Empresa no encontrada.'], 404);
+        }
+
+        if (!$company->is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu empresa aún no ha sido verificada por el administrador. No tienes permisos para realizar esta acción.'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|string|in:contract_type,work_schedule,location,category',
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $type = $request->type;
+        $name = $request->name;
+        $item = null;
+
+        try {
+            switch ($type) {
+                case 'contract_type':
+                    $item = \App\Models\JobOpportunityContractType::create(['name' => $name]);
+                    break;
+                case 'work_schedule':
+                    $item = \App\Models\JobOpportunityWorkSchedule::create(['name' => $name]);
+                    break;
+                case 'location':
+                    $item = \App\Models\JobOpportunityLocation::create(['name' => $name]);
+                    break;
+                case 'category':
+                    $item = \App\Models\JobOpportunityOfferCategory::create(['name' => $name]);
+                    break;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Opción agregada exitosamente.',
+                'item' => $item
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al agregar opción: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

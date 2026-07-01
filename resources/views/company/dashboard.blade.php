@@ -3,11 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Talentum - Panel de Empresa</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Panel de Empresa</title>
+    <link rel="icon" href="{{ $config['favicon'] ?? '/assets/favicon.png' }}" />
     <style>
         :root {
             --primary-color: {{ $config['primary_color'] ?? '#002741' }};
-            --primary-container-color: {{ $config['primary_color'] ?? '#0f3d5e' }};
+            --primary-container-color: {{ $config['primary_container_color'] ?? ($config['primary_color'] ?? '#0f3d5e') }};
+            --secondary-color: {{ $config['secondary_color'] ?? '#006b60' }};
+            --secondary-container-color: {{ $config['secondary_container_color'] ?? '#7df7e4' }};
+            --accent-color: {{ $config['accent_color'] ?? '#ff9f43' }};
         }
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,7 +29,7 @@
     @php
         $sidebarConfig = [
             'logo' => $config['logo'] ?? '/assets/logo.png',
-            'brand' => 'Talentum',
+            'brand' => 'Bolsa Laboral',
             'subtitle' => 'Portal de Empresas',
             'active' => '',
             'home_tab' => 'dashboard',
@@ -107,11 +112,31 @@
                     <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Resumen de Empresa</h1>
                     <p class="font-body-md text-body-md text-on-surface-variant">Monitorea el rendimiento de tus ofertas y postulantes.</p>
                 </div>
+                @if($company->is_verified)
                 <button onclick="switchTab('offers'); showCreateOfferForm()" class="bg-primary text-on-primary rounded-lg px-lg py-3 font-label-md text-label-md flex items-center justify-center gap-sm shadow-sm hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[20px]">add</span>
                     Crear Nueva Oferta
                 </button>
+                @else
+                <button disabled class="bg-outline-variant text-on-surface-variant/50 cursor-not-allowed rounded-lg px-lg py-3 font-label-md text-label-md flex items-center justify-center gap-sm shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">lock</span>
+                    Crear Nueva Oferta (Requiere Verificación)
+                </button>
+                @endif
             </div>
+
+            @if(!$company->is_verified)
+            <!-- Unverified Warning Banner -->
+            <div id="verification-warning-banner" class="flex flex-col sm:flex-row sm:items-center justify-between gap-md bg-red-50 border-2 border-red-200 text-red-900 p-lg rounded-2xl shadow-sm">
+                <div class="flex items-start gap-md">
+                    <span class="material-symbols-outlined text-red-600 text-3xl shrink-0">gavel</span>
+                    <div>
+                        <p class="font-bold text-body-sm leading-none text-red-950">¡Cuenta no verificada!</p>
+                        <p class="text-body-sm mt-1">Tu empresa aún no ha sido verificada por el administrador. No podrás publicar ofertas de empleo hasta que sea aprobada.</p>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             @if(empty($company->phone) || empty($company->address))
             <!-- Warning Banner -->
@@ -246,7 +271,7 @@
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title ?? 'Puesto' }}</td>
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->diffForHumans() : '-' }}</td>
                                     <td class="px-lg py-md text-right">
-                                        <button class="text-primary hover:text-primary-container font-label-md text-label-md transition-colors font-semibold">Ver Perfil</button>
+                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" class="text-primary hover:text-primary-container font-label-md text-label-md transition-colors font-semibold">Ver Perfil</button>
                                     </td>
                                 </tr>
                                 @empty
@@ -290,11 +315,19 @@
                             <option value="salary_desc">Mayor Salario</option>
                             <option value="salary_asc">Menor Salario</option>
                         </select>
+                        @if($company->is_verified)
                         <button onclick="showCreateOfferForm()"
                             class="flex-1 sm:flex-initial px-6 py-2.5 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:opacity-95 shadow-sm transition-all font-semibold flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Crear Oferta
                         </button>
+                        @else
+                        <button disabled
+                            class="flex-1 sm:flex-initial px-6 py-2.5 bg-outline-variant text-on-surface-variant/50 cursor-not-allowed font-label-md text-label-md rounded-xl shadow-sm transition-all font-semibold flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">lock</span>
+                            Crear Oferta (Requiere Verificación)
+                        </button>
+                        @endif
                     </div>
                 </div>
 
@@ -411,20 +444,35 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
                         <!-- Column 1 -->
                         <div class="space-y-md">
+                            <!-- Tipo de contrato -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-contract-type">Tipo de contrato</label>
-                                <select id="co-offer-contract-type"
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
-                                    <option value="">Seleccionar...</option>
-                                </select>
+                                <div class="flex gap-2">
+                                    <select id="co-offer-contract-type"
+                                        class="flex-1 px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                    <button type="button" onclick="openAddLookupModal('contract_type', 'Tipo de contrato')"
+                                        class="px-3 border border-outline-variant hover:bg-surface-container-high rounded-xl text-primary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[18px]">add</span>
+                                    </button>
+                                </div>
                             </div>
+                            <!-- Modalidad de trabajo -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-location">Modalidad de trabajo</label>
-                                <select id="co-offer-location"
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
-                                    <option value="">Seleccionar...</option>
-                                </select>
+                                <div class="flex gap-2">
+                                    <select id="co-offer-location"
+                                        class="flex-1 px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                    <button type="button" onclick="openAddLookupModal('location', 'Modalidad de trabajo')"
+                                        class="px-3 border border-outline-variant hover:bg-surface-container-high rounded-xl text-primary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[18px]">add</span>
+                                    </button>
+                                </div>
                             </div>
+                            <!-- Dirección -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-address">Dirección</label>
                                 <div class="relative">
@@ -436,13 +484,21 @@
                         </div>
                         <!-- Column 2 -->
                         <div class="space-y-md">
+                            <!-- Jornada laboral -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-work-schedule">Jornada laboral</label>
-                                <select id="co-offer-work-schedule"
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
-                                    <option value="">Seleccionar...</option>
-                                </select>
+                                <div class="flex gap-2">
+                                    <select id="co-offer-work-schedule"
+                                        class="flex-1 px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                    <button type="button" onclick="openAddLookupModal('work_schedule', 'Jornada laboral')"
+                                        class="px-3 border border-outline-variant hover:bg-surface-container-high rounded-xl text-primary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[18px]">add</span>
+                                    </button>
+                                </div>
                             </div>
+                            <!-- Departamento -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-department">Departamento</label>
                                 <select id="co-offer-department" onchange="handleCompanyDepartmentChange()"
@@ -450,12 +506,19 @@
                                     <option value="">Seleccionar...</option>
                                 </select>
                             </div>
+                            <!-- Categoría -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-category">Categoría</label>
-                                <select id="co-offer-category"
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
-                                    <option value="">Seleccionar...</option>
-                                </select>
+                                <div class="flex gap-2">
+                                    <select id="co-offer-category"
+                                        class="flex-1 px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                    <button type="button" onclick="openAddLookupModal('category', 'Categoría')"
+                                        class="px-3 border border-outline-variant hover:bg-surface-container-high rounded-xl text-primary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[18px]">add</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <!-- Column 3 -->
@@ -536,7 +599,8 @@
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">
                                     <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ strtoupper($app->status) }}</span>
                                 </td>
-                                <td class="px-lg py-md text-right flex justify-end gap-2">
+                                <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
+                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" class="text-primary hover:underline font-label-sm text-label-sm font-semibold">Ver Perfil</button>
                                     @if($app->cv)
                                     <a href="{{ $app->cv }}" target="_blank" class="text-primary hover:underline font-label-sm text-label-sm font-semibold flex items-center gap-0.5"><span class="material-symbols-outlined text-sm">picture_as_pdf</span> CV</a>
                                     @endif
@@ -655,6 +719,86 @@
     <span id="toast-message" class="font-label-md text-label-md"></span>
 </div>
 
+<!-- ================= MODAL: AGREGAR METADATOS inline (+) ================= -->
+<div id="add-lookup-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+    <div
+        class="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300">
+        <div
+            class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-surface-container-low">
+            <h2 id="lookup-modal-title" class="text-headline-md font-headline-md text-on-surface">Agregar opción</h2>
+            <button onclick="toggleLookupModal()"
+                class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="add-lookup-form" onsubmit="handleAddLookupSubmit(event)" class="p-lg space-y-md">
+            <input type="hidden" id="lookup-type" value="">
+            <div class="space-y-xs">
+                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="lookup-name">Nombre de la opción</label>
+                <input
+                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                    id="lookup-name" placeholder="Ej. Tiempo parcial" type="text" required />
+            </div>
+            <div class="flex justify-end gap-md pt-lg border-t border-outline-variant">
+                <button type="button" onclick="toggleLookupModal()"
+                    class="px-6 py-2.5 border border-primary text-primary font-label-md text-label-md rounded-xl hover:bg-primary-fixed transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="px-6 py-2.5 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:opacity-95 shadow-sm transition-all font-semibold">
+                    Agregar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Detalles del Postulante -->
+<div id="applicant-detail-modal" class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-bright rounded-2xl border border-outline-variant p-xl shadow-lg max-w-md w-full mx-4 flex flex-col space-y-lg transform scale-95 transition-transform duration-300">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-outline-variant pb-md">
+            <h3 class="text-headline-sm font-bold text-on-surface">Perfil del Postulante</h3>
+            <button onclick="closeApplicantModal()" class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <!-- Content -->
+        <div class="space-y-md flex-1">
+            <!-- Initials Avatar + Name & Career -->
+            <div class="flex items-center gap-md">
+                <div id="applicant-modal-avatar" class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-headline-md font-bold">
+                    -
+                </div>
+                <div>
+                    <h4 id="applicant-modal-name" class="text-title-md font-bold text-on-surface">-</h4>
+                    <p id="applicant-modal-career" class="text-body-sm text-on-surface-variant font-medium">-</p>
+                </div>
+            </div>
+
+            <!-- Application Message -->
+            <div class="space-y-xs">
+                <span class="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Mensaje de presentación</span>
+                <p id="applicant-modal-message" class="text-body-md text-on-surface bg-surface-container-low p-md rounded-xl border border-outline-variant/60 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                    -
+                </p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-md border-t border-outline-variant pt-lg">
+            <button onclick="closeApplicantModal()" class="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-semibold text-label-md rounded-xl hover:bg-surface-container-low transition-colors">
+                Cerrar
+            </button>
+            <a id="applicant-modal-cv-link" href="#" target="_blank" class="flex-1 py-2.5 bg-primary text-on-primary font-semibold text-label-md rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                Ver CV PDF
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
     function switchTab(tabId) {
         // Find all tabs and panels
@@ -675,10 +819,10 @@
             const currentTabId = btn.getAttribute('data-tab');
             if (currentTabId === tabId) {
                 // Set active style
-                btn.className = "tab-btn w-full bg-primary-container text-on-primary-container rounded-lg font-bold flex items-center gap-md px-md py-sm scale-95 transition-all duration-150 text-left";
+                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 scale-95 transition-all text-left bg-surface-container-high text-on-surface font-semibold border-l-4 border-primary rounded-r-lg rounded-l-none shadow-sm";
             } else {
                 // Set inactive style
-                btn.className = "tab-btn w-full text-on-surface-variant flex items-center gap-md px-md py-sm hover:bg-surface-container-high rounded-lg transition-all text-left";
+                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg scale-95 transition-all text-left";
             }
         });
         
@@ -811,8 +955,11 @@
         if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
         if (backdrop) backdrop.addEventListener('click', toggleSidebar);
 
-        // Initialize to show 'dashboard' panel first
-        switchTab('dashboard');
+        // Initialize to show 'dashboard' panel first or the tab specified in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabToOpen = urlParams.get('tab') || 'dashboard';
+        const validTabs = ['dashboard', 'offers', 'applicants', 'profile'];
+        switchTab(validTabs.includes(tabToOpen) ? tabToOpen : 'dashboard');
     });
 
     /* ============================================================
@@ -822,15 +969,18 @@
     const CSRF = '{{ csrf_token() }}';
 
     async function loadCompanyOfferMeta() {
-        if (companyOfferMeta) return companyOfferMeta;
-        const res = await fetch('/company/offers/meta', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        const data = await res.json();
-        if (data.success) {
-            companyOfferMeta = data;
-            populateCompanySelect('co-offer-contract-type', data.contract_types);
-            populateCompanySelect('co-offer-location', data.locations);
-            populateCompanySelect('co-offer-work-schedule', data.work_schedules);
-            populateCompanySelect('co-offer-category', data.categories);
+        if (!companyOfferMeta) {
+            const res = await fetch('/company/offers/meta', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            if (data.success) {
+                companyOfferMeta = data;
+            }
+        }
+        if (companyOfferMeta) {
+            populateCompanySelect('co-offer-contract-type', companyOfferMeta.contract_types);
+            populateCompanySelect('co-offer-location', companyOfferMeta.locations);
+            populateCompanySelect('co-offer-work-schedule', companyOfferMeta.work_schedules);
+            populateCompanySelect('co-offer-category', companyOfferMeta.categories);
             populateCompanyDepartments();
         }
         return companyOfferMeta;
@@ -850,32 +1000,32 @@
         });
     }
 
-    const PERU_DEPTS = {
-        'Amazonas':['Chachapoyas','Bagua','Bongará','Condorcanqui','Luya','Rodríguez de Mendoza','Utcubamba'],
-        'Áncash':['Huaraz','Aija','Antonio Raymondi','Asunción','Bolognesi','Carhuaz','Carlos Fermín Fitzcarrald','Casma','Corongo','Huari','Huarmey','Huaylas','Mariscal Luzuriaga','Ocros','Pallasca','Pomabamba','Recuay','Santa','Sihuas','Yungay'],
-        'Apurímac':['Abancay','Andahuaylas','Antabamba','Aymaraes','Cotabambas','Chincheros','Grau'],
-        'Arequipa':['Arequipa','Camaná','Caravelí','Castilla','Caylloma','Condesuyos','Islay','La Unión'],
-        'Ayacucho':['Huamanga','Cangallo','Huanca Sancos','Huanta','La Mar','Lucanas','Parinacochas','Páucar del Sara Sara','Sucre','Víctor Fajardo','Vilcas Huamán'],
-        'Cajamarca':['Cajamarca','Cajabamba','Celendín','Chota','Contumazá','Cutervo','Hualgayoc','Jaén','San Ignacio','San Marcos','San Miguel','San Pablo','Santa Cruz'],
-        'Callao':['Callao'],
-        'Cusco':['Cusco','Acomayo','Anta','Calca','Canas','Canchis','Chumbivilcas','Espinar','La Convención','Paruro','Paucartambo','Quispicanchis','Urubamba'],
-        'Huancavelica':['Huancavelica','Acobamba','Angaraes','Castrovirreyna','Churcampa','Huaytará','Tayacaja'],
-        'Huánuco':['Huánuco','Ambo','Dos de Mayo','Huacaybamba','Huamalíes','Leoncio Prado','Marañón','Pachitea','Puerto Inca','Lauricocha','Yarowilca'],
-        'Ica':['Ica','Chincha','Nasca','Palpa','Pisco'],
-        'Junín':['Huancayo','Chanchamayo','Chupaca','Concepción','Jauja','Junín','Satipo','Tarma','Yauli'],
-        'La Libertad':['Trujillo','Ascope','Bolívar','Chepén','Julcán','Otuzco','Pacasmayo','Pataz','Sánchez Carrión','Santiago de Chuco','Gran Chimú','Virú'],
-        'Lambayeque':['Chiclayo','Ferreñafe','Lambayeque'],
-        'Lima':['Lima','Barranca','Cajatambo','Canta','Cañete','Huaral','Huarochirí','Huaura','Oyón','Yauyos'],
-        'Loreto':['Maynas','Alto Amazonas','Datem del Marañón','Loreto','Mariscal Ramón Castilla','Putumayo','Requena','Ucayali'],
-        'Madre de Dios':['Tambopata','Manu','Tahuamanu'],
-        'Moquegua':['Mariscal Nieto','General Sánchez Cerro','Ilo'],
-        'Pasco':['Pasco','Daniel Alcides Carrión','Oxapampa'],
-        'Piura':['Piura','Ayabaca','Huancabamba','Morropón','Paita','Sullana','Talara','Sechura'],
-        'Puno':['Puno','Azángaro','Carabaya','Chucuito','El Collao','Huancané','Lampa','Melgar','Moho','San Antonio de Putina','San Román','Sandia','Yunguyo'],
-        'San Martín':['Moyobamba','Bellavista','El Dorado','Huallaga','Lamas','Mariscal Cáceres','Picota','Rioja','San Martín','Tocache'],
-        'Tacna':['Tacna','Candarave','Jorge Basadre','Tarata'],
-        'Tumbes':['Tumbes','Contralmirante Villar','Zarumilla'],
-        'Ucayali':['Coronel Portillo','Atalaya','Padre Abad','Purús']
+    const PERU_DEPARTMENTS = {
+        "Amazonas": ["Chachapoyas", "Bagua", "Bongará", "Condorcanqui", "Luya", "Rodríguez de Mendoza", "Utcubamba"],
+        "Áncash": ["Huaraz", "Aija", "Antonio Raymondi", "Asunción", "Bolognesi", "Carhuaz", "Carlos Fermín Fitzcarrald", "Casma", "Corongo", "Doméstico", "Huari", "Huarmey", "Huaylas", "Mariscal Luzuriaga", "Ocros", "Pallasca", "Pomabamba", "Recuay", "Santa", "Sihuas", "Yungay"],
+        "Apurímac": ["Abancay", "Andahuaylas", "Antabamba", "Cotabambas", "Grau", "Chincheros", "Aymaraes"],
+        "Arequipa": ["Arequipa", "Camaná", "Caravelí", "Castilla", "Caylloma", "Condesuyos", "Islay", "La Unión"],
+        "Ayacucho": ["Cangallo", "Huamanga", "Huanca Sancos", "Huanta", "La Mar", "Lucanas", "Parinacochas", "Paucar del Sara Sara", "Sucre", "Victor Fajardo", "Vilcas Huaman"],
+        "Cajamarca": ["Cajamarca", "Cajabamba", "Celendín", "Chota", "Contumazá", "Cutervo", "Hualgayoc", "Jaén", "San Ignacio", "San Marcos", "San Miguel", "San Pablo", "Santa Cruz"],
+        "Callao": ["Callao"],
+        "Cusco": ["Cusco", "Acomayo", "Anta", "Calca", "Canas", "Canchis", "Chumbivilcas", "Espinar", "La Convención", "Paruro", "Quispicanchi", "Urubamba"],
+        "Huancavelica": ["Huancavelica", "Acobamba", "Angaraes", "Castrovirreyna", "Churcampa", "Huaytará", "Tayacaja"],
+        "Huánuco": ["Huánuco", "Ambo", "Dos de Mayo", "Huacaybamba", "Huamalíes", "Leoncio Prado", "Marañón", "Pachitea", "Puerto Inca", "Lauricocha", "Yarowilca"],
+        "Ica": ["Ica", "Chincha", "Nasca", "Palpa", "Pisco"],
+        "Junín": ["Huancayo", "Chanchamayo", "Chupaca", "Concepción", "Jauja", "Junín", "Satipo", "Tarma", "Yauli"],
+        "La Libertad": ["Trujillo", "Ascope", "Bolívar", "Chepén", "Gran Chimú", "Julcán", "Otuzco", "Pacasmayo", "Pataz", "Sánchez Carrión", "Santiago de Chuco", "Virú"],
+        "Lambayeque": ["Chiclayo", "Ferreñafe", "Lambayeque"],
+        "Lima": ["Lima", "Barranca", "Cajatambo", "Canta", "Cañete", "Huaral", "Huarochirí", "Huaura", "Oyón", "Yauyos"],
+        "Loreto": ["Iquitos", "Alto Amazonas", "Loreto", "Mariscal Ramón Castilla", "Requena", "Ucayali", "Datem del Marañón", "Putumayo"],
+        "Madre de Dios": ["Tambopata", "Manu", "Tahuamanu"],
+        "Moquegua": ["Mariscal Nieto", "General Sánchez Cerro", "Ilo"],
+        "Pasco": ["Pasco", "Daniel Alcides Carrión", "Oxapampa"],
+        "Piura": ["Piura", "Ayabaca", "Huancabamba", "Morropón", "Paita", "Sechura", "Sullana", "Talara"],
+        "Puno": ["Puno", "Azángaro", "Carabaya", "Chucuito", "El Collao", "Huancané", "Lampa", "Melgar", "Moho", "San Antonio de Putina", "San Román", "Sandia", "Yunguyo"],
+        "San Martín": ["Moyobamba", "Bellavista", "El Dorado", "Huallaga", "Lamas", "Mariscal Cáceres", "Picota", "Rioja", "San Martín", "Tocache"],
+        "Tacna": ["Tacna", "Candarave", "Jorge Basadre", "Tarata"],
+        "Tumbes": ["Tumbes", "Contralmirante Villar", "Zarumilla"],
+        "Ucayali": ["Coronel Portillo", "Atalaya", "Padre Abad", "Purús"]
     };
 
     function populateCompanyDepartments() {
@@ -883,7 +1033,7 @@
         if (!sel) return;
         const cur = sel.value;
         sel.innerHTML = '<option value="">Seleccionar...</option>';
-        Object.keys(PERU_DEPTS).forEach(d => {
+        Object.keys(PERU_DEPARTMENTS).sort().forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
             opt.textContent = d;
@@ -896,12 +1046,14 @@
         const dept = document.getElementById('co-offer-department').value;
         const provSel = document.getElementById('co-offer-province');
         provSel.innerHTML = '<option value="">Seleccionar provincia...</option>';
-        (PERU_DEPTS[dept] || []).forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p;
-            opt.textContent = p;
-            provSel.appendChild(opt);
-        });
+        if (dept && PERU_DEPARTMENTS[dept]) {
+            PERU_DEPARTMENTS[dept].sort().forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                provSel.appendChild(opt);
+            });
+        }
     }
 
     function loadCompanyOffers() {
@@ -1103,6 +1255,140 @@
         ta.setRangeText(insert, start, end, 'end');
         ta.focus();
     }
+
+    // Toggle Metadata Add Inline Modal
+    let activeLookupSelectId = '';
+    function openAddLookupModal(type, label) {
+        activeLookupSelectId = {
+            'contract_type': 'co-offer-contract-type',
+            'location': 'co-offer-location',
+            'work_schedule': 'co-offer-work-schedule',
+            'category': 'co-offer-category'
+        }[type];
+
+        document.getElementById('lookup-type').value = type;
+        document.getElementById('lookup-modal-title').textContent = `Agregar ${label}`;
+        document.getElementById('lookup-name').value = '';
+
+        toggleLookupModal();
+    }
+
+    function toggleLookupModal() {
+        const modal = document.getElementById('add-lookup-modal');
+        const modalContainer = modal.querySelector('.max-w-md');
+
+        if (modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modalContainer.classList.remove('scale-95'), 10);
+            document.getElementById('lookup-name').focus();
+        } else {
+            modalContainer.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+    }
+
+    function handleAddLookupSubmit(event) {
+        event.preventDefault();
+
+        const type = document.getElementById('lookup-type').value;
+        const name = document.getElementById('lookup-name').value;
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch('/company/offers/meta/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ type, name: name.trim() })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Opción agregada exitosamente.');
+
+                    // Append to selection field and select it
+                    const select = document.getElementById(activeLookupSelectId);
+                    const opt = document.createElement('option');
+                    opt.value = data.item.id;
+                    opt.textContent = data.item.name;
+                    opt.selected = true;
+                    select.appendChild(opt);
+
+                    // Update the cached meta object
+                    if (companyOfferMeta) {
+                        if (type === 'contract_type') companyOfferMeta.contract_types.push(data.item);
+                        else if (type === 'location') companyOfferMeta.locations.push(data.item);
+                        else if (type === 'work_schedule') companyOfferMeta.work_schedules.push(data.item);
+                        else if (type === 'category') companyOfferMeta.categories.push(data.item);
+                    }
+
+                    toggleLookupModal();
+                } else {
+                    showToast(data.message || 'Error al agregar opción.', 'error');
+                }
+            })
+            .catch(() => showToast('Error de red al agregar opción.', 'error'));
+    }
+
+    function openApplicantModal(name, career, msg, cvUrl) {
+        const modal = document.getElementById('applicant-detail-modal');
+        const modalContent = modal.querySelector('div');
+        
+        // Set values
+        document.getElementById('applicant-modal-name').textContent = name;
+        document.getElementById('applicant-modal-career').textContent = career || 'No especificado';
+        document.getElementById('applicant-modal-message').textContent = msg ? msg.trim() : 'Sin mensaje de presentación.';
+        
+        // Avatar initials
+        const avatar = document.getElementById('applicant-modal-avatar');
+        const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        avatar.textContent = initials || 'C';
+
+        // CV Link
+        const cvLink = document.getElementById('applicant-modal-cv-link');
+        if (cvUrl && cvUrl !== '#') {
+            cvLink.href = cvUrl;
+            cvLink.style.display = 'flex';
+        } else {
+            cvLink.style.display = 'none';
+        }
+
+        // Open modal
+        modal.classList.remove('hidden');
+        modal.offsetHeight; // force reflow
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+
+    function closeApplicantModal() {
+        const modal = document.getElementById('applicant-detail-modal');
+        const modalContent = modal.querySelector('div');
+        
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const lookupModal = document.getElementById('add-lookup-modal');
+                if (lookupModal && !lookupModal.classList.contains('hidden')) {
+                    toggleLookupModal();
+                }
+                const appModal = document.getElementById('applicant-detail-modal');
+                if (appModal && !appModal.classList.contains('hidden')) {
+                    closeApplicantModal();
+                }
+            }
+        });
+    });
 </script>
 
 </body>

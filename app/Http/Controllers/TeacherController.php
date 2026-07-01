@@ -49,7 +49,10 @@ class TeacherController extends Controller
             $closedOffers = JobOpportunityOffer::with([
                     'company:id,name,logo',
                     'state',
+                    'category:id,name',
+                    'workSchedule:id,name',
                     'location:id,name',
+                    'contractType:id,name'
                 ])
                 ->where('state_id', $closedStateId)
                 ->orderBy('publication_date', 'desc')
@@ -58,6 +61,8 @@ class TeacherController extends Controller
                 ->map(function ($offer) {
                     $offer->company_name = $offer->company->name ?? 'Empresa';
                     $offer->location_name = $offer->location->name ?? 'No especificada';
+                    $offer->schedule_name = $offer->workSchedule->name ?? 'Jornada completa';
+                    $offer->category_name = $offer->category->name ?? 'General';
                     $offer->state_name = $offer->state->name ?? 'Cerrada';
                     $offer->initial = $offer->company ? strtoupper(substr($offer->company->name, 0, 1)) : 'E';
                     $offer->publication_formatted = $offer->publication_date

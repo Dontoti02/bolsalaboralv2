@@ -24,12 +24,12 @@
     --color-primary-container: var(--primary-container-color, #0f3d5e);
     --color-on-primary: #ffffff;
     --color-on-primary-container: #81a8ce;
-    --color-secondary: #006b60;
-    --color-secondary-container: #7df7e4;
+    --color-secondary: var(--secondary-color, #006b60);
+    --color-secondary-container: var(--secondary-container-color, #7df7e4);
     --color-on-secondary: #ffffff;
     --color-on-secondary-container: #007166;
     --color-tertiary: #312200;
-    --color-tertiary-container: #4c3700;
+    --color-tertiary-container: var(--accent-color, #4c3700);
     --color-on-tertiary: #ffffff;
     --color-on-tertiary-container: #d09c00;
     --color-error: #ba1a1a;
@@ -58,12 +58,12 @@
     --color-primary-fixed-dim: #a3caf2;
     --color-on-primary-fixed: #001d33;
     --color-on-primary-fixed-variant: #204a6b;
-    --color-secondary-fixed: #7df7e4;
-    --color-secondary-fixed-dim: #5edac8;
+    --color-secondary-fixed: var(--secondary-container-color, #7df7e4);
+    --color-secondary-fixed-dim: var(--secondary-color, #5edac8);
     --color-on-secondary-fixed: #00201c;
     --color-on-secondary-fixed-variant: #005048;
     --color-tertiary-fixed: #ffdf9d;
-    --color-tertiary-fixed-dim: #f9bd14;
+    --color-tertiary-fixed-dim: var(--accent-color, #f9bd14);
     --color-on-tertiary-fixed: #251a00;
     --color-on-tertiary-fixed-variant: #5b4300;
     --color-surface-tint: #3a6285;
@@ -126,4 +126,48 @@
     --text-headline-sm: 20px;
     --text-headline-sm--line-height: 28px;
     --text-headline-sm--font-weight: 600;
+}
+
+.admin-density-compact main .tab-panel {
+    gap: 16px;
+}
+
+.admin-density-compact input:not([type="color"]),
+.admin-density-compact select,
+.admin-density-compact textarea {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.admin-density-compact .p-lg {
+    padding: 18px;
+}
+
+@media (min-width: 768px) {
+    .admin-sidebar-compact #sidebar {
+        width: 92px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .admin-sidebar-compact #sidebar .sidebar-label,
+    .admin-sidebar-compact #sidebar .sidebar-section-label {
+        display: none;
+    }
+
+    .admin-sidebar-compact #sidebar button,
+    .admin-sidebar-compact #sidebar a {
+        justify-content: center;
+        gap: 0;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .admin-sidebar-compact #sidebar nav {
+        gap: 12px;
+    }
+
+    .admin-sidebar-compact #sidebar img {
+        max-width: 52px;
+    }
 }

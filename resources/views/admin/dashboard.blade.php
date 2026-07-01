@@ -5,11 +5,15 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Panel de Administración Global</title>
+    <title>Panel de Administración</title>
+    <link rel="icon" href="{{ $config['favicon'] ?? '/assets/favicon.png' }}" />
     <style>
         :root {
             --primary-color: {{ $config['primary_color'] ?? '#002741' }};
-            --primary-container-color: {{ $config['primary_color'] ?? '#0f3d5e' }};
+            --primary-container-color: {{ $config['primary_container_color'] ?? ($config['primary_color'] ?? '#0f3d5e') }};
+            --secondary-color: {{ $config['secondary_color'] ?? '#006b60' }};
+            --secondary-container-color: {{ $config['secondary_container_color'] ?? '#7df7e4' }};
+            --accent-color: {{ $config['accent_color'] ?? '#ff9f43' }};
         }
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -85,7 +89,7 @@
 
 </head>
 
-<body class="bg-background text-on-background font-body-md min-h-screen flex">
+<body class="bg-background text-on-background font-body-md min-h-screen flex {{ ($config['interface_density'] ?? 'comfortable') === 'compact' ? 'admin-density-compact' : '' }} {{ ($config['sidebar_style'] ?? 'expanded') === 'compact' ? 'admin-sidebar-compact' : '' }}">
     @php
         $adminUser = auth()->user();
         $adminPerson = $adminUser?->person;
@@ -97,7 +101,7 @@
 
         $sidebarConfig = [
             'logo' => $config['logo'] ?? '/assets/logo.png',
-            'brand' => 'Talentum',
+            'brand' => 'Bolsa Laboral',
             'subtitle' => 'Panel de Administración',
             'active' => '',
             'home_tab' => 'dashboard',
@@ -106,10 +110,12 @@
             'publish_label' => 'Publicar Oferta',
             'show_help' => true,
             'help_label' => 'Soporte',
+            'help_tab' => 'support',
             'items' => [
                 [
                     'label' => 'Configuración',
                     'items' => [
+                        ['key' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard'],
                         ['key' => 'users', 'icon' => 'group', 'label' => 'Usuarios'],
                     ],
                 ],
@@ -124,7 +130,6 @@
                     'items' => [
                         ['key' => 'offers', 'icon' => 'list_alt', 'label' => 'Ofertas'],
                         ['key' => 'companies-manage', 'icon' => 'corporate_fare', 'label' => 'Empresas · Gestionar'],
-                        ['key' => 'companies-register', 'icon' => 'add_business', 'label' => 'Empresas · Registrar'],
                         ['key' => 'applications', 'icon' => 'person_search', 'label' => 'Postulaciones'],
                     ],
                 ],
@@ -139,9 +144,6 @@
     @endphp
 
     @include('partials.sidebar', ['sidebarConfig' => $sidebarConfig, 'config' => $config ?? []])
-
-    <!-- Backdrop for mobile sidebar -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-30 hidden md:hidden"></div>
 
     <!-- Main Content Canvas -->
     <main class="flex-1 flex flex-col min-w-0">
@@ -183,30 +185,8 @@
                 </div>
             </div>
             <div class="flex items-center gap-sm">
-                <div class="relative">
-                    <button id="admin-notifications-button" type="button"
-                        onclick="toggleAdminHeaderMenu('notifications')"
-                        class="relative w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-xl transition-colors"
-                        aria-label="Notificaciones"><span
-                            class="material-symbols-outlined">notifications</span></button>
-                    <div id="admin-notifications-menu"
-                        class="admin-header-menu hidden absolute right-0 top-12 w-80 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl overflow-hidden z-50">
-                        <div class="px-5 py-4 border-b border-outline-variant flex items-center justify-between">
-                            <div>
-                                <p class="font-headline-sm text-[16px] text-on-surface">Notificaciones</p>
-                                <p class="text-[12px] text-on-surface-variant">Actividad reciente de su cuenta</p>
-                            </div><span
-                                class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center"><span
-                                    class="material-symbols-outlined text-[20px]">done_all</span></span>
-                        </div>
-                        <div class="p-6 text-center"><span
-                                class="material-symbols-outlined text-4xl text-outline mb-2">notifications_none</span>
-                            <p class="font-semibold text-on-surface">Todo est&aacute; al d&iacute;a</p>
-                            <p class="text-body-sm text-on-surface-variant mt-1">Las novedades importantes
-                                aparecer&aacute;n aqu&iacute;.</p>
-                        </div>
-                    </div>
-                </div>
+                @include('partials.notifications-dropdown', ['id' => 'notifications-button', 'menuId' => 'notifications-menu'])
+                
                 <button type="button" onclick="switchTab('settings')"
                     class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-xl transition-colors"
                     aria-label="Ajustes" title="Ajustes del sistema"><span
@@ -275,13 +255,6 @@
                             Administración Global</h1>
                         <p class="text-body-md font-body-md text-on-surface-variant">Gestione empresas, usuarios y
                             ofertas laborales desde un solo lugar.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <button
-                            class="px-4 py-2 bg-surface text-on-surface-variant border border-outline-variant rounded-lg text-label-md font-label-md hover:bg-surface-variant transition-colors shadow-sm flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px]">download</span>
-                            Exportar Datos
-                        </button>
                     </div>
                 </div>
 
@@ -364,7 +337,8 @@
                         <div class="p-lg border-b border-outline-variant flex justify-between items-center">
                             <h3 class="text-headline-sm font-headline-sm text-on-background">Registros de Empresas
                                 Recientes</h3>
-                            <button class="text-primary text-label-md font-label-md hover:underline">Ver Todas</button>
+                            <button type="button" onclick="switchTab('companies-manage')"
+                                class="text-primary text-label-md font-label-md hover:underline">Ver Todas</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -407,7 +381,8 @@
                                                 </span>
                                             </td>
                                             <td class="p-4 text-right">
-                                                <button
+                                                <button type="button" onclick="switchTab('companies-manage')"
+                                                    title="Gestionar empresa"
                                                     class="text-primary hover:bg-primary-fixed p-1 rounded transition-colors">
                                                     <span class="material-symbols-outlined text-[20px]">more_vert</span>
                                                 </button>
@@ -969,7 +944,7 @@
                             <input
                                 class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
                                 id="set-app-name" name="application_name"
-                                value="{{ $config['application_name'] ?? 'Talentum' }}" type="text" required />
+                                value="{{ $config['application_name'] ?? 'Bolsa Laboral' }}" type="text" required />
                         </div>
 
                         <!-- Extensiones permitidas -->
@@ -1029,31 +1004,144 @@
                                 required />
                         </div>
 
-                        <!-- Primary Color Palette -->
-                        <div class="space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block">Elegir tema principal</label>
-                            <input type="hidden" id="set-primary-color" name="primary_color"
-                                value="{{ $config['primary_color'] ?? '#7367F0' }}">
-                            <div class="flex flex-wrap gap-3" id="color-palette">
-                                @php
-                                    $currentColor = $config['primary_color'] ?? '#7367F0';
-                                    $colors = [
-                                        '#7367F0' => 'bg-[#7367F0]', // Purple (Default)
-                                        '#82868b' => 'bg-[#82868b]', // Gray
-                                        '#28c76f' => 'bg-[#28c76f]', // Green
-                                        '#00cfe8' => 'bg-[#00cfe8]', // Light Blue/Cyan
-                                        '#ff9f43' => 'bg-[#ff9f43]', // Orange
-                                        '#ea5455' => 'bg-[#ea5455]'  // Red
-                                    ];
-                                @endphp
-                                @foreach ($colors as $hex => $class)
-                                    <button type="button" onclick="selectPrimaryColor('{{ $hex }}', this)"
-                                        class="w-10 h-10 rounded-lg {{ $class }} flex items-center justify-center text-white focus:outline-none transition-transform active:scale-95 shadow-sm">
-                                        <span
-                                            class="material-symbols-outlined text-xl" style="display: {{ strtolower($currentColor) === strtolower($hex) ? 'inline-block' : 'none' }};">check</span>
-                                    </button>
-                                @endforeach
+                        <!-- Identidad visual -->
+                        @php
+                            $currentPrimary = $config['primary_color'] ?? '#ff9f43';
+                            $currentSecondary = $config['secondary_color'] ?? '#006b60';
+                            $currentAccent = $config['accent_color'] ?? '#ff9f43';
+                            $themeMode = $config['theme_mode'] ?? 'light';
+                            $interfaceDensity = $config['interface_density'] ?? 'comfortable';
+                            $sidebarStyle = $config['sidebar_style'] ?? 'expanded';
+                            $themePresets = [
+                                ['name' => 'Institucional', 'primary' => '#ff9f43', 'secondary' => '#006b60', 'accent' => '#f97316'],
+                                ['name' => 'Academico', 'primary' => '#2563eb', 'secondary' => '#0f766e', 'accent' => '#f59e0b'],
+                                ['name' => 'Bosque', 'primary' => '#15803d', 'secondary' => '#0f766e', 'accent' => '#84cc16'],
+                                ['name' => 'Pacifico', 'primary' => '#0284c7', 'secondary' => '#0d9488', 'accent' => '#fb923c'],
+                                ['name' => 'Grafito', 'primary' => '#374151', 'secondary' => '#64748b', 'accent' => '#f97316'],
+                                ['name' => 'Rojo', 'primary' => '#dc2626', 'secondary' => '#475569', 'accent' => '#f59e0b'],
+                            ];
+                        @endphp
+                        <div class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-lg">
+                            <div class="space-y-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-sm">
+                                    <div>
+                                        <h4 class="font-headline-sm text-headline-sm text-on-surface">Identidad visual</h4>
+                                        <p class="text-body-sm text-on-surface-variant mt-1">Ajusta los colores base que usa el panel y las vistas del sistema.</p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-primary-container px-3 py-1 text-xs font-semibold text-primary">
+                                        <span class="material-symbols-outlined text-[16px]">palette</span>
+                                        Vista en vivo
+                                    </span>
+                                </div>
+
+                                <input type="hidden" id="set-primary-color" name="primary_color" value="{{ $currentPrimary }}">
+                                <input type="hidden" id="set-secondary-color" name="secondary_color" value="{{ $currentSecondary }}">
+                                <input type="hidden" id="set-accent-color" name="accent_color" value="{{ $currentAccent }}">
+
+                                <div class="space-y-xs">
+                                    <label class="font-label-sm text-label-sm text-on-surface-variant block">Temas rapidos</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-sm" id="theme-preset-palette">
+                                        @foreach ($themePresets as $preset)
+                                            @php
+                                                $presetSelected = strtolower($currentPrimary) === strtolower($preset['primary'])
+                                                    && strtolower($currentSecondary) === strtolower($preset['secondary'])
+                                                    && strtolower($currentAccent) === strtolower($preset['accent']);
+                                            @endphp
+                                            <button type="button"
+                                                onclick="selectThemePreset('{{ $preset['primary'] }}', '{{ $preset['secondary'] }}', '{{ $preset['accent'] }}', this)"
+                                                class="theme-preset-btn flex items-center justify-between gap-3 rounded-xl border {{ $presetSelected ? 'border-primary bg-primary-container' : 'border-outline-variant bg-surface' }} px-3 py-2 text-left hover:border-primary transition-colors">
+                                                <span class="text-body-sm font-semibold text-on-surface">{{ $preset['name'] }}</span>
+                                                <span class="flex -space-x-1">
+                                                    <span class="w-5 h-5 rounded-full border border-white shadow-sm" style="background-color: {{ $preset['primary'] }}"></span>
+                                                    <span class="w-5 h-5 rounded-full border border-white shadow-sm" style="background-color: {{ $preset['secondary'] }}"></span>
+                                                    <span class="w-5 h-5 rounded-full border border-white shadow-sm" style="background-color: {{ $preset['accent'] }}"></span>
+                                                </span>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                                    <label class="rounded-xl border border-outline-variant bg-surface p-sm space-y-2">
+                                        <span class="font-label-sm text-label-sm text-on-surface-variant">Principal</span>
+                                        <div class="flex items-center gap-sm">
+                                            <input type="color" id="set-primary-color-picker" value="{{ $currentPrimary }}"
+                                                oninput="syncCustomColor(this, 'primary')"
+                                                class="w-12 h-10 rounded-lg border border-outline-variant bg-transparent cursor-pointer">
+                                            <span id="set-primary-color-value" class="font-mono text-body-sm text-on-surface">{{ strtoupper($currentPrimary) }}</span>
+                                        </div>
+                                    </label>
+                                    <label class="rounded-xl border border-outline-variant bg-surface p-sm space-y-2">
+                                        <span class="font-label-sm text-label-sm text-on-surface-variant">Secundario</span>
+                                        <div class="flex items-center gap-sm">
+                                            <input type="color" id="set-secondary-color-picker" value="{{ $currentSecondary }}"
+                                                oninput="syncCustomColor(this, 'secondary')"
+                                                class="w-12 h-10 rounded-lg border border-outline-variant bg-transparent cursor-pointer">
+                                            <span id="set-secondary-color-value" class="font-mono text-body-sm text-on-surface">{{ strtoupper($currentSecondary) }}</span>
+                                        </div>
+                                    </label>
+                                    <label class="rounded-xl border border-outline-variant bg-surface p-sm space-y-2">
+                                        <span class="font-label-sm text-label-sm text-on-surface-variant">Acento</span>
+                                        <div class="flex items-center gap-sm">
+                                            <input type="color" id="set-accent-color-picker" value="{{ $currentAccent }}"
+                                                oninput="syncCustomColor(this, 'accent')"
+                                                class="w-12 h-10 rounded-lg border border-outline-variant bg-transparent cursor-pointer">
+                                            <span id="set-accent-color-value" class="font-mono text-body-sm text-on-surface">{{ strtoupper($currentAccent) }}</span>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
+
+                            <div id="settings-theme-preview" class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md space-y-md"
+                                style="--preview-primary: {{ $currentPrimary }}; --preview-secondary: {{ $currentSecondary }}; --preview-accent: {{ $currentAccent }};">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-headline-sm text-headline-sm text-on-surface">Previsualizacion</h4>
+                                        <p class="text-body-sm text-on-surface-variant mt-1">Asi se combinan los colores.</p>
+                                    </div>
+                                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm" style="background-color: var(--preview-primary);">
+                                        <span class="material-symbols-outlined text-[20px]">school</span>
+                                    </span>
+                                </div>
+                                <div class="rounded-xl border border-outline-variant bg-background p-md space-y-sm">
+                                    <div class="h-2 w-24 rounded-full" style="background-color: var(--preview-primary);"></div>
+                                    <div class="h-2 w-40 rounded-full bg-outline-variant"></div>
+                                    <div class="flex items-center gap-sm pt-2">
+                                        <span class="px-3 py-1 rounded-full text-white text-xs font-semibold" style="background-color: var(--preview-secondary);">Activo</span>
+                                        <span class="px-3 py-1 rounded-full text-white text-xs font-semibold" style="background-color: var(--preview-accent);">Nuevo</span>
+                                    </div>
+                                    <button type="button" class="w-full rounded-xl py-2 text-label-md font-semibold text-white shadow-sm" style="background-color: var(--preview-primary);">
+                                        Boton principal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+                            <label class="space-y-xs">
+                                <span class="font-label-sm text-label-sm text-on-surface-variant block">Modo visual</span>
+                                <select name="theme_mode"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm">
+                                    <option value="light" {{ $themeMode === 'light' ? 'selected' : '' }}>Claro</option>
+                                    <option value="system" {{ $themeMode === 'system' ? 'selected' : '' }}>Segun el sistema</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="font-label-sm text-label-sm text-on-surface-variant block">Densidad</span>
+                                <select name="interface_density"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm">
+                                    <option value="comfortable" {{ $interfaceDensity === 'comfortable' ? 'selected' : '' }}>Comoda</option>
+                                    <option value="compact" {{ $interfaceDensity === 'compact' ? 'selected' : '' }}>Compacta</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="font-label-sm text-label-sm text-on-surface-variant block">Sidebar</span>
+                                <select name="sidebar_style"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm">
+                                    <option value="expanded" {{ $sidebarStyle === 'expanded' ? 'selected' : '' }}>Expandido</option>
+                                    <option value="compact" {{ $sidebarStyle === 'compact' ? 'selected' : '' }}>Compacto</option>
+                                </select>
+                            </label>
                         </div>
 
                         <div class="flex justify-end pt-md">
@@ -1625,14 +1713,13 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Empresas Registradas</h1>
-                        <p class="text-body-md text-on-surface-variant">Gestione y verifique las empresas registradas en
-                            el sistema.</p>
+                        <p class="text-body-md text-on-surface-variant">Gestione y verifique las empresas registradas en el sistema.</p>
                     </div>
                     <div class="flex flex-wrap gap-3">
-                        <button onclick="switchTab('companies-register')"
-                            class="px-4 py-2.5 bg-secondary text-on-secondary rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center gap-2 shadow-sm transition-all">
-                            <span class="material-symbols-outlined text-[20px]">domain_add</span>
-                            Registrar Empresa
+                        <button id="btn-bulk-delete-companies" onclick="bulkDeleteCompanies()"
+                            class="px-4 py-2.5 bg-error text-on-error rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center gap-2 shadow-sm transition-all hidden">
+                            <span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+                            Eliminar seleccionadas
                         </button>
                     </div>
                 </div>
@@ -1641,21 +1728,34 @@
                 <div
                     class="bg-surface rounded-xl border border-outline-variant shadow-sm p-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-low">
                     <h3 class="font-headline-sm text-[16px] text-on-surface font-bold">Listado General de Empresas</h3>
-                    <div class="relative w-full sm:w-96">
-                        <span
-                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
-                        <input id="search-companies-input" oninput="filterCompanies()"
-                            class="w-full pl-9 pr-4 py-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-body-sm"
-                            placeholder="Buscar empresa por nombre o RUC..." type="text">
+                    <div class="flex items-center gap-sm w-full sm:w-auto">
+                        <div class="relative w-full sm:w-80">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                            <input id="search-companies-input" oninput="filterCompanies()"
+                                class="w-full pl-9 pr-4 py-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-body-sm"
+                                placeholder="Buscar empresa por nombre o RUC..." type="text">
+                        </div>
+                        <div class="flex border border-outline-variant rounded-lg overflow-hidden shrink-0">
+                            <button type="button" id="btn-view-list" onclick="setCompaniesViewMode('list')" class="px-3 py-1.5 bg-primary text-on-primary flex items-center justify-center transition-colors" title="Vista de Lista">
+                                <span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+                            </button>
+                            <button type="button" id="btn-view-grid" onclick="setCompaniesViewMode('grid')" class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center transition-colors border-l border-outline-variant" title="Vista de Cuadrícula">
+                                <span class="material-symbols-outlined text-[18px]">grid_view</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Companies Table -->
-                <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+                <!-- Companies List/Grid Container -->
+                <div id="companies-list-view" class="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
+                                    <th class="px-4 py-3.5 w-10 text-center">
+                                        <input type="checkbox" id="check-all-companies" onchange="toggleAllCompanies(this.checked)" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/30 cursor-pointer">
+                                    </th>
                                     <th class="px-4 py-3.5 w-12">Logo</th>
                                     <th class="px-4 py-3.5">Empresa</th>
                                     <th class="px-4 py-3.5">RUC</th>
@@ -1667,12 +1767,33 @@
                                 </tr>
                             </thead>
                             <tbody id="companies-cards-container" class="divide-y divide-outline-variant/60 font-body-sm text-body-sm text-on-surface">
-                                <tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>
+                                <tr><td colspan="9" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
+
+                <div id="companies-grid-view" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-lg hidden">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+                    <!-- Pagination -->
+                    <div id="companies-pagination" class="px-4 py-3 border-t border-outline-variant/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-body-sm text-on-surface-variant hidden">
+                        <span id="companies-pagination-info"></span>
+                        <div class="flex items-center gap-2">
+                            <button id="companies-prev-page" onclick="changeCompaniesPage(currentCompaniesPage - 1)" disabled
+                                class="px-3 py-1.5 rounded-lg border border-outline-variant hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[13px] font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                                Anterior
+                            </button>
+                            <span id="companies-page-indicator" class="px-3 py-1 text-[13px] font-semibold text-on-surface"></span>
+                            <button id="companies-next-page" onclick="changeCompaniesPage(currentCompaniesPage + 1)" disabled
+                                class="px-3 py-1.5 rounded-lg border border-outline-variant hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[13px] font-medium flex items-center gap-1">
+                                Siguiente
+                                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
             <!-- ================= PANEL: REGISTRO DE EMPRESA ================= -->
             <div id="panel-companies-register" class="tab-panel space-y-lg hidden">
@@ -2020,6 +2141,42 @@
                 </div>
             </div>
 
+            <!-- ================= PANEL: SOPORTE ================= -->
+            <div id="panel-support" class="tab-panel space-y-lg hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Soporte</h1>
+                        <p class="text-body-md text-on-surface-variant">Accesos de ayuda para el panel administrativo.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                    <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm space-y-sm">
+                        <span class="material-symbols-outlined text-primary text-4xl">help</span>
+                        <h2 class="text-headline-sm font-headline-sm text-on-surface">Centro de ayuda</h2>
+                        <p class="text-body-md text-on-surface-variant">Revise los módulos disponibles y use los accesos rápidos para volver a la sección que necesita.</p>
+                        <div class="flex flex-wrap gap-sm pt-sm">
+                            <button type="button" onclick="switchTab('users')"
+                                class="px-4 py-2 rounded-lg bg-primary text-on-primary text-label-md font-label-md hover:opacity-90">Usuarios</button>
+                            <button type="button" onclick="switchTab('offers')"
+                                class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-label-md font-label-md hover:bg-surface-container-high">Ofertas</button>
+                            <button type="button" onclick="switchTab('companies-manage')"
+                                class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-label-md font-label-md hover:bg-surface-container-high">Empresas</button>
+                        </div>
+                    </div>
+                    <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm space-y-sm">
+                        <span class="material-symbols-outlined text-secondary text-4xl">admin_panel_settings</span>
+                        <h2 class="text-headline-sm font-headline-sm text-on-surface">Configuración del sistema</h2>
+                        <p class="text-body-md text-on-surface-variant">Si algo no se muestra correctamente, revise la configuración visual o cierre sesión para iniciar nuevamente.</p>
+                        <div class="flex flex-wrap gap-sm pt-sm">
+                            <button type="button" onclick="switchTab('settings')"
+                                class="px-4 py-2 rounded-lg bg-secondary text-on-secondary text-label-md font-label-md hover:opacity-90">Ajustes</button>
+                            <button type="button" onclick="document.getElementById('logout-form').submit()"
+                                class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-label-md font-label-md hover:bg-surface-container-high">Cerrar sesión</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -2222,6 +2379,45 @@
         </div>
     </div>
 
+    <!-- ================= MODAL: POSTULANTES DE OFERTA ================= -->
+    <div id="offer-applicants-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+        <div
+            class="w-full max-w-4xl bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div
+                class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-surface-container-low flex-shrink-0">
+                <div>
+                    <h2 class="text-headline-md font-headline-md text-on-surface">Candidatos Postulados</h2>
+                    <p id="offer-applicants-title" class="text-body-sm text-on-surface-variant font-medium mt-0.5"></p>
+                </div>
+                <button onclick="toggleOfferApplicantsModal()"
+                    class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Content Area -->
+            <div class="p-lg overflow-y-auto flex-1 font-body-sm text-body-sm text-on-surface-variant">
+                <div class="overflow-x-auto border border-outline-variant rounded-xl">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
+                                <th class="p-4">Candidato</th>
+                                <th class="p-4">Programa de Estudio</th>
+                                <th class="p-4">Contacto</th>
+                                <th class="p-4">Fecha</th>
+                                <th class="p-4 text-center">Estado</th>
+                                <th class="p-4 text-center">Currículum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="offer-applicants-list-container" class="divide-y divide-outline-variant/60 font-body-sm text-body-sm text-on-surface">
+                            <tr><td colspan="6" class="text-center py-xl text-on-surface-variant">Cargando postulantes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Global Floating Actions Dropdown (3 puntos) -->
     <div id="offer-actions-dropdown"
         class="fixed hidden bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 w-48 transition-all duration-150">
@@ -2329,7 +2525,7 @@
                             for="form-email">Email</label>
                         <input
                             class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
-                            id="form-email" placeholder="Ej. juan.perez@talentum.edu.pe" type="email" required />
+                            id="form-email" placeholder="Ej. juan.perez@bolsalaboral.edu.pe" type="email" required />
                     </div>
 
                     <!-- Teléfono -->
@@ -2351,7 +2547,6 @@
                             <option value="1">ADMINISTRADOR</option>
                             <option value="2">DOCENTE</option>
                             <option value="3">ESTUDIANTE</option>
-                            <option value="4">EMPRESA</option>
                         </select>
                     </div>
 
@@ -2800,10 +2995,11 @@
     </div>
 
     <script>
+        const currentUserId = {{ auth()->id() }};
         let editingCompanyMode = false;
         const ADMIN_ACTIVE_TAB_KEY = 'talentum.admin.activeTab';
         const ADMIN_MAINTAINER_TYPE_KEY = 'talentum.admin.maintainerType';
-        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'maintainers'];
+        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'maintainers', 'support'];
 
         function getStoredAdminValue(key) {
             try {
@@ -2820,6 +3016,8 @@
                 // El panel sigue funcionando aunque el navegador bloquee el almacenamiento.
             }
         }
+
+        // Excel download triggered natively via back-end route redirection
 
         // Tab switching logic
         function switchTab(tabId) {
@@ -2861,7 +3059,11 @@
                 initOffersModule();
             } else if (tabId === 'companies-manage') {
                 targetPanelId = 'panel-companies-manage';
-                loadCompanies();
+                currentCompaniesPage = 1;
+                document.getElementById('search-companies-input').value = '';
+                selectedCompanyIds.clear();
+                updateBulkDeleteButton();
+                loadCompanies(1);
             } else if (tabId === 'companies-register') {
                 targetPanelId = 'panel-companies-register';
                 if (!editingCompanyMode) {
@@ -2875,6 +3077,8 @@
             else if (tabId === 'maintainers') {
                 targetPanelId = 'panel-maintainers';
                 initMaintainersModule();
+            } else if (tabId === 'support') {
+                targetPanelId = 'panel-support';
             }
 
             const targetPanel = document.getElementById(targetPanelId);
@@ -2903,7 +3107,8 @@
                 'companies-manage': 'Gestionar Empresas',
                 'companies-register': 'Registrar Empresa',
                 'applications': 'Postulaciones Recibidas',
-                'maintainers': 'Mantenimiento del Sistema'
+                'maintainers': 'Mantenimiento del Sistema',
+                'support': 'Soporte'
             };
             if (headerTitle) {
                 headerTitle.textContent = tabTitles[tabId] || 'Panel de Control';
@@ -2913,8 +3118,8 @@
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
+                if (sidebar) sidebar.classList.add('-translate-x-full');
+                if (backdrop) backdrop.classList.add('hidden');
             }
         }
 
@@ -3175,8 +3380,19 @@
             const escDocType = docType.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const escDocNum = docNum.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+            const isAuthUser = (id == currentUserId);
+
             return `
-            <td data-user-id="${id}" class="p-4 flex items-center gap-3">
+            <td class="p-4 w-10">
+                ${isAuthUser ? `
+                    <span class="w-4 h-4 flex items-center justify-center" title="Este es tu usuario activo"></span>
+                ` : `
+                    <input type="checkbox"
+                        class="user-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-lowest"
+                        value="${id}" onchange="updateSelectedCount()">
+                `}
+            </td>
+            <td class="p-4 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-label-md">
                     ${displayName.charAt(0).toUpperCase()}
                 </div>
@@ -3184,6 +3400,9 @@
                     <span class="font-medium text-on-background block leading-tight">${displayName}</span>
                     <span class="text-body-sm text-on-surface-variant text-[13px]">${email}</span>
                 </div>
+                ${isAuthUser ? `
+                    <span class="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold tracking-wide shrink-0">Tú</span>
+                ` : ''}
             </td>
             <td class="p-4 text-on-surface-variant">
                 <span class="font-semibold text-body-sm">${docType}:</span> ${docNum}
@@ -3207,9 +3426,15 @@
                 <button onclick="openChangePasswordModal(${id}, '${escName}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Cambiar Contraseña">
                     <span class="material-symbols-outlined text-[20px]">lock_reset</span>
                 </button>
-                <button onclick="deleteUserRow(${id}, '${escName}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar Usuario">
-                    <span class="material-symbols-outlined text-[20px]">delete</span>
-                </button>
+                ${isAuthUser ? `
+                    <span class="p-1.5 text-outline-variant inline-flex" title="No puedes eliminar tu propio usuario">
+                        <span class="material-symbols-outlined text-[20px]">shield_person</span>
+                    </span>
+                ` : `
+                    <button onclick="deleteUserRow(${id}, '${escName}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar Usuario">
+                        <span class="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
+                `}
             </td>
         `;
         }
@@ -3225,7 +3450,7 @@
 
             const tr = document.createElement('tr');
             tr.id = 'user-row-' + id;
-            tr.className = 'border-b border-outline-variant hover:bg-surface-container-lowest transition-colors';
+            tr.className = 'border-b border-outline-variant hover:bg-surface-container-lowest transition-colors' + (id == currentUserId ? ' bg-primary-fixed/10' : '');
             tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
 
             body.appendChild(tr);
@@ -3235,6 +3460,7 @@
         function updateUserRow(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone) {
             const tr = document.getElementById('user-row-' + id);
             if (tr) {
+                tr.className = 'border-b border-outline-variant hover:bg-surface-container-lowest transition-colors' + (id == currentUserId ? ' bg-primary-fixed/10' : '');
                 tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
             } else {
                 addNewUserToTable(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
@@ -3355,6 +3581,57 @@
         }
 
         // ================= FILTRO POR ROL, SELECCIÓN MÚLTIPLE Y PAGINACIÓN =================
+        // Advanced Search status and functions
+        let currentStatusFilter = '{{ $currentStatus }}';
+
+        function toggleAdvancedSearch() {
+            const panel = document.getElementById('advanced-search-panel');
+            const toggleBtn = document.getElementById('advanced-search-toggle');
+            if (!panel || !toggleBtn) return;
+
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                panel.setAttribute('aria-hidden', 'false');
+                toggleBtn.classList.add('bg-primary/5', 'border-primary', 'text-primary');
+                toggleBtn.classList.remove('border-outline-variant', 'text-on-surface-variant');
+            } else {
+                panel.classList.add('hidden');
+                panel.setAttribute('aria-hidden', 'true');
+                toggleBtn.classList.remove('bg-primary/5', 'border-primary', 'text-primary');
+                toggleBtn.classList.add('border-outline-variant', 'text-on-surface-variant');
+            }
+        }
+
+        function setStatus(statusVal) {
+            currentStatusFilter = statusVal;
+            
+            // Update button styles on the client side
+            const btnAll = document.querySelector('button[onclick^="setStatus(\'\')"]');
+            const btnActive = document.querySelector('button[onclick^="setStatus(\'active\')"]');
+            const btnInactive = document.querySelector('button[onclick^="setStatus(\'inactive\')"]');
+
+            // Reset all styles
+            if (btnAll) {
+                btnAll.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all bg-surface border-outline-variant text-on-surface-variant hover:bg-surface-container-high";
+            }
+            if (btnActive) {
+                btnActive.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all flex items-center gap-1.5 bg-surface border-outline-variant text-on-surface-variant hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300";
+            }
+            if (btnInactive) {
+                btnInactive.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all flex items-center gap-1.5 bg-surface border-outline-variant text-on-surface-variant hover:bg-red-50 hover:text-red-700 hover:border-red-300";
+            }
+
+            // Set active style for selected button
+            if (statusVal === '' && btnAll) {
+                btnAll.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all bg-on-surface text-surface border-on-surface";
+            } else if (statusVal === 'active' && btnActive) {
+                btnActive.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all flex items-center gap-1.5 bg-emerald-600 text-white border-emerald-600";
+            } else if (statusVal === 'inactive' && btnInactive) {
+                btnInactive.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all flex items-center gap-1.5 bg-red-600 text-white border-red-600";
+            }
+        }
+
         // Filtro de usuarios por búsqueda (se activa con Enter o botón Buscar)
         function filterUsers() {
             const url = new URL(window.location.href);
@@ -3366,6 +3643,13 @@
             } else {
                 url.searchParams.delete('search');
             }
+
+            if (currentStatusFilter) {
+                url.searchParams.set('status', currentStatusFilter);
+            } else {
+                url.searchParams.delete('status');
+            }
+
             url.searchParams.set('page', 1);
             window.location.href = url.toString();
         }
@@ -3503,6 +3787,7 @@
             const url = new URL(window.location.href);
             url.searchParams.delete('search');
             url.searchParams.delete('rol_id');
+            url.searchParams.delete('status');
             url.searchParams.set('page', 1);
             window.location.href = url.toString();
         }
@@ -3906,19 +4191,85 @@
             }
         }
 
-        // Settings brand color selection
-        function selectPrimaryColor(hex, btn) {
-            document.getElementById('set-primary-color').value = hex;
+        function softenColor(hex) {
+            const cleanHex = String(hex || '').replace('#', '');
+            if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) return '#e8f5f2';
 
-            const palette = document.getElementById('color-palette');
-            const checks = palette.querySelectorAll('span.material-symbols-outlined');
-            checks.forEach(c => c.style.display = 'none');
+            const channels = [0, 2, 4].map(start => parseInt(cleanHex.slice(start, start + 2), 16));
+            const softened = channels.map(channel => {
+                const value = Math.round(channel + ((255 - channel) * 0.72));
+                return value.toString(16).padStart(2, '0');
+            });
 
-            const check = btn.querySelector('span.material-symbols-outlined');
-            if (check) {
-                check.style.display = 'inline-block';
+            return `#${softened.join('')}`;
+        }
+
+        function applyThemeColor(target, hex) {
+            const normalizedHex = String(hex || '').toLowerCase();
+            const field = document.getElementById(`set-${target}-color`);
+            const picker = document.getElementById(`set-${target}-color-picker`);
+            const valueLabel = document.getElementById(`set-${target}-color-value`);
+            const preview = document.getElementById('settings-theme-preview');
+
+            if (field) field.value = normalizedHex;
+            if (picker) picker.value = normalizedHex;
+            if (valueLabel) valueLabel.textContent = normalizedHex.toUpperCase();
+            if (preview) preview.style.setProperty(`--preview-${target}`, normalizedHex);
+
+            if (target === 'primary') {
+                document.documentElement.style.setProperty('--primary-color', normalizedHex);
+                document.documentElement.style.setProperty('--primary-container-color', softenColor(normalizedHex));
+            }
+
+            if (target === 'secondary') {
+                document.documentElement.style.setProperty('--secondary-color', normalizedHex);
+                document.documentElement.style.setProperty('--secondary-container-color', softenColor(normalizedHex));
+            }
+
+            if (target === 'accent') {
+                document.documentElement.style.setProperty('--accent-color', normalizedHex);
             }
         }
+
+        function markSelectedThemePreset(btn) {
+            const presetButtons = document.querySelectorAll('.theme-preset-btn');
+            presetButtons.forEach(item => {
+                item.classList.remove('border-primary', 'bg-primary-container');
+                item.classList.add('border-outline-variant', 'bg-surface');
+            });
+
+            if (btn) {
+                btn.classList.remove('border-outline-variant', 'bg-surface');
+                btn.classList.add('border-primary', 'bg-primary-container');
+            }
+        }
+
+        function selectThemePreset(primary, secondary, accent, btn) {
+            applyThemeColor('primary', primary);
+            applyThemeColor('secondary', secondary);
+            applyThemeColor('accent', accent);
+            markSelectedThemePreset(btn);
+        }
+
+        function syncCustomColor(input, target) {
+            applyThemeColor(target, input.value);
+            markSelectedThemePreset(null);
+        }
+
+        function updateThemePreview() {
+            ['primary', 'secondary', 'accent'].forEach(target => {
+                const field = document.getElementById(`set-${target}-color`);
+                if (field) applyThemeColor(target, field.value);
+            });
+        }
+
+        // Backward-compatible helper for the previous primary-only palette.
+        function selectPrimaryColor(hex, btn) {
+            applyThemeColor('primary', hex);
+            markSelectedThemePreset(btn);
+        }
+
+        document.addEventListener('DOMContentLoaded', updateThemePreview);
 
         // Image upload preview helper
         function previewImage(input, previewId) {
@@ -3927,6 +4278,19 @@
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById(previewId).src = e.target.result;
+                    
+                    // Actualizar el favicon de la pestaña del navegador inmediatamente
+                    if (previewId === 'preview-favicon') {
+                        const link = document.querySelector("link[rel~='icon']");
+                        if (link) link.href = e.target.result;
+                    } else if (previewId === 'preview-logo') {
+                        // Si no hay un favicon seleccionado explícitamente, usar el logo también como favicon
+                        const faviconInput = document.querySelector('input[name="favicon"]');
+                        if (faviconInput && !faviconInput.files.length) {
+                            const link = document.querySelector("link[rel~='icon']");
+                            if (link) link.href = e.target.result;
+                        }
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -4706,7 +5070,7 @@
                     openPreviewModal(currentOfferId);
                     break;
                 case 'applicants':
-                    showToast('Módulo de Postulaciones en desarrollo.', 'warning');
+                    openOfferApplicantsModal(currentOfferId);
                     break;
                 case 'share':
                     copyShareLink(currentOfferId);
@@ -4867,20 +5231,30 @@
                         content.innerHTML = `
                     <div class="space-y-lg">
                         <!-- Top Banner / Headline -->
-                        <div class="bg-primary/5 p-lg rounded-2xl border border-primary/20 space-y-md">
-                            <span class="px-2 py-1 rounded bg-primary-fixed text-primary font-bold text-xs uppercase">${categoryName}</span>
-                            <h1 class="text-headline-md font-headline-md text-primary font-black leading-tight">${offer.title}</h1>
-                            <div class="flex items-center gap-md flex-wrap text-body-sm text-on-surface-variant font-medium">
-                                <span class="flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[18px]">domain</span>
-                                    ${companyName}
-                                </span>
-                                <span>â€¢</span>
-                                <span class="flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[18px]">pin_drop</span>
-                                    ${locationName} (${offer.address}, ${offer.province}, ${offer.department})
-                                </span>
+                        <div class="bg-primary/5 p-lg rounded-2xl border border-primary/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-md shadow-sm">
+                            <div class="space-y-md">
+                                <span class="px-2 py-1 rounded bg-primary-fixed text-primary font-bold text-xs uppercase">${categoryName}</span>
+                                <h1 class="text-headline-md font-headline-md text-primary font-black leading-tight">${offer.title}</h1>
+                                <div class="flex items-center gap-md flex-wrap text-body-sm text-on-surface-variant font-medium">
+                                    <span class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[18px]">domain</span>
+                                        ${companyName}
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[18px]">pin_drop</span>
+                                        ${locationName} (${offer.address}, ${offer.province}, ${offer.department})
+                                    </span>
+                                </div>
                             </div>
+                            ${offer.company && offer.company.logo ? `
+                                <div class="w-16 h-16 bg-surface-bright rounded-xl border border-outline-variant flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                                    <img src="${offer.company.logo}" class="w-full h-full object-contain" alt="Logo de la empresa">
+                                </div>
+                            ` : `
+                                <div class="w-16 h-16 bg-surface-bright rounded-xl border border-outline-variant flex items-center justify-center shrink-0 shadow-sm">
+                                    <span class="material-symbols-outlined text-4xl text-on-surface-variant">corporate_fare</span>
+                                </div>
+                            `}
                         </div>
 
                         <!-- Info Badges Grid -->
@@ -4943,20 +5317,149 @@
             }
         }
 
+        function toggleOfferApplicantsModal() {
+            const modal = document.getElementById('offer-applicants-modal');
+            const modalContainer = modal.querySelector('.max-w-4xl');
+
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => modalContainer.classList.remove('scale-95'), 10);
+            } else {
+                modalContainer.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function openOfferApplicantsModal(offerId) {
+            toggleOfferApplicantsModal();
+            const titleEl = document.getElementById('offer-applicants-title');
+            const container = document.getElementById('offer-applicants-list-container');
+            
+            titleEl.textContent = 'Cargando detalles de la oferta...';
+            container.innerHTML = '<tr><td colspan="6" class="text-center py-xl text-on-surface-variant">Cargando postulantes...</td></tr>';
+            
+            fetch(`/admin/offers/${offerId}/applicants`, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const offer = data.offer;
+                    titleEl.textContent = `${offer.title} · ${offer.company ? offer.company.name : 'Empresa General'}`;
+                    
+                    const apps = data.applications;
+                    if (!apps || apps.length === 0) {
+                        container.innerHTML = '<tr><td colspan="6" class="text-center py-xl text-on-surface-variant">No hay postulantes registrados para esta oferta aún.</td></tr>';
+                        return;
+                    }
+                    
+                    container.innerHTML = apps.map(app => {
+                        const dateStr = app.created_at ? new Date(app.created_at).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+                        
+                        // Status badge styling
+                        let badgeClass = 'bg-surface-container text-on-surface';
+                        let statusText = 'Postulado';
+                        if (app.status === 'under_review') {
+                            badgeClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                            statusText = 'En revisión';
+                        } else if (app.status === 'accepted') {
+                            badgeClass = 'bg-green-100 text-green-800 border border-green-200';
+                            statusText = 'Aceptado';
+                        } else if (app.status === 'rejected') {
+                            badgeClass = 'bg-red-100 text-red-800 border border-red-200';
+                            statusText = 'Rechazado';
+                        }
+                        const statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeClass}">${statusText}</span>`;
+                        
+                        const cvHTML = app.cv 
+                            ? `<a href="${app.cv}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-primary-container text-on-primary-container text-body-xs font-semibold rounded-lg hover:opacity-90 transition-opacity"><span class="material-symbols-outlined text-[14px]">description</span>Ver CV</a>`
+                            : `<span class="text-on-surface-variant text-body-xs italic">Sin CV</span>`;
+                        
+                        const candidateName = app.fullname || (app.user && app.user.person ? app.user.person.names : 'Candidato');
+                        const candidateEmail = app.user ? app.user.email : '-';
+                        const candidatePhone = app.user && app.user.person ? app.user.person.phone : '-';
+                        const studyProgram = app.program_study || 'Computación y Sistemas';
+                        
+                        return `
+                        <tr>
+                            <td class="p-4">
+                                <div class="font-semibold text-on-surface text-body-sm">${candidateName}</div>
+                            </td>
+                            <td class="p-4 text-on-surface-variant">${studyProgram}</td>
+                            <td class="p-4">
+                                <div class="text-body-xs text-on-surface-variant flex flex-col gap-0.5">
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">mail</span>${candidateEmail}</span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">call</span>${candidatePhone}</span>
+                                </div>
+                            </td>
+                            <td class="p-4 text-on-surface-variant font-mono text-body-xs">${dateStr}</td>
+                            <td class="p-4 text-center">${statusBadge}</td>
+                            <td class="p-4 text-center">${cvHTML}</td>
+                        </tr>
+                        `;
+                    }).join('');
+                } else {
+                    titleEl.textContent = 'Error al cargar';
+                    container.innerHTML = `<tr><td colspan="6" class="text-center py-xl text-red-600">${data.message || 'Error al cargar postulantes.'}</td></tr>`;
+                }
+            })
+            .catch(err => {
+                titleEl.textContent = 'Error de red';
+                container.innerHTML = '<tr><td colspan="6" class="text-center py-xl text-red-600">Error de red al cargar postulantes.</td></tr>';
+            });
+        }
+
         // ==========================================
         // MODULE: COMPANY MANAGEMENT FOR ADMIN
         // ==========================================
         let companiesList = [];
         let currentCompanyId = null;
+        let companiesPagination = null;
+        let currentSearchTerm = '';
+        let currentCompaniesPage = 1;
+        let selectedCompanyIds = new Set();
+        let companiesViewMode = 'list';
 
-        // Load companies list from backend
-        function loadCompanies() {
+        function setCompaniesViewMode(mode) {
+            companiesViewMode = mode;
+            const btnList = document.getElementById('btn-view-list');
+            const btnGrid = document.getElementById('btn-view-grid');
+            if (mode === 'list') {
+                btnList.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+                btnList.classList.add('bg-primary', 'text-on-primary');
+                btnGrid.classList.remove('bg-primary', 'text-on-primary');
+                btnGrid.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+            } else {
+                btnGrid.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+                btnGrid.classList.add('bg-primary', 'text-on-primary');
+                btnList.classList.remove('bg-primary', 'text-on-primary');
+                btnList.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+            }
+            renderCompanies();
+        }
+
+        // Load companies list from backend with pagination and search
+        function loadCompanies(page) {
             const container = document.getElementById('companies-cards-container');
+            const gridContainer = document.getElementById('companies-grid-view');
             if (container) {
-                container.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>';
+                container.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">Cargando empresas...</td></tr>';
+            }
+            if (gridContainer) {
+                gridContainer.innerHTML = '<div class="col-span-full text-center py-xl text-on-surface-variant">Cargando empresas...</div>';
             }
 
-            fetch('/admin/companies', {
+            const searchTerm = document.getElementById('search-companies-input').value.trim();
+            currentSearchTerm = searchTerm;
+            const pageNum = page || 1;
+
+            let url = '/admin/companies?page=' + pageNum;
+            if (searchTerm) {
+                url += '&search=' + encodeURIComponent(searchTerm);
+            }
+
+            fetch(url, {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
@@ -4964,73 +5467,283 @@
                 .then(data => {
                     if (data.success) {
                         companiesList = data.companies;
-                        filterCompanies();
+                        companiesPagination = data.pagination || null;
+                        renderCompanies();
+                        renderCompaniesPagination();
                     } else {
-                        container.innerHTML = `<div class="col-span-full text-center py-xl text-red-600">${data.message || 'Error al cargar empresas.'}</div>`;
+                        const errMsg = '<tr><td colspan="9" class="text-center py-xl text-red-600">' + (data.message || 'Error al cargar empresas.') + '</td></tr>';
+                        const errGridMsg = '<div class="col-span-full text-center py-xl text-red-600">' + (data.message || 'Error al cargar empresas.') + '</div>';
+                        if (container) container.innerHTML = errMsg;
+                        if (gridContainer) gridContainer.innerHTML = errGridMsg;
                     }
                 })
                 .catch(err => {
-                    container.innerHTML = '<div class="col-span-full text-center py-xl text-red-600">Error de red al cargar empresas.</div>';
+                    const errStr = '<tr><td colspan="9" class="text-center py-xl text-red-600">Error de red al cargar empresas.</td></tr>';
+                    const errGridStr = '<div class="col-span-full text-center py-xl text-red-600">Error de red al cargar empresas.</div>';
+                    if (container) container.innerHTML = errStr;
+                    if (gridContainer) gridContainer.innerHTML = errGridStr;
                 });
         }
 
-        // Filter companies locally and render cards
-        function filterCompanies() {
-            const searchInput = document.getElementById('search-companies-input').value.toLowerCase().trim();
+        // Render companies table rows or grid cards
+        function renderCompanies() {
             const container = document.getElementById('companies-cards-container');
-            if (!container) return;
+            const gridContainer = document.getElementById('companies-grid-view');
+            const listView = document.getElementById('companies-list-view');
+            
+            if (!container || !gridContainer || !listView) return;
 
-            const filtered = companiesList.filter(c => {
-                const name = (c.name || '').toLowerCase();
-                const ruc = (c.ruc || '').toLowerCase();
-                return name.includes(searchInput) || ruc.includes(searchInput);
-            });
+            if (companiesViewMode === 'list') {
+                listView.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+            } else {
+                listView.classList.add('hidden');
+                gridContainer.classList.remove('hidden');
+            }
 
-            if (filtered.length === 0) {
-                container.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">No se encontraron empresas registradas.</td></tr>';
+            if (!companiesList || companiesList.length === 0) {
+                container.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">No se encontraron empresas registradas.</td></tr>';
+                gridContainer.innerHTML = '<div class="col-span-full text-center py-xl text-on-surface-variant">No se encontraron empresas registradas.</div>';
                 return;
             }
 
-            container.innerHTML = filtered.map(company => {
-                const isVerified = company.is_verified;
-                const verifiedBadge = isVerified
-                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
-                    : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
-                const logoHTML = company.logo
-                    ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-sm font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
-                    : `<span class="text-sm font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
-                const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
-                const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
-                const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50';
-                return `<tr id="company-card-${company.id}" class="hover:bg-surface-container-low transition-colors">
-                    <td class="px-4 py-3">
-                        <div class="w-10 h-10 rounded-lg bg-surface-container border border-outline-variant overflow-hidden flex items-center justify-center shrink-0">${logoHTML}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p class="font-semibold text-on-surface text-body-sm truncate max-w-[180px]" title="${company.name}">${company.name}</p>
-                    </td>
-                    <td class="px-4 py-3 font-mono text-body-sm text-on-surface-variant">${company.ruc}</td>
-                    <td class="px-4 py-3 text-body-sm text-on-surface-variant truncate max-w-[180px]" title="${company.email}">${company.email}</td>
-                    <td class="px-4 py-3 text-body-sm text-on-surface-variant">${company.phone || '-'}</td>
-                    <td class="px-4 py-3 text-center">
-                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-body-sm">${company.offers_count || 0}</span>
-                    </td>
-                    <td class="px-4 py-3 text-center">${verifiedBadge}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center justify-center gap-1">
-                            <button onclick="editCompany(${company.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary transition-colors">
+            if (companiesViewMode === 'list') {
+                container.innerHTML = companiesList.map(company => {
+                    const isVerified = company.is_verified;
+                    const verifiedBadge = isVerified
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
+                    const logoHTML = company.logo
+                        ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-sm font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
+                        : `<span class="text-sm font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
+                    const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
+                    const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
+                    const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50';
+                    const isSelected = selectedCompanyIds.has(company.id);
+                    return `<tr id="company-card-${company.id}" class="hover:bg-surface-container-low transition-colors ${isSelected ? 'bg-primary-fixed/30' : ''}">
+                        <td class="px-4 py-3 text-center">
+                            <input type="checkbox" class="company-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/30 cursor-pointer"
+                                value="${company.id}" ${isSelected ? 'checked' : ''}
+                                onchange="toggleCompanySelect(${company.id}, this.checked)">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="w-10 h-10 rounded-lg bg-surface-container border border-outline-variant overflow-hidden flex items-center justify-center shrink-0">${logoHTML}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <p class="font-semibold text-on-surface text-body-sm truncate max-w-[180px]" title="${company.name}">${company.name}</p>
+                        </td>
+                        <td class="px-4 py-3 font-mono text-body-sm text-on-surface-variant">${company.ruc}</td>
+                        <td class="px-4 py-3 text-body-sm text-on-surface-variant truncate max-w-[180px]" title="${company.email}">${company.email}</td>
+                        <td class="px-4 py-3 text-body-sm text-on-surface-variant">${company.phone || '-'}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-body-sm">${company.offers_count || 0}</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">${verifiedBadge}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="editCompany(${company.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </button>
+                                <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 rounded-lg transition-colors ${verifyColor}">
+                                    <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
+                                </button>
+                                <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } else {
+                gridContainer.innerHTML = companiesList.map(company => {
+                    const isVerified = company.is_verified;
+                    const verifiedBadge = isVerified
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
+                    const logoHTML = company.logo
+                        ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-lg font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
+                        : `<span class="text-lg font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
+                    const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
+                    const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
+                    const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50 border-yellow-200/60' : 'text-green-600 hover:bg-green-50 border-green-200/60';
+                    const isSelected = selectedCompanyIds.has(company.id);
+                    
+                    return `
+                    <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm p-md flex flex-col justify-between relative group hover:shadow-md transition-all duration-200 ${isSelected ? 'border-primary bg-primary/5' : ''}">
+                        <!-- Top bar (Checkbox and verify status) -->
+                        <div class="flex items-center justify-between mb-md">
+                            <input type="checkbox" class="company-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/30 cursor-pointer"
+                                value="${company.id}" ${isSelected ? 'checked' : ''}
+                                onchange="toggleCompanySelect(${company.id}, this.checked)">
+                            <div>${verifiedBadge}</div>
+                        </div>
+                        
+                        <!-- Company Info -->
+                        <div class="text-center flex-1 flex flex-col items-center mb-md">
+                            <div class="w-16 h-16 rounded-2xl bg-surface-container border border-outline-variant overflow-hidden flex items-center justify-center mb-md shadow-inner shrink-0">${logoHTML}</div>
+                            <h4 class="font-bold text-on-surface text-body-md line-clamp-2 px-xs leading-snug mb-xs" title="${company.name}">${company.name}</h4>
+                            <span class="font-mono text-body-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant/40 mb-md">${company.ruc}</span>
+                            
+                            <div class="w-full text-left space-y-2 mt-xs border-t border-outline-variant/40 pt-md text-on-surface-variant font-body-sm text-[13px]">
+                                <div class="flex items-center gap-2 truncate" title="${company.email}">
+                                    <span class="material-symbols-outlined text-[16px] text-primary/60">mail</span>
+                                    <span class="truncate">${company.email}</span>
+                                </div>
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="material-symbols-outlined text-[16px] text-primary/60">call</span>
+                                    <span>${company.phone || '-'}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[16px] text-primary/60">list_alt</span>
+                                    <span>Ofertas publicadas: <strong class="text-primary font-bold">${company.offers_count || 0}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action buttons -->
+                        <div class="flex items-center justify-center gap-2 border-t border-outline-variant/40 pt-md mt-auto">
+                            <button onclick="editCompany(${company.id})" title="Editar" class="flex-1 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-primary rounded-xl flex items-center justify-center gap-1 transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">edit</span>
+                                <span class="text-body-xs font-semibold">Editar</span>
                             </button>
-                            <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 rounded-lg transition-colors ${verifyColor}">
+                            <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-2 border rounded-xl flex items-center justify-center transition-colors ${verifyColor}">
                                 <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
                             </button>
-                            <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error transition-colors">
+                            <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-2 border border-outline-variant hover:bg-error-container hover:border-error-container text-error rounded-xl flex items-center justify-center transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                         </div>
-                    </td>
-                </tr>`;
-            }).join('');
+                    </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Filter companies using server-side search
+        function filterCompanies() {
+            selectedCompanyIds.clear();
+            updateBulkDeleteButton();
+            loadCompanies(1);
+        }
+
+        // Toggle company selection
+        function toggleCompanySelect(id, checked) {
+            if (checked) {
+                selectedCompanyIds.add(id);
+            } else {
+                selectedCompanyIds.delete(id);
+            }
+            // Uncheck "select all" when any individual is unchecked
+            if (!checked) {
+                document.getElementById('check-all-companies').checked = false;
+            } else {
+                // Check if all visible checkboxes are checked
+                const allCheckboxes = document.querySelectorAll('.company-checkbox');
+                const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
+                document.getElementById('check-all-companies').checked = allChecked;
+            }
+            updateBulkDeleteButton();
+        }
+
+        // Toggle all companies on current page
+        function toggleAllCompanies(checked) {
+            document.querySelectorAll('.company-checkbox').forEach(cb => {
+                cb.checked = checked;
+                const id = parseInt(cb.value);
+                if (checked) {
+                    selectedCompanyIds.add(id);
+                } else {
+                    selectedCompanyIds.delete(id);
+                }
+            });
+            updateBulkDeleteButton();
+            // Re-render to update row highlight
+            renderCompanies();
+        }
+
+        // Update bulk delete button visibility
+        function updateBulkDeleteButton() {
+            const btn = document.getElementById('btn-bulk-delete-companies');
+            if (btn) {
+                btn.classList.toggle('hidden', selectedCompanyIds.size === 0);
+                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">delete_sweep</span> Eliminar seleccionadas (${selectedCompanyIds.size})`;
+            }
+        }
+
+        // Bulk delete companies
+        function bulkDeleteCompanies() {
+            const ids = Array.from(selectedCompanyIds);
+            if (ids.length === 0) {
+                showToast('No hay empresas seleccionadas.', 'warning');
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${ids.length} empresa(s) y todos sus usuarios/ofertas asociados?`)) {
+                return;
+            }
+
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch('/admin/companies/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ids })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                        selectedCompanyIds.clear();
+                        updateBulkDeleteButton();
+                        loadCompanies(currentCompaniesPage);
+                    } else {
+                        showToast(data.message || 'Error al eliminar empresas.', 'error');
+                    }
+                })
+                .catch(err => {
+                    showToast('Error de red al intentar eliminar.', 'error');
+                });
+        }
+
+        // Render pagination controls
+        function renderCompaniesPagination() {
+            const paginationDiv = document.getElementById('companies-pagination');
+            const infoSpan = document.getElementById('companies-pagination-info');
+            const indicator = document.getElementById('companies-page-indicator');
+            const prevBtn = document.getElementById('companies-prev-page');
+            const nextBtn = document.getElementById('companies-next-page');
+
+            if (!paginationDiv || !companiesPagination) {
+                if (paginationDiv) paginationDiv.classList.add('hidden');
+                return;
+            }
+
+            const { current_page, last_page, total, from, to } = companiesPagination;
+
+            if (total <= 15) {
+                paginationDiv.classList.add('hidden');
+                return;
+            }
+
+            paginationDiv.classList.remove('hidden');
+            infoSpan.textContent = `Mostrando ${from || 0}–${to || 0} de ${total} empresas`;
+            indicator.textContent = `Página ${current_page} de ${last_page}`;
+            prevBtn.disabled = current_page <= 1;
+            nextBtn.disabled = current_page >= last_page;
+        }
+
+        // Change page
+        function changeCompaniesPage(page) {
+            if (page < 1) return;
+            if (companiesPagination && page > companiesPagination.last_page) return;
+            currentCompaniesPage = page;
+            selectedCompanyIds.clear();
+            updateBulkDeleteButton();
+            loadCompanies(page);
         }
 
         // Toggle Company Actions menu
@@ -5642,7 +6355,7 @@
 
             // Restore the last section visited after refreshing the page.
             const urlParams = new URLSearchParams(window.location.search);
-            let tabToOpen = getStoredAdminValue(ADMIN_ACTIVE_TAB_KEY);
+            let tabToOpen = urlParams.get('tab') || getStoredAdminValue(ADMIN_ACTIVE_TAB_KEY);
             if (urlParams.has('page') || urlParams.has('search') || urlParams.has('rol_id')) {
                 tabToOpen = 'users';
             }

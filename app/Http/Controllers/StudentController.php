@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\JobOpportunityApplication;
 use App\Models\JobOpportunityOffer;
+use App\Mail\ApplicationSubmittedMail;
+use App\Mail\NewApplicationMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\UserNotification;
+use App\Models\User;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -271,7 +277,7 @@ class StudentController extends Controller
                 ], 400);
             }
 
-            JobOpportunityApplication::create([
+            $application = JobOpportunityApplication::create([
                 'fullname' => $person->names,
                 'program_study' => 'Computación y Sistemas', // default study program
                 'message' => $request->message ?? '',
@@ -280,6 +286,54 @@ class StudentController extends Controller
                 'offer_id' => $offer_id,
                 'user_id' => $user->id,
             ]);
+
+            $application->load(['offer.company', 'user.person']);
+
+            // Create in-app notifications
+            try {
+                $offer = $application->offer;
+                if ($offer && $offer->company_id) {
+                    $companyUser = \App\Models\User::where('company_id', $offer->company_id)->first();
+                    if ($companyUser) {
+                        \App\Models\UserNotification::create([
+                            'user_id' => $companyUser->id,
+                            'title' => 'Nueva postulación',
+                            'message' => "El estudiante {$person->names} ha postulado a tu oferta: {$offer->title}",
+                            'link' => '/company/dashboard?tab=applicants',
+                        ]);
+                    }
+                }
+                // Notify admins
+                $admins = \App\Models\User::where('rol_id', 1)->get();
+                foreach ($admins as $admin) {
+                    \App\Models\UserNotification::create([
+                        'user_id' => $admin->id,
+                        'title' => 'Nueva postulación',
+                        'message' => "El estudiante {$person->names} ha postulado a la oferta: " . ($offer ? $offer->title : ''),
+                        'link' => '/admin/dashboard?tab=applications',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                logger()->error('Error creating notification for new application: ' . $e->getMessage());
+            }
+
+            // Send email notifications using the mail settings configured in .env.
+            try {
+                $offer = $application->offer;
+                if ($offer && $offer->company && $offer->company->email) {
+                    Mail::to($offer->company->email)
+                        ->send(new NewApplicationMail($application));
+                }
+
+                if ($user->email) {
+                    Mail::to($user->email)
+                        ->send(new ApplicationSubmittedMail($application));
+                }
+            } catch (\Exception $mailEx) {
+                // Log mail error but don't break the application flow
+                logger()->error('Error sending application notification email: ' . $mailEx->getMessage());
+            }
+
 
             return response()->json([
                 'success' => true,

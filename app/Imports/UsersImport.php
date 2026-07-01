@@ -98,6 +98,16 @@ class UsersImport implements ToCollection, WithChunkReading
                 $docType = ($roleId == 4) ? 'RUC' : 'DNI';
             }
 
+            if (in_array($roleId, [2, 3], true) && ($docType !== 'DNI' || !preg_match('/^\d{8}$/', $docNumber))) {
+                $this->errors[] = "Fila $lineNum: Docentes y estudiantes deben tener un DNI válido de 8 dígitos.";
+                continue;
+            }
+
+            if ($roleId == 4 && ($docType !== 'RUC' || !preg_match('/^\d{11}$/', $docNumber))) {
+                $this->errors[] = "Fila $lineNum: Las empresas deben tener un RUC válido de 11 dígitos.";
+                continue;
+            }
+
             $phoneFormatted = substr($phone, 0, 9);
             
             $passKey = $docNumber ?: '00000000';

@@ -52,7 +52,7 @@ class AdminController extends Controller
                 ->take(3)
                 ->get()
                 ->map(function ($user) {
-                    $name = $user->person->names ?? 'Usuario';
+                    $name = e($user->person->names ?? 'Usuario');
                     return [
                         'icon' => 'person_add',
                         'icon_bg' => 'bg-primary-fixed',
@@ -67,12 +67,13 @@ class AdminController extends Controller
                 ->take(3)
                 ->get()
                 ->map(function ($company) {
+                    $companyName = e($company->name);
                     $action = $company->is_verified ? 'registrada y aprobada' : 'registrada';
                     return [
                         'icon' => 'domain_verification',
                         'icon_bg' => 'bg-secondary-fixed',
                         'icon_color' => 'text-on-secondary-fixed',
-                        'text' => "Empresa <span class=\"font-semibold\">{$company->name}</span> {$action} en el sistema.",
+                        'text' => "Empresa <span class=\"font-semibold\">{$companyName}</span> {$action} en el sistema.",
                         'time' => $company->created_at ? $company->created_at->diffForHumans() : '-',
                     ];
                 });
@@ -83,12 +84,13 @@ class AdminController extends Controller
                 ->take(3)
                 ->get()
                 ->map(function ($offer) {
-                    $companyName = $offer->company->name ?? 'Desconocida';
+                    $companyName = e($offer->company->name ?? 'Desconocida');
+                    $offerTitle = e($offer->title);
                     return [
                         'icon' => 'work',
                         'icon_bg' => 'bg-tertiary-fixed',
                         'icon_color' => 'text-on-tertiary-fixed-variant',
-                        'text' => "Nueva oferta <span class=\"font-semibold\">{$offer->title}</span> publicada por {$companyName}.",
+                        'text' => "Nueva oferta <span class=\"font-semibold\">{$offerTitle}</span> publicada por {$companyName}.",
                         'time' => $offer->created_at ? $offer->created_at->diffForHumans() : '-',
                     ];
                 });
