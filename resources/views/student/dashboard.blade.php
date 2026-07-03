@@ -339,6 +339,7 @@
                     </div>
             </div>
         </div>
+    </div>
 
         <!-- ================= PANEL 5: MI PERFIL ================= -->
         <div id="panel-profile" class="tab-panel space-y-xl hidden">
