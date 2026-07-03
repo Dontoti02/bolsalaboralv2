@@ -346,4 +346,79 @@ class StudentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update student professional profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $validator = Validator::make($request->all(), [
+            'names' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:9',
+            'document_type' => 'required|string|in:DNI,CE,PASAPORTE',
+            'document_number' => 'required|string|max:20',
+            'sex' => 'nullable|string|in:M,F,O',
+            'birth_date' => 'nullable|date|before:today',
+            'native_language' => 'nullable|string|max:100',
+            'about_me' => 'nullable|string|max:1000',
+            'skills' => 'nullable|array',
+            'hobbies' => 'nullable|array',
+            'education' => 'nullable|array',
+            'experience' => 'nullable|array',
+        ], [
+            'names.required' => 'El nombre completo es obligatorio.',
+            'document_type.required' => 'El tipo de documento es obligatorio.',
+            'document_number.required' => 'El número de documento es obligatorio.',
+            'birth_date.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $person = $user->person ?: new \App\Models\Person();
+            $person->fill([
+                'names' => trim($request->names),
+                'phone' => $request->phone ?: '',
+                'document_type' => $request->document_type,
+                'document_number' => $request->document_number,
+                'sex' => $request->sex ?: null,
+                'birth_date' => $request->birth_date ?: null,
+                'native_language' => $request->native_language ?: null,
+                'about_me' => $request->about_me ?: null,
+                'skills' => $request->skills ?: [],
+                'hobbies' => $request->hobbies ?: [],
+                'education' => $request->education ?: [],
+                'experience' => $request->experience ?: [],
+            ]);
+            $person->save();
+
+            // Associate person with user if not already set
+            if (!$user->person_id) {
+                $user->person_id = $person->id;
+                $user->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Perfil actualizado exitosamente.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el perfil: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

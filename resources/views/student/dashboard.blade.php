@@ -49,6 +49,7 @@
                         ['key' => 'jobs', 'icon' => 'work', 'label' => 'Ofertas Laborales'],
                         ['key' => 'applications', 'icon' => 'person_check', 'label' => 'Mis Postulaciones'],
                         ['key' => 'cvs', 'icon' => 'description', 'label' => 'Mis CVs'],
+                        ['key' => 'profile', 'icon' => 'person', 'label' => 'Mi Perfil'],
                     ],
                 ],
             ],
@@ -336,8 +337,156 @@
                         <p id="no-cvs-placeholder" class="text-center py-8 text-on-surface-variant">No ha subido ningún currículum todavía.</p>
                         @endforelse
                     </div>
-                </div>
             </div>
+        </div>
+
+        <!-- ================= PANEL 5: MI PERFIL ================= -->
+        <div id="panel-profile" class="tab-panel space-y-xl hidden">
+            <form id="student-profile-form" onsubmit="saveStudentProfile(event)" class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+                <!-- Columna Izquierda: Información Personal Básica -->
+                <div class="lg:col-span-1 bg-surface-container-lowest rounded-2xl border border-outline-variant p-lg shadow-sm space-y-md">
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-2 font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">person</span>
+                        Datos Personales
+                    </h3>
+                    <p class="text-body-xs text-on-surface-variant">Completa tu información básica de identificación y contacto.</p>
+                    <hr class="border-outline-variant my-2" />
+                    
+                    <div class="space-y-sm">
+                        <div>
+                            <label for="profile-names" class="block font-semibold text-body-xs text-on-surface mb-1">Nombre Completo:</label>
+                            <input type="text" id="profile-names" name="names" value="{{ Auth::user()->person->names ?? '' }}" required
+                                   class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="profile-doc-type" class="block font-semibold text-body-xs text-on-surface mb-1">Tipo Doc.:</label>
+                                <select id="profile-doc-type" name="document_type"
+                                        class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                                    <option value="DNI" {{ (Auth::user()->person->document_type ?? 'DNI') === 'DNI' ? 'selected' : '' }}>DNI</option>
+                                    <option value="CE" {{ (Auth::user()->person->document_type ?? '') === 'CE' ? 'selected' : '' }}>C.E.</option>
+                                    <option value="PASAPORTE" {{ (Auth::user()->person->document_type ?? '') === 'PASAPORTE' ? 'selected' : '' }}>Pasaporte</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="profile-doc-number" class="block font-semibold text-body-xs text-on-surface mb-1">Nº Doc.:</label>
+                                <input type="text" id="profile-doc-number" name="document_number" value="{{ Auth::user()->person->document_number ?? '' }}" required
+                                       class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="profile-phone" class="block font-semibold text-body-xs text-on-surface mb-1">Teléfono:</label>
+                            <input type="text" id="profile-phone" name="phone" value="{{ Auth::user()->person->phone ?? '' }}" maxlength="9"
+                                   class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="profile-sex" class="block font-semibold text-body-xs text-on-surface mb-1">Sexo:</label>
+                                <select id="profile-sex" name="sex"
+                                        class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                                    <option value="">Seleccionar</option>
+                                    <option value="M" {{ (Auth::user()->person->sex ?? '') === 'M' ? 'selected' : '' }}>Masculino</option>
+                                    <option value="F" {{ (Auth::user()->person->sex ?? '') === 'F' ? 'selected' : '' }}>Femenino</option>
+                                    <option value="O" {{ (Auth::user()->person->sex ?? '') === 'O' ? 'selected' : '' }}>Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="profile-native-lang" class="block font-semibold text-body-xs text-on-surface mb-1">Idioma Nativo:</label>
+                                <input type="text" id="profile-native-lang" name="native_language" value="{{ Auth::user()->person->native_language ?? '' }}" placeholder="Ej. Español"
+                                       class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="profile-birth-date" class="block font-semibold text-body-xs text-on-surface mb-1">Fecha Nacimiento:</label>
+                            <input type="date" id="profile-birth-date" name="birth_date" value="{{ Auth::user()->person->birth_date ?? '' }}"
+                                   class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Perfil Profesional -->
+                <div class="lg:col-span-2 space-y-lg">
+                    <!-- Tarjeta: Sobre mí, Habilidades y Aficiones -->
+                    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-lg shadow-sm space-y-md">
+                        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">psychology</span>
+                            Perfil Profesional
+                        </h3>
+                        
+                        <div>
+                            <label for="profile-about-me" class="block font-semibold text-body-xs text-on-surface mb-1">Sobre mí (Breve extracto):</label>
+                            <textarea id="profile-about-me" name="about_me" rows="4" maxlength="1000" placeholder="Escribe un breve resumen de tu perfil profesional..."
+                                      class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">{{ Auth::user()->person->about_me ?? '' }}</textarea>
+                        </div>
+
+                        <!-- Tag Inputs: Skills & Hobbies -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <div>
+                                <label class="block font-semibold text-body-xs text-on-surface mb-1">Habilidades (Ej: Java, PHP, Liderazgo):</label>
+                                <div class="border border-outline-variant rounded-lg p-2 bg-surface-container-lowest flex flex-wrap gap-2 items-center min-h-[48px] focus-within:border-primary transition-all">
+                                    <div id="skills-tags-container" class="flex flex-wrap gap-1.5">
+                                        <!-- Javascript will render tags here -->
+                                    </div>
+                                    <input type="text" id="skills-tag-input" placeholder="Escribe y pulsa Enter"
+                                           class="flex-1 min-w-[120px] bg-transparent outline-none border-none text-body-sm p-1">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-body-xs text-on-surface mb-1">Aficiones / Pasatiempos (Ej: Lectura, Deporte):</label>
+                                <div class="border border-outline-variant rounded-lg p-2 bg-surface-container-lowest flex flex-wrap gap-2 items-center min-h-[48px] focus-within:border-primary transition-all">
+                                    <div id="hobbies-tags-container" class="flex flex-wrap gap-1.5">
+                                        <!-- Javascript will render tags here -->
+                                    </div>
+                                    <input type="text" id="hobbies-tag-input" placeholder="Escribe y pulsa Enter"
+                                           class="flex-1 min-w-[120px] bg-transparent outline-none border-none text-body-sm p-1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: Educación -->
+                    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-lg shadow-sm space-y-md">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">school</span>
+                                Educación
+                            </h3>
+                            <button type="button" onclick="addEducationRow()" class="flex items-center gap-1 text-primary text-label-md font-semibold hover:opacity-85 transition-opacity bg-primary/10 px-3 py-1.5 rounded-lg">
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                Añadir
+                            </button>
+                        </div>
+                        <div id="education-repeater-container" class="space-y-md">
+                            <!-- Dynamic education rows here -->
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: Experiencia Laboral -->
+                    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-lg shadow-sm space-y-md">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">work_history</span>
+                                Experiencia Laboral
+                            </h3>
+                            <button type="button" onclick="addExperienceRow()" class="flex items-center gap-1 text-primary text-label-md font-semibold hover:opacity-85 transition-opacity bg-primary/10 px-3 py-1.5 rounded-lg">
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                Añadir
+                            </button>
+                        </div>
+                        <div id="experience-repeater-container" class="space-y-md">
+                            <!-- Dynamic experience rows here -->
+                        </div>
+                    </div>
+
+                    <!-- Botón de guardar todo -->
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="bg-primary text-on-primary font-semibold text-label-md px-8 py-3 rounded-xl hover:bg-primary/95 transition-all shadow-md flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">save</span>
+                            Guardar Perfil Profesional
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <!-- ================= PANEL 4: DETALLE DE EMPLEO (PAGE VIEW) ================= -->
@@ -577,7 +726,7 @@
         // Initialize to show 'jobs' panel first or the tab specified in URL
         const urlParams = new URLSearchParams(window.location.search);
         const tabToOpen = urlParams.get('tab') || 'jobs';
-        const validTabs = ['jobs', 'applications', 'cvs'];
+        const validTabs = ['jobs', 'applications', 'cvs', 'profile'];
         switchTab(validTabs.includes(tabToOpen) ? tabToOpen : 'jobs');
     });
 
@@ -958,8 +1107,251 @@
         });
     }
 
+    // Global arrays to store tags
+    let currentSkills = {!! json_encode(Auth::user()->person->skills ?? []) !!};
+    let currentHobbies = {!! json_encode(Auth::user()->person->hobbies ?? []) !!};
+    let educationData = {!! json_encode(Auth::user()->person->education ?? []) !!};
+    let experienceData = {!! json_encode(Auth::user()->person->experience ?? []) !!};
+
+    function initProfileUI() {
+        renderTags('skills');
+        renderTags('hobbies');
+        
+        // Render Education rows
+        const eduContainer = document.getElementById('education-repeater-container');
+        eduContainer.innerHTML = '';
+        if (educationData.length === 0) {
+            addEducationRow(); // Add at least one empty row
+        } else {
+            educationData.forEach((item, index) => addEducationRow(item));
+        }
+
+        // Render Experience rows
+        const expContainer = document.getElementById('experience-repeater-container');
+        expContainer.innerHTML = '';
+        if (experienceData.length === 0) {
+            addExperienceRow(); // Add at least one empty row
+        } else {
+            experienceData.forEach((item, index) => addExperienceRow(item));
+        }
+    }
+
+    function setupTagInput(type) {
+        const input = document.getElementById(type + '-tag-input');
+        if (!input) return;
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const val = this.value.trim().replace(/,/g, '');
+                if (val) {
+                    const arr = (type === 'skills') ? currentSkills : currentHobbies;
+                    if (!arr.includes(val)) {
+                        arr.push(val);
+                        renderTags(type);
+                    }
+                }
+                this.value = '';
+            }
+        });
+    }
+
+    function renderTags(type) {
+        const container = document.getElementById(type + '-tags-container');
+        const arr = (type === 'skills') ? currentSkills : currentHobbies;
+        if (!container) return;
+        
+        container.innerHTML = arr.map((tag, idx) => `
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-body-xs font-semibold">
+                ${tag}
+                <button type="button" onclick="removeTag('${type}', ${idx})" class="hover:bg-primary/20 rounded-full w-4 h-4 flex items-center justify-center text-[12px] font-bold">×</button>
+            </span>
+        `).join('');
+    }
+
+    function removeTag(type, index) {
+        const arr = (type === 'skills') ? currentSkills : currentHobbies;
+        arr.splice(index, 1);
+        renderTags(type);
+    }
+
+    // Repeater for Education
+    function addEducationRow(data = {}) {
+        const container = document.getElementById('education-repeater-container');
+        const rowId = 'edu-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        
+        const rowHTML = `
+            <div id="${rowId}" class="education-row p-md bg-surface-container-low rounded-xl border border-outline-variant space-y-sm relative">
+                <button type="button" onclick="removeRepeaterRow('${rowId}')" class="absolute top-2 right-2 p-1.5 text-error hover:bg-error/10 rounded-full transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pr-6">
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Institución:</label>
+                        <input type="text" placeholder="Ej: Universidad Nacional" value="${data.institution ?? ''}" required
+                               class="edu-institution w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Grado / Título:</label>
+                        <input type="text" placeholder="Ej: Bachiller en Sistemas" value="${data.degree ?? ''}" required
+                               class="edu-degree w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 max-w-sm">
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Año Inicio:</label>
+                        <input type="text" placeholder="Ej: 2021" value="${data.year_start ?? ''}" required
+                               class="edu-start w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Año Fin (o 'Actual'):</label>
+                        <input type="text" placeholder="Ej: 2025" value="${data.year_end ?? ''}" required
+                               class="edu-end w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHTML);
+    }
+
+    // Repeater for Experience
+    function addExperienceRow(data = {}) {
+        const container = document.getElementById('experience-repeater-container');
+        const rowId = 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        
+        const rowHTML = `
+            <div id="${rowId}" class="experience-row p-md bg-surface-container-low rounded-xl border border-outline-variant space-y-sm relative">
+                <button type="button" onclick="removeRepeaterRow('${rowId}')" class="absolute top-2 right-2 p-1.5 text-error hover:bg-error/10 rounded-full transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pr-6">
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Empresa:</label>
+                        <input type="text" placeholder="Ej: Tech Solutions" value="${data.company ?? ''}" required
+                               class="exp-company w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Cargo / Puesto:</label>
+                        <input type="text" placeholder="Ej: Desarrollador Jr." value="${data.role ?? ''}" required
+                               class="exp-role w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 max-w-sm">
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Año Inicio:</label>
+                        <input type="text" placeholder="Ej: 2023" value="${data.year_start ?? ''}" required
+                               class="exp-start w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Año Fin (o 'Actual'):</label>
+                        <input type="text" placeholder="Ej: Actual" value="${data.year_end ?? ''}" required
+                               class="exp-end w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-body-xs text-on-surface mb-0.5">Descripción de labores (Opcional):</label>
+                    <textarea rows="2" placeholder="Describe brevemente tus funciones..."
+                              class="exp-desc w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary outline-none">${data.description ?? ''}</textarea>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHTML);
+    }
+
+    function removeRepeaterRow(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    function saveStudentProfile(event) {
+        event.preventDefault();
+        
+        // Collate Education
+        const eduRows = document.querySelectorAll('.education-row');
+        const education = [];
+        eduRows.forEach(row => {
+            const inst = row.querySelector('.edu-institution').value.trim();
+            const deg = row.querySelector('.edu-degree').value.trim();
+            const start = row.querySelector('.edu-start').value.trim();
+            const end = row.querySelector('.edu-end').value.trim();
+            if (inst || deg) {
+                education.push({
+                    institution: inst,
+                    degree: deg,
+                    year_start: start,
+                    year_end: end
+                });
+            }
+        });
+
+        // Collate Experience
+        const expRows = document.querySelectorAll('.experience-row');
+        const experience = [];
+        expRows.forEach(row => {
+            const comp = row.querySelector('.exp-company').value.trim();
+            const role = row.querySelector('.exp-role').value.trim();
+            const start = row.querySelector('.exp-start').value.trim();
+            const end = row.querySelector('.exp-end').value.trim();
+            const desc = row.querySelector('.exp-desc').value.trim();
+            if (comp || role) {
+                experience.push({
+                    company: comp,
+                    role: role,
+                    year_start: start,
+                    year_end: end,
+                    description: desc
+                });
+            }
+        });
+
+        const payload = {
+            names: document.getElementById('profile-names').value.trim(),
+            document_type: document.getElementById('profile-doc-type').value,
+            document_number: document.getElementById('profile-doc-number').value.trim(),
+            phone: document.getElementById('profile-phone').value.trim(),
+            sex: document.getElementById('profile-sex').value,
+            native_language: document.getElementById('profile-native-lang').value.trim(),
+            birth_date: document.getElementById('profile-birth-date').value,
+            about_me: document.getElementById('profile-about-me').value.trim(),
+            skills: currentSkills,
+            hobbies: currentHobbies,
+            education: education,
+            experience: experience,
+            _token: '{{ csrf_token() }}'
+        };
+
+        showApplyStatusModal('loading', 'Guardando cambios...', 'Guardando los cambios de tu perfil profesional, por favor espera.');
+
+        fetch('/student/profile', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showApplyStatusModal('success', '¡Perfil Guardado!', 'Los cambios en tu perfil profesional se han guardado con éxito.', true, function() {
+                    location.reload();
+                });
+            } else {
+                showApplyStatusModal('error', 'Error al guardar', data.message || 'Ocurrió un problema al guardar los cambios.', true);
+            }
+        })
+        .catch(err => {
+            showApplyStatusModal('error', 'Error de red', 'No pudimos conectarnos con el servidor. Verifica tu conexión e intenta de nuevo.', true);
+        });
+    }
+
     // Auto-open offer from URL query parameter
     document.addEventListener('DOMContentLoaded', function() {
+        initProfileUI();
+        setupTagInput('skills');
+        setupTagInput('hobbies');
+
         const urlParams = new URLSearchParams(window.location.search);
         const offerIdParam = urlParams.get('offer_id');
         if (offerIdParam) {

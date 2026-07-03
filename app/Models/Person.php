@@ -30,6 +30,23 @@ class Person extends Model
         'sex',
         'birth_date',
         'native_language',
+        'about_me',
+        'skills',
+        'hobbies',
+        'education',
+        'experience',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'skills' => 'array',
+        'hobbies' => 'array',
+        'education' => 'array',
+        'experience' => 'array',
     ];
 
     /**

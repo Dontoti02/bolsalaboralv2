@@ -76,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');
         Route::get('/student/cv/download/{id}', [\App\Http\Controllers\StudentController::class, 'downloadCv'])->name('student.cv.download');
         Route::post('/student/apply/{offer_id}', [\App\Http\Controllers\StudentController::class, 'applyToOffer'])->name('student.apply');
+        Route::post('/student/profile', [\App\Http\Controllers\StudentController::class, 'updateProfile'])->name('student.profile.update');
     });
 
     // Company Routes (rol_id = 4)
