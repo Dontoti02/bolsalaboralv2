@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect('/login');
-});
+// Public Landing Page
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);

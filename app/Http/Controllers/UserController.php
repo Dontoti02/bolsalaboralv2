@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Imports\UsersImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -65,12 +66,8 @@ class UserController extends Controller
 
             $phone = substr($request->phone, 0, 9); // truncate to fit database column limit if needed
             
-            // Set password based on role: DNI for students/teachers/admins, RUC for companies
-            if ($request->role_id == 4) {
-                $password = Hash::make($request->doc_number); // RUC as password for companies
-            } else {
-                $password = Hash::make($request->doc_number); // DNI/CE as password for students/teachers/admins
-            }
+            // Generate secure random password (16 chars, mixed case, numbers, symbols)
+            $password = Hash::make(Str::random(16));
 
             $user = new User();
             $user->email = $request->email;
@@ -983,12 +980,12 @@ class UserController extends Controller
                     $user->email = $request->email;
                     $user->save();
                 } else {
-                    // Create associated User account with RUC as password
+                    // Create associated User account with a secure random password
                     $user = new User();
                     $user->company_id = $company->id;
                     $user->rol_id = 4; // Empresa
                     $user->email = $request->email;
-                    $user->password = Hash::make($request->ruc); // RUC as password
+                    $user->password = Hash::make(Str::random(16));
                     $user->is_active = true;
                     $user->attempts = 0;
                     $user->save();

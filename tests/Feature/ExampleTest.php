@@ -18,11 +18,11 @@ class ExampleTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_root_redirects_to_login(): void
+    public function test_root_returns_landing_page(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/login');
+        $response->assertStatus(200);
     }
 
     public function test_admin_dashboard_redirects_to_login_for_unauthenticated_user(): void
