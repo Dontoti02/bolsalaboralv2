@@ -307,6 +307,20 @@
         .toast-notify{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(0,39,65,0.95);color:#fff;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,0.25);z-index:2000;opacity:0;transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);backdrop-filter:blur(8px)}
         .toast-notify.show{transform:translateX(-50%) translateY(0);opacity:1}
 
+        /* ── APPLY LOADING ── */
+        .apply-loading{display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 0}
+        .apply-loading.show{display:flex}
+        .apply-progress-wrap{width:100%;max-width:280px}
+        .apply-progress-bar{width:100%;height:8px;background:var(--bg);border-radius:50px;overflow:hidden}
+        .apply-progress-fill{height:100%;background:linear-gradient(90deg,var(--pri),var(--sec));border-radius:50px;width:0;transition:width .3s ease}
+        .apply-progress-text{font-size:13px;font-weight:600;color:var(--pri);text-align:center;margin-top:4px}
+        .apply-loading-icon{width:48px;height:48px;border-radius:50%;background:rgba(0,39,65,.08);display:flex;align-items:center;justify-content:center;animation:pulse 1.5s ease-in-out infinite}
+        @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.7}}
+        .apply-loading-icon .material-symbols-outlined{font-size:24px;color:var(--pri);animation:spin 1s linear infinite}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .btn-postular:disabled{opacity:.6;cursor:not-allowed;transform:none}
+        .tag-applied{background:rgba(249,115,22,.1);color:#c2410c;font-weight:700}
+
     </style>
 </head>
 <body>
@@ -747,6 +761,20 @@
         <h2 class="modal-title" id="modal-offer-title">Postular a oferta</h2>
         <p class="modal-sub">Selecciona tu CV y envía tu postulación.</p>
         <div id="postular-alert" class="s-alert" style="margin-bottom:8px;display:none"></div>
+        {{-- Loading State --}}
+        <div id="apply-loading" class="apply-loading">
+            <div class="apply-loading-icon">
+                <span class="material-symbols-outlined">progress_activity</span>
+            </div>
+            <div class="apply-progress-wrap">
+                <div class="apply-progress-bar">
+                    <div id="apply-progress-fill" class="apply-progress-fill"></div>
+                </div>
+                <p id="apply-progress-text" class="apply-progress-text">Enviando postulación... 0%</p>
+            </div>
+        </div>
+        {{-- Form State --}}
+        <div id="apply-form-content">
         @if($studentCvs->count())
         <div style="margin-bottom:12px">
             <label class="s-form-label" style="display:block;margin-bottom:6px">Selecciona tu CV</label>
@@ -761,7 +789,7 @@
             <textarea id="apply-message" class="s-form-input" rows="3" placeholder="Cuéntale a la empresa por qué eres el candidato ideal..." style="resize:vertical"></textarea>
         </div>
         <div class="modal-actions">
-            <button class="modal-btn-pri" onclick="submitApply()">
+            <button id="btn-submit-apply" class="modal-btn-pri" onclick="submitApply()">
                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
                 Enviar postulación
             </button>
@@ -777,6 +805,7 @@
             <button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>
         </div>
         @endif
+        </div>
         @else
         {{-- No autenticado --}}
         <span class="material-symbols-outlined filled modal-icon">lock_person</span>
@@ -1023,6 +1052,7 @@ var searchTimer = null;
 var activeItemId= null;
 var loadedOffers = [];
 var sharedOffer  = @json($sharedOffer);
+var appliedOffers = new Set(@json($studentApplicationIds));
 
 
 // ── Init ────────────────────────────────────────────────────────────────────
@@ -1193,6 +1223,7 @@ function renderItem(o){
     var logo= co.logo||'';
     var addr= [o.province, o.department].filter(Boolean).join(', ');
     var salary = o.salary ? 'S/ '+Number(o.salary).toLocaleString('es-PE') : 'A tratar';
+    var isApplied = appliedOffers.has(o.id);
 
     var logoHtml = logo
         ? '<img src="'+esc(logo)+'" alt="'+esc(name)+'">'
@@ -1215,6 +1246,7 @@ function renderItem(o){
         '<div class="job-item-tags">'+
         (cat.name?'<span class="tag-xs tag-pri">'+esc(cat.name)+'</span>':'')+
         '<span class="tag-xs tag-sec">'+esc(salary)+'</span>'+
+        (isApplied?'<span class="tag-xs tag-acc tag-applied">✓ Postulado</span>':'')+
         '</div>'+
         '<button class="btn-vista" onclick="event.stopPropagation();openDetail('+oJson+')">Vista</button>'+
         '</div>'+
@@ -1279,6 +1311,26 @@ function openDetail(o) {
         try{ document.getElementById('d-deadline-text').textContent = 'Postulaciones hasta: '+new Date(o.deadline).toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}); } catch(e){}
         dlRow.style.display='block';
     } else { dlRow.style.display='none'; }
+
+    // Update apply button based on applied status
+    var btnPostular = document.querySelector('.btn-postular');
+    var btnSave = document.querySelector('.d-actions .btn-icon[title="Guardar"]');
+    if(btnPostular){
+        var isApplied = appliedOffers.has(o.id);
+        if(isApplied){
+            btnPostular.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Ya postulado';
+            btnPostular.disabled = true;
+            btnPostular.style.opacity = '0.6';
+            btnPostular.style.cursor = 'not-allowed';
+            if(btnSave) btnSave.style.display = 'none';
+        } else {
+            btnPostular.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Postularme';
+            btnPostular.disabled = false;
+            btnPostular.style.opacity = '1';
+            btnPostular.style.cursor = 'pointer';
+            if(btnSave) btnSave.style.display = 'flex';
+        }
+    }
 
     // Show content
     document.getElementById('detail-empty').classList.add('hidden');
@@ -1561,6 +1613,28 @@ function openPostularModal(){
         if(al){ al.style.display='none'; al.textContent=''; }
         var msg = document.getElementById('apply-message');
         if(msg) msg.value='';
+
+        // Reset loading state
+        var loadingEl = document.getElementById('apply-loading');
+        var formContent = document.getElementById('apply-form-content');
+        var progressFill = document.getElementById('apply-progress-fill');
+        var progressText = document.getElementById('apply-progress-text');
+        var btnSubmit = document.getElementById('btn-submit-apply');
+        if(loadingEl) loadingEl.classList.remove('show');
+        if(formContent) formContent.style.display = 'block';
+        if(progressFill) progressFill.style.width = '0';
+        if(progressText) progressText.textContent = 'Enviando postulación... 0%';
+        if(btnSubmit) btnSubmit.disabled = false;
+
+        // Check if already applied
+        if(currentOfferId && appliedOffers.has(currentOfferId)){
+            if(formContent) formContent.style.display = 'none';
+            if(al){
+                al.className = 's-alert error';
+                al.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px">block</span>Ya has postulado a esta oferta laboral.';
+                al.style.display = 'block';
+            }
+        }
     }
 }
 function closePostularModal(){
@@ -1577,6 +1651,26 @@ function submitApply(){
     var cvId = cvSelect.value;
     var message = msg ? msg.value : '';
 
+    // Show loading
+    var loadingEl = document.getElementById('apply-loading');
+    var formContent = document.getElementById('apply-form-content');
+    var progressFill = document.getElementById('apply-progress-fill');
+    var progressText = document.getElementById('apply-progress-text');
+    var btnSubmit = document.getElementById('btn-submit-apply');
+
+    if(loadingEl) loadingEl.classList.add('show');
+    if(formContent) formContent.style.display = 'none';
+    if(btnSubmit) btnSubmit.disabled = true;
+
+    // Simulate progress
+    var progress = 0;
+    var progressInterval = setInterval(function(){
+        progress += Math.random() * 15;
+        if(progress > 90) progress = 90;
+        if(progressFill) progressFill.style.width = progress + '%';
+        if(progressText) progressText.textContent = 'Enviando postulación... ' + Math.round(progress) + '%';
+    }, 200);
+
     fetch('/student/apply/'+currentOfferId, {
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
@@ -1584,10 +1678,14 @@ function submitApply(){
     })
     .then(function(r){ return r.json(); })
     .then(function(d){
+        clearInterval(progressInterval);
+        if(progressFill) progressFill.style.width = '100%';
+        if(progressText) progressText.textContent = '¡Postulación enviada!';
+
         if(d.success){
-            showAlert('postular-alert','success',d.message);
-            // Marcar en la lista
+            // Mark as applied
             if(currentOfferId){
+                appliedOffers.add(currentOfferId);
                 var item = document.getElementById('item-'+currentOfferId);
                 if(item){
                     var footer = item.querySelector('.job-item-footer');
@@ -1596,12 +1694,25 @@ function submitApply(){
                     }
                 }
             }
-            setTimeout(function(){ closePostularModal(); }, 1800);
+            setTimeout(function(){
+                showAlert('postular-alert','success',d.message);
+                setTimeout(function(){ closePostularModal(); }, 1200);
+            }, 500);
         } else {
+            // Reset form on error
+            if(loadingEl) loadingEl.classList.remove('show');
+            if(formContent) formContent.style.display = 'block';
+            if(btnSubmit) btnSubmit.disabled = false;
             showAlert('postular-alert','error',d.message);
         }
     })
-    .catch(function(){ showAlert('postular-alert','error','Error de conexión.'); });
+    .catch(function(){
+        clearInterval(progressInterval);
+        if(loadingEl) loadingEl.classList.remove('show');
+        if(formContent) formContent.style.display = 'block';
+        if(btnSubmit) btnSubmit.disabled = false;
+        showAlert('postular-alert','error','Error de conexión.');
+    });
 }
 
 // ── Save profile ──────────────────────────────────────────────────────────────
