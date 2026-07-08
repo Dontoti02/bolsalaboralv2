@@ -271,7 +271,7 @@
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title ?? 'Puesto' }}</td>
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->diffForHumans() : '-' }}</td>
                                     <td class="px-lg py-md text-right">
-                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" class="text-primary hover:text-primary-container font-label-md text-label-md transition-colors font-semibold">Ver Perfil</button>
+                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     </td>
                                 </tr>
                                 @empty
@@ -600,9 +600,9 @@
                                     <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ strtoupper($app->status) }}</span>
                                 </td>
                                 <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
-                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" class="text-primary hover:underline font-label-sm text-label-sm font-semibold">Ver Perfil</button>
+                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     @if($app->cv)
-                                    <a href="{{ $app->cv }}" target="_blank" class="text-primary hover:underline font-label-sm text-label-sm font-semibold flex items-center gap-0.5"><span class="material-symbols-outlined text-sm">picture_as_pdf</span> CV</a>
+                                    <a href="{{ $app->cv }}" target="_blank" style="color:#002741; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'"><span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span> CV</a>
                                     @endif
                                     @if($app->status == 'postulated')
                                     <button onclick="updateStatus({{ $app->id }}, 'accepted')" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 font-label-sm text-label-sm font-semibold rounded-lg transition-colors flex items-center gap-1">
