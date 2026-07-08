@@ -211,6 +211,267 @@ php artisan storage:link
 
 ---
 
+## 🖥️ Instalación en VPS Hosting (Producción paso a paso)
+
+### Paso 1 — Acceder al VPS
+```bash
+ssh root@tu_ip_del_vps
+```
+
+### Paso 2 — Actualizar sistema y dependencias
+```bash
+# Ubuntu/Debian
+apt update && apt upgrade -y
+apt install -y curl wget git unzip software-properties-common
+
+# CentOS/RHEL
+dnf update -y
+dnf install -y curl wget git unzip
+```
+
+### Paso 3 — Instalar PHP 8.2
+```bash
+# Ubuntu/Debian
+apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-mbstring php8.2-xml \
+  php8.2-curl php8.2-zip php8.2-gd php8.2-bcmath php8.2-intl \
+  php8.2-mysql php8.2-redis php8.2-dom php8.2-tokenizer php8.2-fileinfo
+
+# Verificar
+php -v
+```
+
+### Paso 4 — Instalar MySQL/MariaDB
+```bash
+# Ubuntu/Debian
+apt install -y mysql-server
+mysql_secure_installation
+
+# Crear base de datos y usuario
+mysql -u root -p
+```
+```sql
+CREATE DATABASE bolsalaboral CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'bolsa_user'@'localhost' IDENTIFIED BY 'tu_password_seguro';
+GRANT ALL PRIVILEGES ON bolsalaboral.* TO 'bolsa_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+### Paso 5 — Instalar Node.js + NPM
+```bash
+# Node.js 20 LTS
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# Verificar
+node -v && npm -v
+```
+
+### Paso 6 — Instalar Composer
+```bash
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+chmod +x /usr/local/bin/composer
+composer --version
+```
+
+### Paso 7 — Instalar Redis (opcional pero recomendado)
+```bash
+apt install -y redis-server
+systemctl enable redis-server
+systemctl start redis-server
+```
+
+### Paso 8 — Clonar el proyecto
+```bash
+cd /var/www
+git clone https://github.com/Dontoti02/bolsalaboralv2.git
+cd bolsalaboralv2
+```
+
+### Paso 9 — Configurar entorno
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edita `.env`:
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://tudominio.com
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bolsalaboral
+DB_USERNAME=bolsa_user
+DB_PASSWORD=tu_password_seguro
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_email@gmail.com
+MAIL_PASSWORD=tu_app_password
+MAIL_ENCRYPTION=tls
+
+QUEUE_CONNECTION=redis
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+```
+
+### Paso 10 — Instalar dependencias y compilar
+```bash
+composer install --no-dev --optimize-autoloader --no-interaction
+npm install
+npm run build
+```
+
+### Paso 11 — Migraciones y permisos
+```bash
+php artisan migrate --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Permisos
+chown -R www-data:www-data /var/www/bolsalaboralv2
+find /var/www/bolsalaboralv2 -type d -exec chmod 755 {} \;
+find /var/www/bolsalaboralv2 -type f -exec chmod 644 {} \;
+chmod -R 775 /var/www/bolsalaboralv2/storage
+chmod -R 775 /var/www/bolsalaboralv2/bootstrap/cache
+```
+
+### Paso 12 — Configurar Nginx
+```bash
+apt install -y nginx
+```
+
+Crea el archivo `/etc/nginx/sites-available/bolsalaboral`:
+```nginx
+server {
+    listen 80;
+    server_name tudominio.com www.tudominio.com;
+    root /var/www/bolsalaboralv2/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Cache de assets estáticos
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2|woff|ttf|svg)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Proteger archivos sensibles
+    location ~ /\.(env|ht) {
+        deny all;
+    }
+}
+```
+
+```bash
+ln -s /etc/nginx/sites-available/bolsalaboral /etc/nginx/sites-enabled/
+rm /etc/nginx/sites-enabled/default
+nginx -t
+systemctl reload nginx
+```
+
+### Paso 13 — SSL con Let's Encrypt (gratis)
+```bash
+apt install -y certbot python3-certbot-nginx
+certbot --nginx -d tudominio.com -d www.tudominio.com
+# Auto-renovación:
+systemctl enable certbot.timer
+```
+
+### Paso 14 — Configurar Supervisor (Colas/Workers)
+```bash
+apt install -y supervisor
+```
+
+Crea `/etc/supervisor/conf.d/laravel-worker.conf`:
+```ini
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/bolsalaboralv2/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/bolsalaboralv2/storage/logs/worker.log
+stopwaitsecs=3600
+```
+
+```bash
+supervisorctl reread
+supervisorctl update
+supervisorctl start "laravel-worker:*"
+```
+
+### Paso 15 — Configurar Cron (Tareas programadas)
+```bash
+crontab -e
+```
+Agrega:
+```cron
+* * * * * cd /var/www/bolsalaboralv2 && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Paso 16 — Verificar funcionamiento
+```bash
+# Test Nginx
+curl -I https://tudominio.com
+
+# Test artisan
+cd /var/www/bolsalaboralv2
+php artisan about
+
+# Ver logs si hay errores
+tail -f storage/logs/laravel.log
+```
+
+### Resumen rápido comandos VPS
+```bash
+# Una vez todo configurado, para actualizar:
+cd /var/www/bolsalaboralv2
+git pull origin main
+composer install --no-dev --optimize-autoloader
+npm run build
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+chown -R www-data:www-data storage bootstrap/cache
+```
+
+---
+
 ## 🔐 Seguridad
 
 | Medida | Estado |
