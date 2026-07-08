@@ -605,8 +605,14 @@
                                     <a href="{{ $app->cv }}" target="_blank" class="text-primary hover:underline font-label-sm text-label-sm font-semibold flex items-center gap-0.5"><span class="material-symbols-outlined text-sm">picture_as_pdf</span> CV</a>
                                     @endif
                                     @if($app->status == 'postulated')
-                                    <button onclick="updateStatus({{ $app->id }}, 'accepted')" class="text-green-600 hover:text-green-800 font-label-sm text-label-sm font-semibold">Aprobar</button>
-                                    <button onclick="updateStatus({{ $app->id }}, 'rejected')" class="text-red-600 hover:text-red-800 font-label-sm text-label-sm font-semibold">Rechazar</button>
+                                    <button onclick="updateStatus({{ $app->id }}, 'accepted')" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 font-label-sm text-label-sm font-semibold rounded-lg transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">check</span>
+                                        Aprobar
+                                    </button>
+                                    <button onclick="updateStatus({{ $app->id }}, 'rejected')" class="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 font-label-sm text-label-sm font-semibold rounded-lg transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">close</span>
+                                        Rechazar
+                                    </button>
                                     @endif
                                 </td>
                             </tr>
