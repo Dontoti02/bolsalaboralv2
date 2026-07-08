@@ -356,6 +356,7 @@ class StudentController extends Controller
         
         $validator = Validator::make($request->all(), [
             'names' => 'required|string|max:255',
+            'career' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:9',
             'document_type' => 'required|string|in:DNI,CE,PASAPORTE',
             'document_number' => 'required|string|max:20',
@@ -387,6 +388,7 @@ class StudentController extends Controller
             $person = $user->person ?: new \App\Models\Person();
             $person->fill([
                 'names' => trim($request->names),
+                'career' => $request->career ?: null,
                 'phone' => $request->phone ?: '',
                 'document_type' => $request->document_type,
                 'document_number' => $request->document_number,

@@ -25,6 +25,7 @@ class Person extends Model
         'document_type',
         'document_number',
         'names',
+        'career',
         'phone',
         'email',
         'sex',

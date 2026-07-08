@@ -78,9 +78,7 @@
             </div>
             <!-- Trailing Actions & Profile -->
             <div class="flex items-center gap-md">
-                <button class="text-on-surface-variant hover:bg-surface-container-high rounded-full p-2 transition-all">
-                    <span class="material-symbols-outlined">notifications</span>
-                </button>
+                @include('partials.notifications-dropdown', ['id' => 'student-notifications-button', 'menuId' => 'student-notifications-menu'])
                 <button class="text-on-surface-variant hover:bg-surface-container-high rounded-full p-2 transition-all">
                     <span class="material-symbols-outlined">help</span>
                 </button>
