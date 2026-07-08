@@ -760,44 +760,51 @@
 </div>
 
 <!-- Modal: Detalles del Postulante -->
-<div id="applicant-detail-modal" class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-surface-bright rounded-2xl border border-outline-variant p-xl shadow-lg max-w-md w-full mx-4 flex flex-col space-y-lg transform scale-95 transition-transform duration-300">
-        <!-- Header -->
-        <div class="flex justify-between items-center border-b border-outline-variant pb-md">
-            <h3 class="text-headline-sm font-bold text-on-surface">Perfil del Postulante</h3>
-            <button onclick="closeApplicantModal()" class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+<div id="applicant-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 flex flex-col overflow-hidden transform scale-95 transition-transform duration-300">
+        <!-- Header con gradiente -->
+        <div class="relative bg-gradient-to-br from-[#002741] to-[#004d45] px-6 py-8 text-white">
+            <button onclick="closeApplicantModal()" class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors">
                 <span class="material-symbols-outlined">close</span>
             </button>
+            
+            <div class="flex items-center gap-4">
+                <div id="applicant-modal-avatar" class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-2xl font-bold border-2 border-white/30">
+                    -
+                </div>
+                <div class="flex-1">
+                    <h3 id="applicant-modal-name" class="text-xl font-bold mb-1">-</h3>
+                    <p id="applicant-modal-career" class="text-sm text-white/80 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">school</span>
+                        -
+                    </p>
+                </div>
+            </div>
         </div>
         
         <!-- Content -->
-        <div class="space-y-md flex-1">
-            <!-- Initials Avatar + Name & Career -->
-            <div class="flex items-center gap-md">
-                <div id="applicant-modal-avatar" class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-headline-md font-bold">
-                    -
+        <div class="p-6 space-y-5">
+            <!-- Mensaje de presentación -->
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-gray-700">
+                    <span class="material-symbols-outlined text-[18px] text-gray-400">chat</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Mensaje de presentación</span>
                 </div>
-                <div>
-                    <h4 id="applicant-modal-name" class="text-title-md font-bold text-on-surface">-</h4>
-                    <p id="applicant-modal-career" class="text-body-sm text-on-surface-variant font-medium">-</p>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <p id="applicant-modal-message" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        -
+                    </p>
                 </div>
-            </div>
-
-            <!-- Application Message -->
-            <div class="space-y-xs">
-                <span class="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Mensaje de presentación</span>
-                <p id="applicant-modal-message" class="text-body-md text-on-surface bg-surface-container-low p-md rounded-xl border border-outline-variant/60 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
-                    -
-                </p>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-md border-t border-outline-variant pt-lg">
-            <button onclick="closeApplicantModal()" class="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-semibold text-label-md rounded-xl hover:bg-surface-container-low transition-colors">
+        <div class="px-6 pb-6 flex gap-3">
+            <button onclick="closeApplicantModal()" class="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold text-sm rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">close</span>
                 Cerrar
             </button>
-            <a id="applicant-modal-cv-link" href="#" target="_blank" class="flex-1 py-2.5 bg-primary text-on-primary font-semibold text-label-md rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-sm">
+            <a id="applicant-modal-cv-link" href="#" target="_blank" class="flex-1 py-3 bg-gradient-to-r from-[#002741] to-[#004d45] text-white font-semibold text-sm rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg">
                 <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                 Ver CV PDF
             </a>
@@ -806,43 +813,48 @@
 </div>
 
 <!-- Modal: Feedback/Comentario para actualizar estado -->
-<div id="feedback-modal" class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-surface-bright rounded-2xl border border-outline-variant p-xl shadow-lg max-w-md w-full mx-4 flex flex-col space-y-lg transform scale-95 transition-transform duration-300">
-        <!-- Header -->
-        <div class="flex justify-between items-center border-b border-outline-variant pb-md">
-            <div class="flex items-center gap-sm">
-                <div id="feedback-modal-icon" class="w-10 h-10 rounded-full flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+<div id="feedback-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 flex flex-col overflow-hidden transform scale-95 transition-transform duration-300">
+        <!-- Header con color -->
+        <div id="feedback-modal-header" class="px-6 py-5 text-white">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div id="feedback-modal-icon" class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[24px]">check_circle</span>
+                    </div>
+                    <div>
+                        <h3 id="feedback-modal-title" class="text-lg font-bold">Aprobar Postulante</h3>
+                        <p id="feedback-modal-subtitle" class="text-sm text-white/80">Acción para el candidato</p>
+                    </div>
                 </div>
-                <h3 id="feedback-modal-title" class="text-headline-sm font-bold text-on-surface">Actualizar Estado</h3>
+                <button onclick="closeFeedbackModal()" class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
-            <button onclick="closeFeedbackModal()" class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
-                <span class="material-symbols-outlined">close</span>
-            </button>
         </div>
         
         <!-- Content -->
-        <div class="space-y-md">
-            <p id="feedback-modal-description" class="text-body-md text-on-surface-variant">
+        <div class="p-6 space-y-4">
+            <p id="feedback-modal-description" class="text-gray-600 text-sm leading-relaxed">
                 Agrega un comentario opcional para el candidato.
             </p>
             
-            <div class="space-y-xs">
-                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="feedback-textarea">Comentario (opcional)</label>
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block" for="feedback-textarea">Comentario (opcional)</label>
                 <textarea 
                     id="feedback-textarea" 
                     rows="4"
-                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface resize-none"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all text-sm text-gray-800 resize-none placeholder-gray-400"
                     placeholder="Escribe un mensaje para el candidato..."></textarea>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-md border-t border-outline-variant pt-lg">
-            <button onclick="closeFeedbackModal()" class="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-semibold text-label-md rounded-xl hover:bg-surface-container-low transition-colors">
+        <div class="px-6 pb-6 flex gap-3">
+            <button onclick="closeFeedbackModal()" class="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold text-sm rounded-xl hover:bg-gray-50 transition-colors">
                 Cancelar
             </button>
-            <button id="feedback-submit-btn" onclick="submitFeedback()" class="flex-1 py-2.5 bg-primary text-on-primary font-semibold text-label-md rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-sm">
+            <button id="feedback-submit-btn" onclick="submitFeedback()" class="flex-1 py-3 text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg">
                 <span class="material-symbols-outlined text-[18px]">send</span>
                 Confirmar
             </button>
@@ -1286,8 +1298,10 @@
         pendingFeedbackStatus = status;
         
         const modal = document.getElementById('feedback-modal');
-        const modalContainer = modal.querySelector('.max-w-md');
+        const modalContainer = modal.querySelector('.bg-white');
+        const header = document.getElementById('feedback-modal-header');
         const title = document.getElementById('feedback-modal-title');
+        const subtitle = document.getElementById('feedback-modal-subtitle');
         const description = document.getElementById('feedback-modal-description');
         const icon = document.getElementById('feedback-modal-icon');
         const textarea = document.getElementById('feedback-textarea');
@@ -1298,18 +1312,20 @@
         
         // Configure based on status
         if (status === 'accepted') {
+            header.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
             title.textContent = 'Aprobar Postulante';
+            subtitle.textContent = 'Candidato seleccionado';
             description.textContent = '¿Deseas aprobar a este candidato? Puedes agregar un mensaje de felicitación.';
-            icon.className = 'w-10 h-10 rounded-full bg-green-100 flex items-center justify-center';
-            icon.innerHTML = '<span class="material-symbols-outlined text-[20px] text-green-600">check_circle</span>';
-            submitBtn.className = 'flex-1 py-2.5 bg-green-600 text-white font-semibold text-label-md rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-1 shadow-sm';
+            icon.innerHTML = '<span class="material-symbols-outlined text-[24px] text-white">check_circle</span>';
+            submitBtn.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
             submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Aprobar';
         } else {
+            header.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
             title.textContent = 'Rechazar Postulante';
+            subtitle.textContent = 'Candidato no seleccionado';
             description.textContent = '¿Deseas rechazar a este candidato? Puedes agregar un comentario constructivo.';
-            icon.className = 'w-10 h-10 rounded-full bg-red-100 flex items-center justify-center';
-            icon.innerHTML = '<span class="material-symbols-outlined text-[20px] text-red-600">cancel</span>';
-            submitBtn.className = 'flex-1 py-2.5 bg-red-600 text-white font-semibold text-label-md rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-1 shadow-sm';
+            icon.innerHTML = '<span class="material-symbols-outlined text-[24px] text-white">cancel</span>';
+            submitBtn.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
             submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span> Rechazar';
         }
         
@@ -1324,7 +1340,7 @@
 
     function closeFeedbackModal() {
         const modal = document.getElementById('feedback-modal');
-        const modalContainer = modal.querySelector('.max-w-md');
+        const modalContainer = modal.querySelector('.bg-white');
         
         modalContainer.classList.add('scale-95');
         modal.classList.add('opacity-0');
