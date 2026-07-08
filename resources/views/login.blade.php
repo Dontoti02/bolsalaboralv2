@@ -51,7 +51,7 @@
         <div class="relative z-10 flex flex-col justify-end p-2xl text-on-primary w-full h-full">
             <div class="max-w-md">
                 <span class="material-symbols-outlined text-4xl mb-md">work</span>
-                <h2 class="font-headline-lg text-headline-lg mb-sm">Bolsa Laboral</h2>
+                <h2 class="font-headline-lg text-headline-lg mb-sm">Bolsa Laboral - {{ $config['application_name'] ?? 'Institucional' }}</h2>
                 <p class="font-body-lg text-body-lg opacity-90">Conectando el talento de nuestros estudiantes con las mejores oportunidades del mercado.</p>
             </div>
         </div>
@@ -64,12 +64,12 @@
                 @if(!empty($config['logo']))
                     <img src="{{ $config['logo'] }}" alt="Logo" class="h-10 w-auto object-contain">
                 @endif
-                <span class="font-display-lg text-display-lg text-primary tracking-tight leading-none">Bolsa Laboral</span>
+                <span class="font-display-lg text-display-lg text-primary tracking-tight leading-none">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
             </div> <!-- Section: Login -->
             <div id="login-section" class="space-y-md">
                 <div class="mb-xl text-center lg:text-left">
                     <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Iniciar Sesión</h1>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant">Portal institucional de Bolsa Laboral.</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">Bolsa Laboral - Accede al portal institucional.</p>
                 </div>
                 <!-- Form -->
                 <form action="{{ route('login') }}" method="POST" class="space-y-md">
