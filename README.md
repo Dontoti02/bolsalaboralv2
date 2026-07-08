@@ -1,59 +1,300 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎯 Bolsa Laboral v2 — Manual de Instalación y Configuración
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de bolsa de empleo para instituciones educativas. Permite a **estudiantes/egresados** postular a ofertas y a **empresas** publicar vacantes y gestionar postulantes.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Requisitos Previos
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Requisito | Versión Mínima | Notas |
+|-----------|----------------|-------|
+| **PHP** | 8.2+ | Extensiones: `pdo_mysql`, `mbstring`, `xml`, `curl`, `zip`, `gd`, `bcmath`, `intl` |
+| **Composer** | 2.x | Gestor de dependencias PHP |
+| **Node.js** | 18+ | Incluye `npm` |
+| **MySQL / MariaDB** | 8.0 / 10.6+ | Base de datos relacional |
+| **Git** | 2.x | Control de versiones |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+> **Opcional (Producción):** Nginx/Apache + SSL, Redis (colas/caché), Supervisor (workers).
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🚀 Instalación Rápida (Desarrollo Local)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/Dontoti02/bolsalaboralv2.git
+cd bolsalaboralv2
+```
 
-## Laravel Sponsors
+### 2. Instalar dependencias PHP
+```bash
+composer install --no-interaction --prefer-dist --optimize-autoloader
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3. Instalar dependencias Frontend
+```bash
+npm install
+```
 
-### Premium Partners
+### 4. Configurar entorno
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 5. Configurar Base de Datos (`.env`)
+Edita `.env` con tus credenciales MySQL:
 
-## Contributing
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bolsalaboral
+DB_USERNAME=root
+DB_PASSWORD=tu_password
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+> **Nota:** Crea la base de datos antes:
+> ```sql
+> CREATE DATABASE bolsalaboral CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+> ```
 
-## Code of Conduct
+### 6. Migraciones y Seeders
+```bash
+php artisan migrate --force
+php artisan db:seed --force
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 7. Compilar Assets Frontend
+```bash
+# Desarrollo (con hot-reload)
+npm run dev
 
-## Security Vulnerabilities
+# Producción
+npm run build
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 8. Servidor de Desarrollo
+```bash
+php artisan serve
+```
+🌐 Abre: **http://127.0.0.1:8000**
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## ⚙️ Configuración Detallada
+
+### Variables de Entorno Críticas (`.env`)
+
+```env
+# Aplicación
+APP_NAME="Bolsa Laboral IESTP Purús"
+APP_ENV=local                 # production en prod
+APP_DEBUG=true                # false en prod
+APP_URL=http://localhost:8000 # tu dominio en prod
+
+# Base de Datos
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bolsalaboral
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Correo (Gmail SMTP ejemplo)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_email@gmail.com
+MAIL_PASSWORD=tu_app_password   # Contraseña de aplicación, NO tu password real
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="noreply@tudominio.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Colas y Caché (Producción: usa Redis)
+QUEUE_CONNECTION=database       # redis en prod
+CACHE_STORE=database            # redis en prod
+SESSION_DRIVER=database
+
+# Archivos subidos
+FILESYSTEM_DISK=local           # s3 en prod
+```
+
+### Configuración de Correo (Gmail)
+1. Activa **Verificación en 2 pasos** en tu cuenta Google
+2. Genera **Contraseña de Aplicación**: *Cuenta → Seguridad → Contraseñas de aplicaciones*
+3. Usa esa contraseña en `MAIL_PASSWORD`
+
+---
+
+## 🗄️ Estructura de Base de Datos (Tablas Principales)
+
+| Tabla | Descripción |
+|-------|-------------|
+| `users` | Usuarios del sistema (estudiantes, empresas, admins, docentes) |
+| `person` | Datos personales extendidos (estudiantes/egresados) |
+| `company` | Empresas registradas |
+| `job_opportunity_offer` | Ofertas laborales publicadas |
+| `job_opportunity_applications` | Postulaciones de estudiantes a ofertas |
+| `job_opportunity_user_cv` | CVs subidos por estudiantes |
+| `user_notifications` | Notificaciones in-app (campanita) |
+| `categories`, `locations`, `work_schedules`, `contract_types` | Catálogos maestros |
+
+> Ver migraciones en `database/migrations/
+
+---
+
+## 👥 Roles y Permisos
+
+| Rol (`rol_id`) | Descripción | Accesos Principales |
+|----------------|-------------|---------------------|
+| **1** | **Admin** | Panel completo: usuarios, empresas, ofertas, reportes |
+| **2** | **Docente** | Ver ofertas, compartir con estudiantes |
+| **3** | **Estudiante/Egresado** | Buscar ofertas, postular, CVs, postulaciones, notificaciones |
+| **4** | **Empresa** | Publicar ofertas, ver postulantes, cambiar estados, notificaciones |
+
+> La asignación de rol se hace en registro o desde panel Admin.
+
+---
+
+## 📦 Comandos Útiles
+
+```bash
+# Limpiar cachés
+php artisan optimize:clear
+
+# Solo cachés de configuración
+php artisan config:clear && php artisan route:clear && php artisan view:clear
+
+# Ejecutar tests
+php artisan test
+
+# Formatear código (Pint)
+./vendor/bin/pint
+
+# Colas (procesar notificaciones, emails)
+php artisan queue:work --tries=3 --timeout=60
+
+# Logs en tiempo real
+php artisan pail
+
+# Enlace storage público (para avatars/logos/CVs)
+php artisan storage:link
+```
+
+---
+
+## 🌐 Despliegue en Producción (Checklist)
+
+- [ ] `APP_ENV=production` y `APP_DEBUG=false`
+- [ ] `APP_URL=https://tudominio.com`
+- [ ] Generar `APP_KEY` única: `php artisan key:generate --force`
+- [ ] Base de datos MySQL con usuario dedicado (no root)
+- [ ] Configurar **Redis** para `QUEUE_CONNECTION`, `CACHE_STORE`, `SESSION_DRIVER`
+- [ ] Configurar **Supervisor** para workers de cola:
+  ```ini
+  [program:laravel-worker]
+  process_name=%(program_name)s_%(process_num)02d
+  command=php /ruta/proyecto/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+  autostart=true
+  autorestart=true
+  user=www-data
+  numprocs=2
+  redirect_stderr=true
+  stdout_logfile=/ruta/proyecto/storage/logs/worker.log
+  ```
+- [ ] **Nginx/Apache** apuntando a `/public` con SSL (Let's Encrypt)
+- [ ] `npm run build` (assets minificados)
+- [ ] `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+- [ ] `php artisan storage:link`
+- [ ] Backups automáticos de BD y `storage/app`
+
+---
+
+## 🔐 Seguridad
+
+| Medida | Estado |
+|--------|--------|
+| CSRF Protection | ✅ Laravel nativo |
+| XSS Protection | ✅ Blade `{{ }}` escapa salida |
+| SQL Injection | ✅ Eloquent/Query Builder |
+| Rate Limiting | ✅ Throttle en rutas API |
+| Password Hashing | ✅ Bcrypt (configurable rounds) |
+| File Upload Validation | ✅ Tipos MIME, tamaño, extensión |
+| `.env` fuera de webroot | ✅ Por defecto en Laravel |
+
+---
+
+## 🐛 Solución de Problemas Comunes
+
+| Error | Solución |
+|-------|----------|
+| `The environment file is invalid!` | Revisa `.env`: sin espacios extra, comillas en valores con espacios, `MAIL_HOST=smtp.gmail.com` (sin texto extra) |
+| `Class "Redis" not found` | Instala `php-redis` o usa `database` en `.env` para colas/caché |
+| `Permission denied storage/` | `chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache` |
+| `Vite manifest not found` | Ejecuta `npm run build` |
+| `Specified key was too long` | En `AppServiceProvider`: `Schema::defaultStringLength(191);` |
+| Emails no llegan | Revisa `MAIL_FROM_ADDRESS`, usa contraseña de aplicación Gmail, revisa `storage/logs/laravel.log` |
+
+---
+
+## 📁 Estructura de Carpetas Clave
+
+```
+app/
+├── Http/Controllers/
+│   ├── LandingController.php      # Landing público + búsqueda ofertas
+│   ├── StudentController.php      # Perfil, CVs, postulaciones estudiante
+│   ├── CompanyDashboardController.php # Panel empresa: ofertas, postulantes
+│   ├── NotificationController.php # API notificaciones (campanita)
+│   └── AuthController.php         # Login, registro, roles
+├── Models/
+│   ├── User.php
+│   ├── Person.php
+│   ├── Company.php
+│   ├── JobOpportunityOffer.php
+│   ├── JobOpportunityApplication.php
+│   └── UserNotification.php
+resources/views/
+├── landing.blade.php              # Landing + búsqueda + modales
+├── student/dashboard.blade.php    # Panel estudiante
+├── company/dashboard.blade.php    # Panel empresa
+└── partials/
+    ├── sidebar.blade.php
+    └── notifications-dropdown.blade.php
+database/migrations/               # Todas las migraciones
+routes/web.php                     # Rutas web (auth, dashboards, API notificaciones)
+```
+
+---
+
+## 🔗 Rutas Principales
+
+| Ruta | Método | Descripción | Middleware |
+|------|--------|-------------|------------|
+| `/` | GET | Landing público (ofertas, búsqueda) | - |
+| `/login` | GET/POST | Inicio de sesión | guest |
+| `/register` | GET/POST | Registro con selección de rol | guest |
+| `/student/dashboard` | GET | Panel estudiante (redirige a `/`) | auth, role:3 |
+| `/company/dashboard` | GET | Panel empresa | auth, role:4 |
+| `/admin/dashboard` | GET | Panel admin | auth, role:1 |
+| `/buscar-ofertas` | GET | API búsqueda ofertas (AJAX) | - |
+| `/notifications` | GET | API notificaciones usuario | auth |
+| `/notifications/read-all` | POST | Marcar todas como leídas | auth |
+| `/student/apply/{offer}` | POST | Postular a oferta | auth, role:3 |
+| `/company/offers/{id}/toggle-state` | POST | Activar/Finalizar oferta | auth, role:4 |
+| `/company/applications/{id}/status` | POST | Cambiar estado postulante | auth, role:4 |
+
+---
+
+## 📝 Licencia
+
+Proyecto privado para **IESTP Purús**. Uso interno institucional.
+
+---
+
+## 👨‍💻 Créditos
+
+Desarrollado con **Laravel 12**, **Tailwind CSS 4**, **Vite**, **MySQL**.
+
+**Última actualización:** Julio 2025
