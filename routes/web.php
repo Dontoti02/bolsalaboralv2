@@ -4,27 +4,27 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
 
-// Public Landing Page
-Route::get('/', [LandingController::class, 'index'])->name('landing');
-Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
-
+// Rutas de autenticación públicas
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/registro-empresa', [AuthController::class, 'showLoginForm'])->name('register.company');
 Route::post('/register/company', [AuthController::class, 'registerCompany']);
-Route::post('/clear-password-warning', [LandingController::class, 'clearPasswordWarning'])->name('clear.password.warning');
 
-
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 use App\Models\User;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobOpportunityController;
 
 Route::middleware(['auth'])->group(function () {
+    // Landing Page privada (solo para logueados)
+    Route::get('/', [LandingController::class, 'index'])->name('landing');
+    Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
+    Route::post('/clear-password-warning', [LandingController::class, 'clearPasswordWarning'])->name('clear.password.warning');
+
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead']);
