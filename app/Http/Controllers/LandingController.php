@@ -19,6 +19,19 @@ class LandingController extends Controller
      */
     public function index()
     {
+        $authUser = Auth::user();
+        if ($authUser) {
+            $rolId = (int) $authUser->rol_id;
+            // Si es admin o empresa, y no está buscando ver una oferta compartida específica, redirigir a su dashboard
+            if (in_array($rolId, [1, 4]) && !request()->has('offer')) {
+                if ($rolId === 1) {
+                    return redirect()->route('admin.dashboard');
+                } else {
+                    return redirect()->route('company.dashboard');
+                }
+            }
+        }
+
         try {
             $config = DB::table('system_configuration')->pluck('value', 'key')->all();
         } catch (\Exception $e) {

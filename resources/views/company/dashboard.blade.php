@@ -1212,6 +1212,7 @@
                                 <button onclick="editCompanyOffer(${o.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
                                 <button onclick="deleteCompanyOffer(${o.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                                 <button onclick="toggleCompanyOfferState(${o.id})" title="${toggleLbl}" class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">${stateId === 2 ? 'pause' : 'play_arrow'}</span></button>
+                                <button onclick="window.open('/?offer=${o.id}', '_blank')" title="Ver publicación de oferta" class="p-1.5 rounded-lg hover:bg-surface-container-high text-secondary"><span class="material-symbols-outlined text-[18px]">visibility</span></button>
                             </div>
                         </td>
                         <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${stateClr}">${stateLbl}</span></td>
