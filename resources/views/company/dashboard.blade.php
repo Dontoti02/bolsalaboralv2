@@ -760,7 +760,7 @@
 </div>
 
 <!-- Modal: Detalles del Postulante -->
-<div id="applicant-detail-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;hidden;opacity:0;transition:opacity 0.3s;">
+<div id="applicant-detail-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s;">
     <div style="background:#fff;border-radius:16px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-width:480px;width:100%;margin:0 16px;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.95);transition:transform 0.3s;">
         <!-- Header con gradiente -->
         <div style="position:relative;background:linear-gradient(135deg,#002741,#004d45);padding:24px;color:#fff;">
