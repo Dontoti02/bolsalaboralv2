@@ -799,6 +799,51 @@
     </div>
 </div>
 
+<!-- Modal: Feedback/Comentario para actualizar estado -->
+<div id="feedback-modal" class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-bright rounded-2xl border border-outline-variant p-xl shadow-lg max-w-md w-full mx-4 flex flex-col space-y-lg transform scale-95 transition-transform duration-300">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-outline-variant pb-md">
+            <div class="flex items-center gap-sm">
+                <div id="feedback-modal-icon" class="w-10 h-10 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                </div>
+                <h3 id="feedback-modal-title" class="text-headline-sm font-bold text-on-surface">Actualizar Estado</h3>
+            </div>
+            <button onclick="closeFeedbackModal()" class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <!-- Content -->
+        <div class="space-y-md">
+            <p id="feedback-modal-description" class="text-body-md text-on-surface-variant">
+                Agrega un comentario opcional para el candidato.
+            </p>
+            
+            <div class="space-y-xs">
+                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="feedback-textarea">Comentario (opcional)</label>
+                <textarea 
+                    id="feedback-textarea" 
+                    rows="4"
+                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface resize-none"
+                    placeholder="Escribe un mensaje para el candidato..."></textarea>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-md border-t border-outline-variant pt-lg">
+            <button onclick="closeFeedbackModal()" class="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-semibold text-label-md rounded-xl hover:bg-surface-container-low transition-colors">
+                Cancelar
+            </button>
+            <button id="feedback-submit-btn" onclick="submitFeedback()" class="flex-1 py-2.5 bg-primary text-on-primary font-semibold text-label-md rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">send</span>
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     function switchTab(tabId) {
         // Find all tabs and panels
@@ -1227,20 +1272,96 @@
         .catch(() => showToast('Error de red al eliminar oferta.', 'error'));
     }
 
+    let pendingFeedbackAppId = null;
+    let pendingFeedbackStatus = null;
+
     function updateStatus(appId, status) {
-        const feedback = prompt('Ingrese un comentario de retroalimentación para el candidato (Opcional):');
-        if (feedback === null) return;
-        fetch('/company/applications/' + appId + '/status', {
+        pendingFeedbackAppId = appId;
+        pendingFeedbackStatus = status;
+        
+        const modal = document.getElementById('feedback-modal');
+        const modalContainer = modal.querySelector('.max-w-md');
+        const title = document.getElementById('feedback-modal-title');
+        const description = document.getElementById('feedback-modal-description');
+        const icon = document.getElementById('feedback-modal-icon');
+        const textarea = document.getElementById('feedback-textarea');
+        const submitBtn = document.getElementById('feedback-submit-btn');
+        
+        // Reset textarea
+        textarea.value = '';
+        
+        // Configure based on status
+        if (status === 'accepted') {
+            title.textContent = 'Aprobar Postulante';
+            description.textContent = '¿Deseas aprobar a este candidato? Puedes agregar un mensaje de felicitación.';
+            icon.className = 'w-10 h-10 rounded-full bg-green-100 flex items-center justify-center';
+            icon.innerHTML = '<span class="material-symbols-outlined text-[20px] text-green-600">check_circle</span>';
+            submitBtn.className = 'flex-1 py-2.5 bg-green-600 text-white font-semibold text-label-md rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-1 shadow-sm';
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Aprobar';
+        } else {
+            title.textContent = 'Rechazar Postulante';
+            description.textContent = '¿Deseas rechazar a este candidato? Puedes agregar un comentario constructivo.';
+            icon.className = 'w-10 h-10 rounded-full bg-red-100 flex items-center justify-center';
+            icon.innerHTML = '<span class="material-symbols-outlined text-[20px] text-red-600">cancel</span>';
+            submitBtn.className = 'flex-1 py-2.5 bg-red-600 text-white font-semibold text-label-md rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-1 shadow-sm';
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span> Rechazar';
+        }
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContainer.classList.remove('scale-95');
+            modal.classList.remove('opacity-0');
+            textarea.focus();
+        }, 10);
+    }
+
+    function closeFeedbackModal() {
+        const modal = document.getElementById('feedback-modal');
+        const modalContainer = modal.querySelector('.max-w-md');
+        
+        modalContainer.classList.add('scale-95');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            pendingFeedbackAppId = null;
+            pendingFeedbackStatus = null;
+        }, 300);
+    }
+
+    function submitFeedback() {
+        if (!pendingFeedbackAppId || !pendingFeedbackStatus) return;
+        
+        const feedback = document.getElementById('feedback-textarea').value;
+        const submitBtn = document.getElementById('feedback-submit-btn');
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Procesando...';
+        
+        fetch('/company/applications/' + pendingFeedbackAppId + '/status', {
             method: 'POST',
-            body: JSON.stringify({ status, feedback }),
+            body: JSON.stringify({ status: pendingFeedbackStatus, feedback }),
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) { showToast('¡Postulante actualizado!'); }
-            else showToast(data.message || 'Error.', 'error');
+            submitBtn.disabled = false;
+            if (data.success) {
+                showToast('¡Postulante actualizado!');
+                closeFeedbackModal();
+                // Reload page to refresh the applicants list
+                setTimeout(() => location.reload(), 500);
+            } else {
+                showToast(data.message || 'Error.', 'error');
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Confirmar';
+            }
         })
-        .catch(() => showToast('Error de red.', 'error'));
+        .catch(() => {
+            submitBtn.disabled = false;
+            showToast('Error de red.', 'error');
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Confirmar';
+        });
     }
 
     function formatTextarea(id, format) {
