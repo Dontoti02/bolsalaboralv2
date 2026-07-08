@@ -239,30 +239,28 @@
                             <!-- First loop -->
                             <div class="flex items-center gap-lg whitespace-nowrap shrink-0">
                                 @foreach($companies as $company)
-                                    <div class="inline-flex items-center gap-2 px-md py-sm bg-surface-container-low border border-outline-variant/60 rounded-xl hover:border-primary transition-all hover:-translate-y-0.5 duration-200 cursor-pointer shadow-sm group" title="{{ $company->name }}">
+                                    <div class="inline-flex items-center justify-center px-md py-sm bg-surface-container-low border border-outline-variant/60 rounded-xl hover:border-primary transition-all hover:-translate-y-0.5 duration-200 cursor-pointer shadow-sm group" title="{{ $company->name }}">
                                         @if(!empty($company->logo))
-                                            <img src="{{ $company->logo }}" alt="{{ $company->name }}" class="h-6 w-auto object-contain max-w-[80px]" />
+                                            <img src="{{ $company->logo }}" alt="{{ $company->name }}" class="h-8 w-auto object-contain max-w-[100px]" />
                                         @else
-                                            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-primary-container/80 to-secondary-container/80 flex items-center justify-center text-[10px] font-bold text-on-primary-container uppercase">
+                                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container/80 to-secondary-container/80 flex items-center justify-center text-xs font-bold text-on-primary-container uppercase">
                                                 {{ substr($company->name, 0, 2) }}
                                             </div>
                                         @endif
-                                        <span class="font-body-sm text-body-xs font-medium text-on-surface/80 group-hover:text-primary transition-colors max-w-[120px] truncate">{{ $company->name }}</span>
                                     </div>
                                 @endforeach
                             </div>
                             <!-- Second loop (seamless duplication) -->
                             <div class="flex items-center gap-lg whitespace-nowrap shrink-0" aria-hidden="true">
                                 @foreach($companies as $company)
-                                    <div class="inline-flex items-center gap-2 px-md py-sm bg-surface-container-low border border-outline-variant/60 rounded-xl hover:border-primary transition-all hover:-translate-y-0.5 duration-200 cursor-pointer shadow-sm group" title="{{ $company->name }}">
+                                    <div class="inline-flex items-center justify-center px-md py-sm bg-surface-container-low border border-outline-variant/60 rounded-xl hover:border-primary transition-all hover:-translate-y-0.5 duration-200 cursor-pointer shadow-sm group" title="{{ $company->name }}">
                                         @if(!empty($company->logo))
-                                            <img src="{{ $company->logo }}" alt="{{ $company->name }}" class="h-6 w-auto object-contain max-w-[80px]" />
+                                            <img src="{{ $company->logo }}" alt="{{ $company->name }}" class="h-8 w-auto object-contain max-w-[100px]" />
                                         @else
-                                            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-primary-container/80 to-secondary-container/80 flex items-center justify-center text-[10px] font-bold text-on-primary-container uppercase">
+                                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container/80 to-secondary-container/80 flex items-center justify-center text-xs font-bold text-on-primary-container uppercase">
                                                 {{ substr($company->name, 0, 2) }}
                                             </div>
                                         @endif
-                                        <span class="font-body-sm text-body-xs font-medium text-on-surface/80 group-hover:text-primary transition-colors max-w-[120px] truncate">{{ $company->name }}</span>
                                     </div>
                                 @endforeach
                             </div>
