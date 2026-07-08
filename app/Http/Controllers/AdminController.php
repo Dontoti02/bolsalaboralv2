@@ -58,7 +58,7 @@ class AdminController extends Controller
                         'icon_bg' => 'bg-primary-fixed',
                         'icon_color' => 'text-primary',
                         'text' => "Nuevo usuario <span class=\"font-semibold\">{$name}</span> registrado en el sistema.",
-                        'time' => $user->created_at ? $user->created_at->diffForHumans() : '-',
+                        'time' => $user->created_at ? $user->created_at->locale('es')->diffForHumans() : '-',
                     ];
                 });
 
@@ -74,7 +74,7 @@ class AdminController extends Controller
                         'icon_bg' => 'bg-secondary-fixed',
                         'icon_color' => 'text-on-secondary-fixed',
                         'text' => "Empresa <span class=\"font-semibold\">{$companyName}</span> {$action} en el sistema.",
-                        'time' => $company->created_at ? $company->created_at->diffForHumans() : '-',
+                        'time' => $company->created_at ? $company->created_at->locale('es')->diffForHumans() : '-',
                     ];
                 });
 
@@ -91,7 +91,7 @@ class AdminController extends Controller
                         'icon_bg' => 'bg-tertiary-fixed',
                         'icon_color' => 'text-on-tertiary-fixed-variant',
                         'text' => "Nueva oferta <span class=\"font-semibold\">{$offerTitle}</span> publicada por {$companyName}.",
-                        'time' => $offer->created_at ? $offer->created_at->diffForHumans() : '-',
+                        'time' => $offer->created_at ? $offer->created_at->locale('es')->diffForHumans() : '-',
                     ];
                 });
 
