@@ -439,6 +439,25 @@
         {{-- Actions --}}
         <div class="navbar-actions">
             @if($authUser)
+            {{-- Campanita de notificaciones --}}
+            <div style="position:relative;">
+                <button id="student-notifications-button" type="button" onclick="toggleStudentNotifMenu()" style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--tv);background:transparent;border:none;border-radius:12px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bor)'" onmouseout="this.style.background='transparent'">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span id="student-notifications-badge" style="position:absolute;top:4px;right:4px;width:10px;height:10px;background:#dc2626;border-radius:50%;display:none;border:2px solid var(--sur);"></span>
+                </button>
+                <div id="student-notifications-menu" style="display:none;position:absolute;right:0;top:48px;width:320px;background:var(--sur);border:1px solid var(--bor);border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.12);overflow:hidden;z-index:200;">
+                    <div style="padding:16px 20px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;">
+                        <div>
+                            <p style="font-weight:700;font-size:15px;color:var(--txt);margin:0;">Notificaciones</p>
+                            <p style="font-size:12px;color:var(--tm);margin:4px 0 0 0;">Actividad reciente de tu cuenta</p>
+                        </div>
+                        <button onclick="markStudentNotifRead()" style="width:32px;height:32px;border-radius:50%;background:rgba(0,107,96,.1);color:var(--sec);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Marcar todo como leído">
+                            <span class="material-symbols-outlined" style="font-size:18px;">done_all</span>
+                        </button>
+                    </div>
+                    <div id="student-notifications-list" style="max-height:384px;overflow-y:auto;"></div>
+                </div>
+            </div>
             {{-- Menú de perfil del estudiante --}}
             <div class="profile-menu-wrap" id="profile-menu-wrap">
                 <button class="profile-trigger" id="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
@@ -1987,6 +2006,83 @@ function showToastNotify(msg) {
         if (toast) toast.classList.remove('show');
     }, 3000);
 }
+
+/* ===== Notificaciones del estudiante ===== */
+var studentNotifOpen = false;
+var studentNotifData = [];
+
+function toggleStudentNotifMenu() {
+    var menu = document.getElementById('student-notifications-menu');
+    studentNotifOpen = !studentNotifOpen;
+    if (studentNotifOpen) {
+        menu.style.display = 'block';
+        fetchStudentNotifications();
+    } else {
+        menu.style.display = 'none';
+    }
+}
+
+function fetchStudentNotifications() {
+    fetch('/notifications', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            studentNotifData = data.notifications || [];
+            renderStudentNotifications();
+            updateStudentBadge(data.unread_count || 0);
+        }
+    });
+}
+
+function renderStudentNotifications() {
+    var list = document.getElementById('student-notifications-list');
+    if (!list) return;
+    if (!studentNotifData.length) {
+        list.innerHTML = '<div style="padding:32px 20px;text-align:center;"><span class="material-symbols-outlined" style="font-size:40px;color:var(--bor);display:block;margin-bottom:8px;">notifications_none</span><p style="font-weight:600;color:var(--txt);">Todo está al día</p><p style="font-size:13px;color:var(--tm);margin-top:4px;">Las novedades importantes aparecerán aquí.</p></div>';
+        return;
+    }
+    list.innerHTML = studentNotifData.map(function(n) {
+        var isUnread = !n.read_at;
+        var border = isUnread ? 'border-left:3px solid var(--pri);background:rgba(0,39,65,.03);' : '';
+        var time = n.created_at ? new Date(n.created_at).toLocaleString('es-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+        return '<div onclick="if(\'' + (n.link||'#') + '\' !== \'#') window.location.href=\'' + (n.link||'#') + '\'" style="padding:12px 16px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s;' + border + '" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'' + (isUnread ? 'rgba(0,39,65,.03)' : 'transparent') + '\'">' +
+            '<div style="display:flex;align-items:flex-start;gap:10px;">' +
+            '<span class="material-symbols-outlined" style="font-size:20px;color:var(--pri);margin-top:2px;">notifications</span>' +
+            '<div style="flex:1;min-width:0;">' +
+            '<p style="font-weight:600;font-size:13px;color:var(--txt);margin:0;line-height:1.3;">' + (n.title||'') + '</p>' +
+            '<p style="font-size:12px;color:var(--tv);margin:4px 0 0 0;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (n.message||'') + '</p>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">' +
+            '<span style="font-size:11px;color:var(--tm);">' + time + '</span>' +
+            (isUnread ? '<span style="width:8px;height:8px;background:#dc2626;border-radius:50%;display:inline-block;"></span>' : '') +
+            '</div></div></div></div>';
+    }).join('');
+}
+
+function updateStudentBadge(count) {
+    var badge = document.getElementById('student-notifications-badge');
+    if (!badge) return;
+    badge.style.display = count > 0 ? 'block' : 'none';
+}
+
+function markStudentNotifRead() {
+    fetch('/notifications/read-all', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json', 'Content-Type': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { if (data.success) fetchStudentNotifications(); });
+}
+
+document.addEventListener('click', function(e) {
+    var menu = document.getElementById('student-notifications-menu');
+    var btn = document.getElementById('student-notifications-button');
+    if (studentNotifOpen && menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+        studentNotifOpen = false;
+        menu.style.display = 'none';
+    }
+});
 </script>
 
 
