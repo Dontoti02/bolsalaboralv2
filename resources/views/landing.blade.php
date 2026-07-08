@@ -805,7 +805,7 @@
                                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
                                 Vista Admin
                             </div>
-                        @else
+                        @elseif($authUser && $authUser->rol_id == 3)
                             <button class="btn-postular" onclick="openPostularModal()">
                                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
                                 Postularme
@@ -898,7 +898,7 @@
             {{ $config['application_name'] ?? 'Bolsa Laboral' }}
         </div>
         <p class="footer-copy">&copy; {{ date('Y') }} {{ $config['application_name'] ?? 'Bolsa Laboral' }}. Todos los derechos reservados.</p>
-        @if(!$authUser)
+        @if(!$authUser && !request()->has('offer'))
         <div class="footer-links">
             <a href="{{ route('login') }}" class="footer-link">Iniciar Sesión</a>
             <a href="{{ route('login') }}#empresa" class="footer-link">Para Empresas</a>
