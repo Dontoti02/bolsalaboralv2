@@ -886,6 +886,32 @@
     </div>
 </div>
 
+<!-- Modal: Confirmación genérica (cambiar estado / eliminar oferta) -->
+<div id="confirm-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:60;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s;">
+    <div style="background:#fff;border-radius:16px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-width:420px;width:100%;margin:0 16px;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.95);transition:transform 0.3s;">
+        <!-- Header -->
+        <div id="confirm-modal-header" style="padding:24px 24px 16px;text-align:center;">
+            <div id="confirm-modal-icon-wrap" style="width:56px;height:56px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;">
+                <span id="confirm-modal-icon" class="material-symbols-outlined" style="font-size:28px;color:#fff;">help</span>
+            </div>
+            <h3 id="confirm-modal-title" style="font-size:18px;font-weight:700;margin:0 0 6px 0;color:#1f2937;">Confirmar acción</h3>
+            <p id="confirm-modal-message" style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">¿Estás seguro de realizar esta acción?</p>
+        </div>
+
+        <!-- Actions -->
+        <div style="padding:0 24px 24px;display:flex;gap:12px;">
+            <button id="confirm-modal-cancel-btn" onclick="closeConfirmModal()" style="flex:1;padding:12px;border:2px solid #e5e7eb;background:#fff;color:#4b5563;font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+                <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                Cancelar
+            </button>
+            <button id="confirm-modal-ok-btn" onclick="executeConfirmAction()" style="flex:1;padding:12px;color:#fff;font-weight:600;font-size:14px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                <span id="confirm-modal-ok-icon" class="material-symbols-outlined" style="font-size:18px;">check</span>
+                <span id="confirm-modal-ok-label">Confirmar</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     function switchTab(tabId) {
         // Find all tabs and panels
@@ -1286,32 +1312,99 @@
             .catch(() => showToast('Error de red al cargar detalles de oferta.', 'error'));
     }
 
+    /* ===== Modal de Confirmación Genérico ===== */
+    let confirmModalCallback = null;
+
+    function openConfirmModal({ title, message, icon, iconBg, okLabel, okBg, okColor, callback }) {
+        document.getElementById('confirm-modal-title').textContent = title || 'Confirmar acción';
+        document.getElementById('confirm-modal-message').textContent = message || '¿Estás seguro?';
+        
+        const iconWrap = document.getElementById('confirm-modal-icon-wrap');
+        iconWrap.style.background = iconBg || 'linear-gradient(135deg,#002741,#004d45)';
+        
+        const iconEl = document.getElementById('confirm-modal-icon');
+        iconEl.textContent = icon || 'help';
+        
+        const okBtn = document.getElementById('confirm-modal-ok-btn');
+        okBtn.style.background = okBg || 'linear-gradient(135deg,#002741,#004d45)';
+        okBtn.style.color = okColor || '#fff';
+        
+        document.getElementById('confirm-modal-ok-label').textContent = okLabel || 'Confirmar';
+        document.getElementById('confirm-modal-ok-icon').textContent = icon || 'check';
+        
+        confirmModalCallback = callback || null;
+
+        const modal = document.getElementById('confirm-modal');
+        const modalContent = modal.querySelector('div');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modalContent.style.transform = 'scale(1)';
+        }, 10);
+    }
+
+    function closeConfirmModal() {
+        const modal = document.getElementById('confirm-modal');
+        const modalContent = modal.querySelector('div');
+        modal.style.opacity = '0';
+        modalContent.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+        confirmModalCallback = null;
+    }
+
+    function executeConfirmAction() {
+        if (typeof confirmModalCallback === 'function') {
+            confirmModalCallback();
+        }
+        closeConfirmModal();
+    }
+
     function toggleCompanyOfferState(id) {
-        if (!confirm('¿Está seguro de cambiar el estado de esta oferta?')) return;
-        fetch(`/company/offers/${id}/toggle-state`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) { showToast('Estado de la oferta actualizado.'); loadCompanyOffers(); }
-            else showToast(data.message || 'Error al cambiar estado.', 'error');
-        })
-        .catch(() => showToast('Error de red.', 'error'));
+        openConfirmModal({
+            title: 'Cambiar estado de oferta',
+            message: '¿Estás seguro de que deseas cambiar el estado de esta oferta laboral?',
+            icon: 'swap_horiz',
+            iconBg: 'linear-gradient(135deg,#002741,#004d45)',
+            okLabel: 'Sí, cambiar',
+            okBg: 'linear-gradient(135deg,#002741,#004d45)',
+            callback: function() {
+                fetch(`/company/offers/${id}/toggle-state`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) { showToast('Estado de la oferta actualizado.'); loadCompanyOffers(); }
+                    else showToast(data.message || 'Error al cambiar estado.', 'error');
+                })
+                .catch(() => showToast('Error de red.', 'error'));
+            }
+        });
     }
 
     function deleteCompanyOffer(id) {
-        if (!confirm('¿Estás seguro de que deseas eliminar esta oferta laboral?')) return;
-        fetch(`/company/offers/${id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) { showToast('Oferta laboral eliminada.'); loadCompanyOffers(); }
-            else showToast(data.message || 'Error al eliminar oferta.', 'error');
-        })
-        .catch(() => showToast('Error de red al eliminar oferta.', 'error'));
+        openConfirmModal({
+            title: 'Eliminar oferta laboral',
+            message: 'Esta acción es permanente. ¿Estás seguro de que deseas eliminar esta oferta laboral?',
+            icon: 'delete',
+            iconBg: 'linear-gradient(135deg,#dc2626,#991b1b)',
+            okLabel: 'Sí, eliminar',
+            okBg: 'linear-gradient(135deg,#dc2626,#991b1b)',
+            callback: function() {
+                fetch(`/company/offers/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) { showToast('Oferta laboral eliminada.'); loadCompanyOffers(); }
+                    else showToast(data.message || 'Error al eliminar oferta.', 'error');
+                })
+                .catch(() => showToast('Error de red al eliminar oferta.', 'error'));
+            }
+        });
     }
 
     let pendingFeedbackAppId = null;
@@ -1599,7 +1692,16 @@
                 if (feedbackModal && !feedbackModal.classList.contains('hidden')) {
                     closeFeedbackModal();
                 }
+                const confirmModal = document.getElementById('confirm-modal');
+                if (confirmModal && confirmModal.style.display !== 'none') {
+                    closeConfirmModal();
+                }
             }
+        });
+
+        // Cerrar modal de confirmación al hacer click afuera
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirmModal();
         });
     });
 </script>
