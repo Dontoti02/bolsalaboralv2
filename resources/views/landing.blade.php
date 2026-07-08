@@ -602,7 +602,7 @@
                 </div>
             </div>
             @else
-            <a href="{{ route('login') }}" class="btn-login">Login</a>
+            <a href="{{ route('login') }}" class="btn-login">Ingresar</a>
             <a href="{{ route('login') }}#empresa" class="btn-empresa">
                 <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
                 Publicar empleo
@@ -1974,26 +1974,31 @@ function uploadCv(file){
 
 // ── Delete CV ─────────────────────────────────────────────────────────────────
 function deleteCv(id){
-    if(!confirm('¿Eliminar este CV?')) return;
-    fetch('/student/cv/delete/'+id, {
-        method:'POST',
-        headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: new URLSearchParams({_token: document.querySelector('meta[name=csrf-token]').content})
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        if(d.success){
-            var row = document.getElementById('cv-row-'+id);
-            if(row) row.remove();
-            showAlert('cvs-alert','success',d.message);
-            // Update badge
-            var badge = document.querySelector('.cv-badge');
-            if(badge){ var n=parseInt(badge.textContent||0)-1; if(n<=0) badge.remove(); else badge.textContent=n; }
-        } else {
-            showAlert('cvs-alert','error',d.message);
-        }
-    })
-    .catch(function(){ showAlert('cvs-alert','error','Error al eliminar el CV.'); });
+    showCustomConfirm({
+        title: 'Eliminar Currículum',
+        message: '¿Está seguro de que desea eliminar permanentemente este currículum?'
+    }).then(function(confirmed) {
+        if (!confirmed) return;
+        fetch('/student/cv/delete/'+id, {
+            method:'POST',
+            headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
+            body: new URLSearchParams({_token: document.querySelector('meta[name=csrf-token]').content})
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.success){
+                var row = document.getElementById('cv-row-'+id);
+                if(row) row.remove();
+                showAlert('cvs-alert','success',d.message);
+                // Update badge
+                var badge = document.querySelector('.cv-badge');
+                if(badge){ var n=parseInt(badge.textContent||0)-1; if(n<=0) badge.remove(); else badge.textContent=n; }
+            } else {
+                showAlert('cvs-alert','error',d.message);
+            }
+        })
+        .catch(function(){ showAlert('cvs-alert','error','Error al eliminar el CV.'); });
+    });
 }
 
 // ── Alert helper ─────────────────────────────────────────────────────────────
@@ -2238,6 +2243,70 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<!-- Custom Confirm Modal -->
+<div id="custom-confirm-modal" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);transition:all .3s">
+    <div id="custom-confirm-box" style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.18);overflow:hidden;transform:scale(.95);transition:transform .2s">
+        <div style="padding:24px;text-align:center;display:flex;flex-direction:column;gap:16px">
+            <div id="custom-confirm-icon-wrap" style="width:56px;height:56px;border-radius:50%;background:rgba(220,38,38,.08);color:#dc2626;display:flex;align-items:center;justify-content:center;margin:0 auto">
+                <span class="material-symbols-outlined" style="font-size:32px">warning</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+                <h3 id="custom-confirm-title" style="font-size:18px;font-weight:700;color:var(--txt);margin:0">¿Confirmar acción?</h3>
+                <p id="custom-confirm-message" style="font-size:14px;color:var(--tv);margin:0;line-height:1.4">Esta acción no se puede deshacer.</p>
+            </div>
+        </div>
+        <div style="display:flex;border-top:1px solid var(--bor)">
+            <button id="custom-confirm-btn-cancel" style="flex:1;padding:16px;background:transparent;border:none;font-size:14px;font-weight:600;color:var(--tv);cursor:pointer;outline:none;transition:background .15s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+                Cancelar
+            </button>
+            <div style="width:1px;background:var(--bor)"></div>
+            <button id="custom-confirm-btn-ok" style="flex:1;padding:16px;background:transparent;border:none;font-size:14px;font-weight:700;color:#dc2626;cursor:pointer;outline:none;transition:background .15s" onmouseover="this.style.background='rgba(220,38,38,.05)'" onmouseout="this.style.background='transparent'">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
 
+<script>
+function showCustomConfirm(options) {
+    options = options || {};
+    return new Promise(function(resolve) {
+        var modal = document.getElementById('custom-confirm-modal');
+        var box = document.getElementById('custom-confirm-box');
+        var titleEl = document.getElementById('custom-confirm-title');
+        var msgEl = document.getElementById('custom-confirm-message');
+        var btnCancel = document.getElementById('custom-confirm-btn-cancel');
+        var btnOk = document.getElementById('custom-confirm-btn-ok');
+
+        if (!modal || !box) {
+            resolve(confirm(options.message || '¿Confirmar acción?'));
+            return;
+        }
+
+        titleEl.textContent = options.title || '¿Confirmar acción?';
+        msgEl.textContent = options.message || 'Esta acción no se puede deshacer.';
+        btnOk.textContent = options.btnOkText || 'Confirmar';
+        btnCancel.textContent = options.btnCancelText || 'Cancelar';
+
+        modal.style.display = 'flex';
+        setTimeout(function() { box.style.transform = 'scale(1)'; }, 10);
+
+        function cleanup(result) {
+            box.style.transform = 'scale(.95)';
+            setTimeout(function() {
+                modal.style.display = 'none';
+            }, 150);
+            
+            btnCancel.replaceWith(btnCancel.cloneNode(true));
+            btnOk.replaceWith(btnOk.cloneNode(true));
+            
+            resolve(result);
+        }
+
+        document.getElementById('custom-confirm-btn-cancel').addEventListener('click', function() { cleanup(false); });
+        document.getElementById('custom-confirm-btn-ok').addEventListener('click', function() { cleanup(true); });
+    });
+}
+</script>
 </body>
 </html>
