@@ -421,7 +421,7 @@
             <span class="material-symbols-outlined" style="font-size:14px;">person</span>
             Bienvenido, {{ $authUser->person->names ?? $authUser->email }}
         </span>
-        @else
+        @elseif(!request()->has('offer'))
         <a href="#empresas" class="topbar-link">
             <span class="material-symbols-outlined" style="font-size:14px;">domain</span>
             ¿Eres una empresa? Publica ofertas
@@ -546,6 +546,18 @@
                     <div id="student-notifications-list" style="max-height:384px;overflow-y:auto;"></div>
                 </div>
             </div>
+            @if($authUser->rol_id == 4)
+                <a href="/company/dashboard?tab=offers" class="btn-empresa" style="background:var(--sec);margin-right:12px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:8px 16px;border-radius:50px;color:#fff;font-size:13.5px;font-weight:700;">
+                    <span class="material-symbols-outlined" style="font-size:18px">add_circle</span>
+                    Publicar Oferta
+                </a>
+                @endif
+                @if($authUser->rol_id == 1)
+                <a href="/admin/dashboard" class="btn-empresa" style="background:var(--pri);margin-right:12px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:8px 16px;border-radius:50px;color:#fff;font-size:13.5px;font-weight:700;">
+                    <span class="material-symbols-outlined" style="font-size:18px">dashboard</span>
+                    Panel Admin
+                </a>
+                @endif
             {{-- Menú de perfil del estudiante --}}
             <div class="profile-menu-wrap" id="profile-menu-wrap">
                 <button class="profile-trigger" id="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
@@ -601,7 +613,7 @@
                     </form>
                 </div>
             </div>
-            @else
+            @elseif(!request()->has('offer'))
             <a href="{{ route('login') }}" class="btn-login">Ingresar</a>
             <a href="{{ route('login') }}#empresa" class="btn-empresa">
                 <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
@@ -841,7 +853,7 @@
 </main>
 
 {{-- ══ EMPRESA CTA ══ --}}
-@if(!$authUser)
+@if(!$authUser && !request()->has('offer'))
 <section id="empresas" style="background:linear-gradient(160deg,var(--pri),#0a3452 50%,#004d45);padding:72px 20px;text-align:center;color:#fff;margin-top:40px">
     <div style="max-width:680px;margin:0 auto">
         <span class="material-symbols-outlined filled" style="font-size:56px;color:var(--secc);display:block;margin-bottom:16px">rocket_launch</span>
