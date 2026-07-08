@@ -10,7 +10,11 @@ Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name(
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/registro-empresa', [AuthController::class, 'showLoginForm'])->name('register.company');
 Route::post('/register/company', [AuthController::class, 'registerCompany']);
+Route::post('/clear-password-warning', [LandingController::class, 'clearPasswordWarning'])->name('clear.password.warning');
+
+
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
@@ -70,15 +74,23 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/offers/{id}/applicants', [UserController::class, 'getOfferApplicants']);
     });
     
+    // Rutas comunes de perfil para Estudiantes y Docentes (rol_id = 3 y 2)
+    Route::middleware(['role:2,3'])->group(function () {
+        Route::post('/student/profile', [\App\Http\Controllers\StudentController::class, 'updateProfile'])->name('student.profile.update');
+        Route::post('/student/avatar', [\App\Http\Controllers\StudentController::class, 'updateAvatar'])->name('student.avatar.update');
+        Route::post('/student/password', [\App\Http\Controllers\StudentController::class, 'changePassword'])->name('student.password.change');
+    });
+
     // Student Routes (rol_id = 3)
     Route::middleware(['role:3'])->group(function () {
-        Route::get('/student/dashboard', [\App\Http\Controllers\StudentController::class, 'dashboard'])->name('student.dashboard');
+        // El dashboard del estudiante es la landing (/)
+        Route::get('/student/dashboard', fn() => redirect('/'))->name('student.dashboard');
         Route::post('/student/cv/upload', [\App\Http\Controllers\StudentController::class, 'uploadCv'])->name('student.cv.upload');
         Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');
         Route::get('/student/cv/download/{id}', [\App\Http\Controllers\StudentController::class, 'downloadCv'])->name('student.cv.download');
         Route::post('/student/apply/{offer_id}', [\App\Http\Controllers\StudentController::class, 'applyToOffer'])->name('student.apply');
-        Route::post('/student/profile', [\App\Http\Controllers\StudentController::class, 'updateProfile'])->name('student.profile.update');
     });
+
 
     // Company Routes (rol_id = 4)
     Route::middleware(['role:4'])->group(function () {
@@ -97,6 +109,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Teacher Routes (rol_id = 2)
     Route::middleware(['role:2'])->group(function () {
-        Route::get('/teacher/dashboard', [\App\Http\Controllers\TeacherController::class, 'dashboard'])->name('teacher.dashboard');
+        Route::get('/teacher/dashboard', fn() => redirect('/'))->name('teacher.dashboard');
     });
 });
+

@@ -9,6 +9,7 @@ use App\Models\JobOpportunityLocation;
 use App\Models\JobOpportunityWorkSchedule;
 use App\Models\JobOpportunityContractType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LandingController extends Controller
@@ -36,6 +37,14 @@ class LandingController extends Controller
                 ->take(9)
                 ->get();
 
+            // Buscar oferta compartida por URL
+            $sharedOffer = null;
+            if (request()->has('offer')) {
+                $sharedOffer = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'location', 'workSchedule', 'contractType'])
+                    ->where('id', request()->offer)
+                    ->first();
+            }
+
             // Empresas verificadas con al menos 1 oferta activa
             $companies = Company::where('is_verified', true)
                 ->where(function($q) {
@@ -55,6 +64,85 @@ class LandingController extends Controller
             $workSchedules  = JobOpportunityWorkSchedule::all();
             $contractTypes  = JobOpportunityContractType::all();
 
+            // Departamentos disponibles (donde hay ofertas activas)
+            $availablePlaces = DB::table('job_opportunity_offer')
+                ->whereNull('deleted_at')
+                ->where('state_id', function($sq) {
+                    $sq->select('id')->from('job_opportunity_offer_state')
+                       ->where('key', 'active')->limit(1);
+                })
+                ->whereNotNull('department')
+                ->where('department', '!=', '')
+                ->pluck('department')
+                ->unique()
+                ->sort()
+                ->values();
+
+            // Cargos disponibles (títulos de ofertas activas para sugerencias)
+            $availableTitles = JobOpportunityOffer::whereHas('state', fn($q) => $q->where('key', 'active'))
+                ->pluck('title')
+                ->unique()
+                ->values();
+
+            // Empresas disponibles (con ofertas activas para sugerencias)
+            $availableCompanies = Company::where('is_verified', true)
+                ->where(function($q) { $q->whereNull('deleted_at'); })
+                ->whereHas('offers', fn($o) => $o->whereHas('state', fn($s) => $s->where('key', 'active')))
+                ->pluck('name')
+                ->unique()
+                ->sort()
+                ->values();
+
+        // Datos del estudiante autenticado
+            $authUser = null;
+            $studentCvs = collect();
+            $studentApplicationIds = [];
+            $studentApplications = collect();
+
+            if (Auth::check() && (Auth::user()->rol_id == 3 || Auth::user()->rol_id == 2)) {
+                $authUser = Auth::user()->load('person');
+                
+                if ($authUser->rol_id == 3) {
+                    $studentCvs = DB::table('job_opportunity_user_cv')
+                        ->where('user_id', $authUser->id)
+                        ->whereNull('deleted_at')
+                        ->orderBy('version', 'desc')
+                        ->get()
+                        ->map(function ($cv) {
+                            $cv->filename = basename($cv->url);
+                            $cv->uploaded_at = $cv->created_at
+                                ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
+                            return $cv;
+                        });
+                    $studentApplicationIds = DB::table('job_opportunity_applications')
+                        ->where('user_id', $authUser->id)
+                        ->pluck('offer_id')
+                        ->toArray();
+
+                    $studentApplications = DB::table('job_opportunity_applications')
+                        ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
+                        ->join('job_opportunity_company', 'job_opportunity_offer.company_id', '=', 'job_opportunity_company.id')
+                        ->where('job_opportunity_applications.user_id', $authUser->id)
+                        ->whereNull('job_opportunity_applications.deleted_at')
+                        ->select(
+                            'job_opportunity_applications.id as app_id',
+                            'job_opportunity_applications.status as app_status',
+                            'job_opportunity_applications.created_at as app_date',
+                            'job_opportunity_applications.feedback as app_feedback',
+                            'job_opportunity_offer.title as offer_title',
+                            'job_opportunity_company.name as company_name',
+                            'job_opportunity_company.logo as company_logo'
+                        )
+                        ->orderBy('job_opportunity_applications.created_at', 'desc')
+                        ->get()
+                        ->map(function ($app) {
+                            $app->formatted_date = $app->app_date 
+                                ? \Carbon\Carbon::parse($app->app_date)->format('d M Y') : '-';
+                            return $app;
+                        });
+                }
+            }
+
         } catch (\Exception $e) {
             $totalActiveOffers = 0;
             $totalCompanies    = 0;
@@ -64,6 +152,14 @@ class LandingController extends Controller
             $locations         = collect();
             $workSchedules     = collect();
             $contractTypes     = collect();
+            $availablePlaces   = collect();
+            $authUser          = null;
+            $studentCvs        = collect();
+            $studentApplicationIds = [];
+            $studentApplications = collect();
+            $availableTitles   = collect();
+            $availableCompanies = collect();
+            $sharedOffer       = null;
         }
 
         return view('landing', compact(
@@ -75,7 +171,15 @@ class LandingController extends Controller
             'categories',
             'locations',
             'workSchedules',
-            'contractTypes'
+            'contractTypes',
+            'availablePlaces',
+            'availableTitles',
+            'availableCompanies',
+            'sharedOffer',
+            'authUser',
+            'studentCvs',
+            'studentApplicationIds',
+            'studentApplications'
         ));
     }
 
@@ -94,6 +198,15 @@ class LandingController extends Controller
                     $q->where('title', 'like', "%{$search}%")
                       ->orWhere('description', 'like', "%{$search}%")
                       ->orWhereHas('company', fn($c) => $c->where('name', 'like', "%{$search}%"));
+                });
+            }
+
+            // Filtro por lugar (departamento o provincia)
+            if ($request->filled('province')) {
+                $place = $request->province;
+                $query->where(function ($q) use ($place) {
+                    $q->where('province',   'like', "%{$place}%")
+                      ->orWhere('department', 'like', "%{$place}%");
                 });
             }
 
@@ -142,4 +255,14 @@ class LandingController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Clear password warning from session.
+     */
+    public function clearPasswordWarning()
+    {
+        session()->forget('show_password_warning');
+        return response()->json(['success' => true]);
+    }
 }
+

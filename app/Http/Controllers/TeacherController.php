@@ -84,4 +84,35 @@ class TeacherController extends Controller
 
         return view('teacher.dashboard', compact('activeOffers', 'closedOffers', 'config'));
     }
-}
+
+    /**
+     * Change teacher password.
+     */
+    public function changePassword(\Illuminate\Http\Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Ingrese su contraseña actual.',
+            'new_password.required'     => 'Ingrese la nueva contraseña.',
+            'new_password.min'          => 'La contraseña debe tener al menos 8 caracteres.',
+            'new_password.confirmed'    => 'Las contraseñas no coinciden.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'La contraseña actual no es correcta.'], 400);
+        }
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'Contraseña actualizada exitosamente.']);
+    }
+}

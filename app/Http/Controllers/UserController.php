@@ -66,9 +66,9 @@ class UserController extends Controller
 
             $phone = substr($request->phone, 0, 9); // truncate to fit database column limit if needed
             
-            // Generate secure random password (16 chars, mixed case, numbers, symbols)
-            $password = Hash::make(Str::random(16));
-
+            // Contraseña inicial por defecto es el número de documento del usuario (DNI/RUC)
+            $password = Hash::make($request->doc_number);
+            
             $user = new User();
             $user->email = $request->email;
             $user->password = $password;

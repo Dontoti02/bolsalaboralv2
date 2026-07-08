@@ -421,4 +421,91 @@ class StudentController extends Controller
             ], 500);
         }
     }
+    /**
+     * Change student password.
+     */
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Ingrese su contraseña actual.',
+            'new_password.required'     => 'Ingrese la nueva contraseña.',
+            'new_password.min'          => 'La contraseña debe tener al menos 8 caracteres.',
+            'new_password.confirmed'    => 'Las contraseñas no coinciden.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'La contraseña actual no es correcta.'], 400);
+        }
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'Contraseña actualizada exitosamente.']);
+    }
+
+    /**
+     * Upload and update student profile photo (avatar).
+     */
+    public function updateAvatar(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,jpg,png,webp|max:3072',
+        ], [
+            'avatar.required' => 'Debe seleccionar una imagen.',
+            'avatar.image'    => 'El archivo seleccionado debe ser una imagen.',
+            'avatar.mimes'    => 'La foto debe estar en formato JPG, PNG o WEBP.',
+            'avatar.max'      => 'La foto no debe superar los 3MB.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        try {
+            $file = $request->file('avatar');
+            $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            
+            $uploadPath = public_path('uploads/avatars');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            // Borrar avatar anterior si existe
+            if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                $oldPath = public_path($user->avatar);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            
+            $file->move($uploadPath, $filename);
+            $url = '/uploads/avatars/' . $filename;
+            
+            $user->avatar = $url;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto de perfil actualizada exitosamente.',
+                'avatar_url' => $url
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir la foto de perfil: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
+

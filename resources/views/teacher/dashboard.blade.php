@@ -68,6 +68,26 @@
 
 <!-- Main Content Wrapper -->
 <div class="flex-1 flex flex-col w-full min-h-screen">
+    @if(session('show_password_warning'))
+    <div id="pwd-warning-banner" class="bg-amber-50 border-b border-amber-200 px-4 py-3 shrink-0">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-amber-600 text-[24px]">security</span>
+                <p class="text-sm text-amber-800 font-medium">
+                    <strong>¡Alerta de Seguridad!</strong> Estás usando una contraseña por defecto (tu DNI). Te recomendamos cambiarla para proteger tu cuenta.
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openTeacherPwdModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                    Cambiar ahora
+                </button>
+                <button onclick="dismissTeacherPwdWarning()" class="text-amber-800 hover:bg-amber-100 text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+                    Más tarde
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
     <!-- Main Dashboard Canvas -->
     <main class="flex-1 p-lg md:p-2xl w-full max-w-container-max mx-auto space-y-xl">
         
@@ -360,6 +380,123 @@
             toast.classList.add('translate-y-20', 'opacity-0');
         }, 3000);
     }
+<div id="teacher-pwd-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+            <h3 class="font-bold text-lg text-on-surface">Cambiar Contraseña</h3>
+            <button onclick="closeTeacherPwdModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-outline-variant transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div id="teacher-pwd-alert" class="hidden p-3 rounded-lg text-sm font-medium"></div>
+            
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contraseña actual *</label>
+                <input type="password" id="t-pwd-current" class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Tu contraseña actual">
+            </div>
+            
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nueva contraseña *</label>
+                <input type="password" id="t-pwd-new" class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Mínimo 8 caracteres">
+            </div>
+            
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Confirmar nueva contraseña *</label>
+                <input type="password" id="t-pwd-confirm" class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Repite la nueva contraseña">
+            </div>
+            
+            <button onclick="submitTeacherPwd()" class="w-full py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+                Actualizar contraseña
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Teacher Password Warning and Modal ──────────────────────────────────────
+    function openTeacherPwdModal() {
+        document.getElementById('teacher-pwd-modal').classList.remove('hidden');
+        document.getElementById('t-pwd-current').value = '';
+        document.getElementById('t-pwd-new').value = '';
+        document.getElementById('t-pwd-confirm').value = '';
+        var alertEl = document.getElementById('teacher-pwd-alert');
+        alertEl.classList.add('hidden');
+        alertEl.className = 'hidden p-3 rounded-lg text-sm font-medium';
+    }
+
+    function closeTeacherPwdModal() {
+        document.getElementById('teacher-pwd-modal').classList.add('hidden');
+    }
+
+    function dismissTeacherPwdWarning() {
+        var banner = document.getElementById('pwd-warning-banner');
+        if (banner) banner.remove();
+        fetch('/clear-password-warning', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        });
+    }
+
+    function submitTeacherPwd() {
+        var current = document.getElementById('t-pwd-current').value;
+        var nw = document.getElementById('t-pwd-new').value;
+        var confirm = document.getElementById('t-pwd-confirm').value;
+        var alertEl = document.getElementById('teacher-pwd-alert');
+
+        if (nw !== confirm) {
+            showTeacherAlert('pwd-alert', 'error', 'Las contraseñas no coinciden.');
+            return;
+        }
+
+        fetch('{{ route("teacher.password.change") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                current_password: current,
+                new_password: nw,
+                new_password_confirmation: confirm
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) {
+                showTeacherAlert('success', d.message);
+                document.getElementById('t-pwd-current').value = '';
+                document.getElementById('t-pwd-new').value = '';
+                document.getElementById('t-pwd-confirm').value = '';
+                // Limpiar banner de advertencia si existía
+                var banner = document.getElementById('pwd-warning-banner');
+                if (banner) banner.remove();
+                setTimeout(closeTeacherPwdModal, 1500);
+            } else {
+                showTeacherAlert('error', d.message);
+            }
+        })
+        .catch(function() {
+            showTeacherAlert('error', 'Error al cambiar la contraseña. Intente nuevamente.');
+        });
+    }
+
+    function showTeacherAlert(type, msg) {
+        var alertEl = document.getElementById('teacher-pwd-alert');
+        alertEl.classList.remove('hidden');
+        alertEl.textContent = msg;
+        if (type === 'success') {
+            alertEl.className = 'p-3 rounded-lg text-sm font-medium bg-green-100 text-green-700';
+        } else {
+            alertEl.className = 'p-3 rounded-lg text-sm font-medium bg-red-100 text-red-700';
+        }
+    }
 </script>
 </body>
 </html>
+

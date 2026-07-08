@@ -470,6 +470,11 @@
             regPassConfirmInput.setAttribute('type', type);
             toggleRegPassConfirmIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
         });
+
+        // Activar modo registro de empresa si el hash es #empresa o si estamos en la ruta de registro
+        if (window.location.hash === '#empresa' || window.location.hash === '#register' || window.location.pathname.includes('registro-empresa')) {
+            toggleAuthMode('register');
+        }
     });
 </script>
 </body>

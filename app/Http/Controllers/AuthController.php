@@ -24,7 +24,7 @@ class AuthController extends Controller
             } elseif (Auth::user()->rol_id == 2) {
                 return redirect()->intended('/teacher/dashboard');
             } elseif (Auth::user()->rol_id == 3) {
-                return redirect()->intended('/student/dashboard');
+                return redirect()->intended('/');
             } elseif (Auth::user()->rol_id == 4) {
                 return redirect()->intended('/company/dashboard');
             }
@@ -86,13 +86,23 @@ class AuthController extends Controller
             Auth::login($user, $remember);
             $request->session()->regenerate();
 
+            // Verificar si el usuario es docente (2) o estudiante (3) y su contraseña coincide con su DNI
+            if (in_array($user->rol_id, [2, 3])) {
+                $person = $user->person;
+                if ($person && $person->document_type === 'DNI' && !empty($person->document_number)) {
+                    if (Hash::check($person->document_number, $user->password)) {
+                        $request->session()->put('show_password_warning', true);
+                    }
+                }
+            }
+
             // Redirect based on user role
             if ($user->rol_id == 1) {
                 return redirect()->intended('/admin/dashboard');
             } elseif ($user->rol_id == 2) {
-                return redirect()->intended('/teacher/dashboard');
+                return redirect()->intended('/');
             } elseif ($user->rol_id == 3) {
-                return redirect()->intended('/student/dashboard');
+                return redirect()->intended('/');
             } elseif ($user->rol_id == 4) {
                 return redirect()->intended('/company/dashboard');
             }
@@ -233,7 +243,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 
     /**
