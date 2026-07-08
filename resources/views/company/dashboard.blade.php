@@ -760,38 +760,38 @@
 </div>
 
 <!-- Modal: Detalles del Postulante -->
-<div id="applicant-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 flex flex-col overflow-hidden transform scale-95 transition-transform duration-300">
+<div id="applicant-detail-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;hidden;opacity:0;transition:opacity 0.3s;">
+    <div style="background:#fff;border-radius:16px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-width:480px;width:100%;margin:0 16px;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.95);transition:transform 0.3s;">
         <!-- Header con gradiente -->
-        <div class="relative bg-gradient-to-br from-[#002741] to-[#004d45] px-6 py-8 text-white">
-            <button onclick="closeApplicantModal()" class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+        <div style="position:relative;background:linear-gradient(135deg,#002741,#004d45);padding:24px;color:#fff;">
+            <button onclick="closeApplicantModal()" style="position:absolute;top:16px;right:16px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.2);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                 <span class="material-symbols-outlined">close</span>
             </button>
             
-            <div class="flex items-center gap-4">
-                <div id="applicant-modal-avatar" class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-2xl font-bold border-2 border-white/30">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div id="applicant-modal-avatar" style="width:80px;height:80px;border-radius:16px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:bold;border:2px solid rgba(255,255,255,0.3);">
                     -
                 </div>
-                <div class="flex-1">
-                    <h3 id="applicant-modal-name" class="text-xl font-bold mb-1">-</h3>
-                    <p id="applicant-modal-career" class="text-sm text-white/80 flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">school</span>
-                        -
+                <div style="flex:1;">
+                    <h3 id="applicant-modal-name" style="font-size:20px;font-weight:bold;margin:0 0 4px 0;">-</h3>
+                    <p id="applicant-modal-career" style="font-size:14px;color:rgba(255,255,255,0.8);margin:0;display:flex;align-items:center;gap:6px;">
+                        <span class="material-symbols-outlined" style="font-size:16px;">school</span>
+                        <span>-</span>
                     </p>
                 </div>
             </div>
         </div>
         
         <!-- Content -->
-        <div class="p-6 space-y-5">
+        <div style="padding:24px;">
             <!-- Mensaje de presentación -->
-            <div class="space-y-2">
-                <div class="flex items-center gap-2 text-gray-700">
-                    <span class="material-symbols-outlined text-[18px] text-gray-400">chat</span>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Mensaje de presentación</span>
+            <div style="margin-bottom:16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:#6b7280;">chat</span>
+                    <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;">Mensaje de presentación</span>
                 </div>
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <p id="applicant-modal-message" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <div style="background:#f9fafb;border-radius:12px;padding:16px;border:1px solid #e5e7eb;">
+                    <p id="applicant-modal-message" style="font-size:14px;color:#374151;white-space:pre-wrap;line-height:1.6;margin:0;">
                         -
                     </p>
                 </div>
@@ -799,13 +799,13 @@
         </div>
 
         <!-- Actions -->
-        <div class="px-6 pb-6 flex gap-3">
-            <button onclick="closeApplicantModal()" class="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold text-sm rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">close</span>
+        <div style="padding:0 24px 24px;display:flex;gap:12px;">
+            <button onclick="closeApplicantModal()" style="flex:1;padding:12px;border:2px solid #e5e7eb;background:#fff;color:#4b5563;font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+                <span class="material-symbols-outlined" style="font-size:18px;">close</span>
                 Cerrar
             </button>
-            <a id="applicant-modal-cv-link" href="#" target="_blank" class="flex-1 py-3 bg-gradient-to-r from-[#002741] to-[#004d45] text-white font-semibold text-sm rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg">
-                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+            <a id="applicant-modal-cv-link" href="#" target="_blank" style="flex:1;padding:12px;background:linear-gradient(135deg,#002741,#004d45);color:#fff;font-weight:600;font-size:14px;border-radius:12px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(0,39,65,0.3);transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                <span class="material-symbols-outlined" style="font-size:18px;">picture_as_pdf</span>
                 Ver CV PDF
             </a>
         </div>
@@ -1481,7 +1481,7 @@
         
         // Set values
         document.getElementById('applicant-modal-name').textContent = name;
-        document.getElementById('applicant-modal-career').textContent = career || 'No especificado';
+        document.getElementById('applicant-modal-career').querySelector('span:last-child').textContent = career || 'No especificado';
         document.getElementById('applicant-modal-message').textContent = msg ? msg.trim() : 'Sin mensaje de presentación.';
         
         // Avatar initials
@@ -1499,22 +1499,21 @@
         }
 
         // Open modal
-        modal.classList.remove('hidden');
-        modal.offsetHeight; // force reflow
-        modal.classList.remove('opacity-0');
-        modalContent.classList.remove('scale-95');
-        modalContent.classList.add('scale-100');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modalContent.style.transform = 'scale(1)';
+        }, 10);
     }
 
     function closeApplicantModal() {
         const modal = document.getElementById('applicant-detail-modal');
         const modalContent = modal.querySelector('div');
         
-        modal.classList.add('opacity-0');
-        modalContent.classList.remove('scale-100');
-        modalContent.classList.add('scale-95');
+        modal.style.opacity = '0';
+        modalContent.style.transform = 'scale(0.95)';
         setTimeout(() => {
-            modal.classList.add('hidden');
+            modal.style.display = 'none';
         }, 300);
     }
 
@@ -1526,8 +1525,12 @@
                     toggleLookupModal();
                 }
                 const appModal = document.getElementById('applicant-detail-modal');
-                if (appModal && !appModal.classList.contains('hidden')) {
+                if (appModal && appModal.style.display !== 'none') {
                     closeApplicantModal();
+                }
+                const feedbackModal = document.getElementById('feedback-modal');
+                if (feedbackModal && !feedbackModal.classList.contains('hidden')) {
+                    closeFeedbackModal();
                 }
             }
         });
