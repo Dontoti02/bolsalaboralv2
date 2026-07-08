@@ -3023,6 +3023,47 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación personalizado para Borrado Masivo de Ofertas -->
+    <div id="confirm-bulk-delete-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-red-50/50">
+                <div class="flex items-center gap-2 text-red-700">
+                    <span class="material-symbols-outlined text-2xl font-bold">warning</span>
+                    <h2 class="text-headline-md font-headline-md font-bold">¿Eliminar ofertas?</h2>
+                </div>
+                <button onclick="toggleConfirmBulkDeleteModal(false)"
+                    class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-lg space-y-md">
+                <p class="text-body-md text-on-surface-variant">
+                    ¿Está seguro de que desea eliminar permanentemente las <span id="bulk-delete-count" class="font-bold text-red-700">0</span> ofertas seleccionadas?
+                </p>
+                <div class="bg-red-50/50 border border-red-200/65 rounded-xl p-md flex gap-sm">
+                    <span class="material-symbols-outlined text-red-600 text-2xl shrink-0">info</span>
+                    <p class="text-[12px] text-red-800 leading-normal">Esta acción no se puede deshacer y también eliminará permanentemente todas las postulaciones asociadas a estas convocatorias.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-md p-lg border-t border-outline-variant bg-surface-container-low">
+                <button type="button" onclick="toggleConfirmBulkDeleteModal(false)"
+                    class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-xl hover:bg-surface-container-high transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-bulk-delete" type="button" onclick="executeBulkDeleteOffers()"
+                    class="px-6 py-2.5 bg-red-600 text-white font-label-md text-label-md rounded-xl hover:bg-red-700 shadow-sm transition-all font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Simple Toast Notification -->
     <div id="toast"
         class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
@@ -3590,12 +3631,7 @@
 
         // Delete user from the database
         function deleteUserRow(id, username) {
-            showCustomConfirm({
-                title: 'Eliminar Usuario',
-                message: `¿Estás seguro de que deseas eliminar permanentemente al usuario "${username}"?`
-            }).then(confirmed => {
-                if (!confirmed) return;
-
+            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario "${username}"?`)) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch(`/admin/users/${id}`, {
@@ -3618,7 +3654,7 @@
                     .catch(err => {
                         showToast('Error de red al eliminar usuario.', 'error');
                     });
-            });
+            }
         }
 
         // ================= FILTRO POR ROL, SELECCIÓN MÚLTIPLE Y PAGINACIÓN =================
@@ -3900,46 +3936,43 @@
                 return;
             }
 
-            showCustomConfirm({
-                title: 'Eliminar Usuarios en Masa',
-                message: `¿Estás seguro de que deseas eliminar permanentemente ${ids.length} usuario(s) seleccionado(s)?`
-            }).then(confirmed => {
-                if (!confirmed) return;
+            if (!confirm(`¿Estás seguro de que deseas eliminar ${ids.length} usuario(s) seleccionado(s)?`)) {
+                return;
+            }
 
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                fetch('/admin/users/bulk-delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ ids: ids })
+            fetch('/admin/users/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ids: ids })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                        // Remove only the IDs confirmed deleted by the server
+                        const deletedIds = data.deleted_ids || ids;
+                        deletedIds.forEach(id => {
+                            const row = document.getElementById('user-row-' + id);
+                            if (row) row.remove();
+                        });
+                        clearUserSelection();
+                        // Reload page after a short delay to reflect changes
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showToast(data.message || 'Error al eliminar usuarios.', 'error');
+                    }
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            showToast(data.message);
-                            // Remove only the IDs confirmed deleted by the server
-                            const deletedIds = data.deleted_ids || ids;
-                            deletedIds.forEach(id => {
-                                const row = document.getElementById('user-row-' + id);
-                                if (row) row.remove();
-                            });
-                            clearUserSelection();
-                            // Reload page after a short delay to reflect changes
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
-                            showToast(data.message || 'Error al eliminar usuarios.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        showToast('Error de red al eliminar usuarios.', 'error');
-                    });
-            });
+                .catch(err => {
+                    showToast('Error de red al eliminar usuarios.', 'error');
+                });
         }
 
         // ================= ADMIN ACCOUNT & PROFILE =================
@@ -4374,36 +4407,30 @@
 
         // Delete a settings image (logo, favicon, banner)
         function deleteSettingsImage(type, previewId) {
-            showCustomConfirm({
-                title: 'Eliminar Imagen',
-                message: `¿Deseas eliminar la imagen "${type}" actual? No se puede deshacer.`
-            }).then(confirmed => {
-                if (!confirmed) return;
-
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                fetch('/admin/settings/delete-image', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ type })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast(`Imagen "${type}" eliminada correctamente.`);
-                        const preview = document.getElementById(previewId);
-                        if (preview) preview.src = data.placeholder || `/assets/${type}.png`;
-                        const btn = document.querySelector(`button[onclick="deleteSettingsImage('${type}', '${previewId}')"]`);
-                        if (btn) btn.classList.add('hidden');
-                    } else {
-                        showToast(data.message || 'Error al eliminar la imagen.', 'error');
-                    }
-                })
-                .catch(() => showToast('Error de red al eliminar imagen.', 'error'));
-            });
+            if (!confirm(`¿Deseas eliminar la imagen "${type}" actual? No se puede deshacer.`)) return;
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch('/admin/settings/delete-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ type })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Imagen "${type}" eliminada correctamente.`);
+                    const preview = document.getElementById(previewId);
+                    if (preview) preview.src = data.placeholder || `/assets/${type}.png`;
+                    const btn = document.querySelector(`button[onclick="deleteSettingsImage('${type}', '${previewId}')"]`);
+                    if (btn) btn.classList.add('hidden');
+                } else {
+                    showToast(data.message || 'Error al eliminar la imagen.', 'error');
+                }
+            })
+            .catch(() => showToast('Error de red al eliminar imagen.', 'error'));
         }
 
         // Toast show message with support for types
@@ -4761,22 +4788,16 @@
 
         function deleteMaintainerItem(id) {
             const item = maintainerItems.find(entry => entry.id === id);
-            if (!item) return;
+            if (!item || !confirm(`\u00bfDesea eliminar "${item.name}"?`)) return;
 
-            showCustomConfirm({
-                title: 'Eliminar Opción',
-                message: `¿Desea eliminar "${item.name}"?`
-            }).then(confirmed => {
-                if (!confirmed) return;
-
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                fetch(`/admin/maintainers/${maintainerActiveType}/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(`/admin/maintainers/${maintainerActiveType}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(async res => {
                     const data = await res.json();
                     if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo eliminar la opci\u00f3n.');
@@ -5241,34 +5262,29 @@
 
         // Delete Offer
         function deleteOffer(id) {
-            showCustomConfirm({
-                title: 'Eliminar Convocatoria',
-                message: '¿Estás seguro de que deseas eliminar esta oferta laboral?'
-            }).then(confirmed => {
-                if (!confirmed) return;
+            if (!confirm('¿Estás seguro de que deseas eliminar esta oferta laboral?')) return;
 
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                fetch(`/admin/offers/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
+            fetch(`/admin/offers/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Oferta laboral eliminada.');
+                        loadOffers();
+                    } else {
+                        showToast(data.message || 'Error al eliminar oferta.', 'error');
                     }
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            showToast('Oferta laboral eliminada.');
-                            loadOffers();
-                        } else {
-                            showToast(data.message || 'Error al eliminar oferta.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        showToast('Error de red al eliminar oferta.', 'error');
-                    });
-            });
+                .catch(err => {
+                    showToast('Error de red al eliminar oferta.', 'error');
+                });
         }
 
         // Toggle all checkboxes in the offers list
@@ -5306,52 +5322,75 @@
         // Bulk Delete selected job offers
         function bulkDeleteOffers() {
             const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+            const count = checkboxes.length;
+
+            if (count === 0) return;
+
+            // Set count in the modal content
+            document.getElementById('bulk-delete-count').textContent = count;
+
+            // Open custom modal
+            toggleConfirmBulkDeleteModal(true);
+        }
+
+        // Toggle custom bulk delete confirmation modal
+        function toggleConfirmBulkDeleteModal(show) {
+            const modal = document.getElementById('confirm-bulk-delete-modal');
+            if (!modal) return;
+            const container = modal.querySelector('.max-w-md');
+
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => container.classList.remove('scale-95'), 10);
+            } else {
+                container.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // Execute bulk delete via AJAX
+        function executeBulkDeleteOffers() {
+            const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
             const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
             if (ids.length === 0) return;
 
-            showCustomConfirm({
-                title: 'Eliminar Convocatorias en Masa',
-                message: `¿Está seguro de que desea eliminar permanentemente estas ${ids.length} ofertas laborales? Esta acción no se puede deshacer y también eliminará las postulaciones asociadas.`
-            }).then(confirmed => {
-                if (!confirmed) return;
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const btn = document.getElementById('btn-confirm-bulk-delete');
+            const originalHtml = btn.innerHTML;
 
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const bulkBar = document.getElementById('offers-bulk-actions');
+            // disable buttons
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Eliminando...';
 
-                // disable button
-                const btn = bulkBar.querySelector('button');
-                const originalHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">progress_activity</span> Eliminando...';
+            fetch('/admin/offers/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ids: ids })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    toggleConfirmBulkDeleteModal(false);
 
-                fetch('/admin/offers/bulk-delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ ids: ids })
+                    if (data.success) {
+                        showToast(data.message);
+                        loadOffers(); // reload completely
+                    } else {
+                        showToast(data.message || 'Error al eliminar ofertas en masa.', 'error');
+                    }
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-
-                        if (data.success) {
-                            showToast(data.message);
-                            loadOffers(); // reload completely
-                        } else {
-                            showToast(data.message || 'Error al eliminar ofertas en masa.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-                        showToast('Error de red al intentar eliminar en masa.', 'error');
-                    });
-            });
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    toggleConfirmBulkDeleteModal(false);
+                    showToast('Error de red al intentar eliminar en masa.', 'error');
+                });
         }
 
         // Edit Offer - Load values into form
@@ -5873,13 +5912,11 @@
                 return;
             }
 
-            showCustomConfirm({
-                title: 'Eliminar Empresas en Masa',
-                message: `¿Estás seguro de que deseas eliminar permanentemente ${ids.length} empresa(s) y todos sus usuarios/ofertas asociados?`
-            }).then(confirmed => {
-                if (!confirmed) return;
+            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${ids.length} empresa(s) y todos sus usuarios/ofertas asociados?`)) {
+                return;
+            }
 
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             fetch('/admin/companies/bulk-delete', {
                 method: 'POST',
@@ -5904,7 +5941,6 @@
                 .catch(err => {
                     showToast('Error de red al intentar eliminar.', 'error');
                 });
-            });
         }
 
         // Render pagination controls
@@ -6026,12 +6062,7 @@
             const company = companiesList.find(c => c.id === id);
             const name = company ? company.name : 'esta empresa';
 
-            showCustomConfirm({
-                title: 'Eliminar Empresa',
-                message: `¿Estás seguro de que deseas eliminar permanentemente a "${name}" y todos sus usuarios/ofertas asociados?`
-            }).then(confirmed => {
-                if (!confirmed) return;
-
+            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a "${name}" y todos sus usuarios/ofertas asociados?`)) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch(`/admin/companies/${id}`, {
@@ -6063,7 +6094,7 @@
                     .catch(err => {
                         showToast('Error de red al intentar eliminar.', 'error');
                     });
-            });
+            }
         }
 
         // Edit Company - Loads details and switch tab
@@ -6465,12 +6496,7 @@
 
         // Delete Application
         function deleteApplication(id) {
-            showCustomConfirm({
-                title: 'Eliminar Postulación',
-                message: '¿Está seguro de que desea eliminar permanentemente esta postulación? Esta acción no se puede deshacer.'
-            }).then(confirmed => {
-                if (!confirmed) return;
-
+            if (confirm('¿Está seguro de que desea eliminar permanentemente esta postulación? Esta acción no se puede deshacer.')) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch(`/admin/applications/${id}`, {
@@ -6499,7 +6525,7 @@
                     .catch(err => {
                         showToast('Error de red al intentar eliminar.', 'error');
                     });
-            });
+            }
         }
 
         // Toggle all checkboxes in the applications list
@@ -6541,12 +6567,7 @@
 
             if (ids.length === 0) return;
 
-            showCustomConfirm({
-                title: 'Eliminar Postulaciones en Masa',
-                message: `¿Está seguro de que desea eliminar permanentemente estas ${ids.length} postulaciones? Esta acción no se puede deshacer.`
-            }).then(confirmed => {
-                if (!confirmed) return;
-
+            if (confirm(`¿Está seguro de que desea eliminar permanentemente estas ${ids.length} postulaciones? Esta acción no se puede deshacer.`)) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 const bulkBar = document.getElementById('apps-bulk-actions');
 
@@ -6582,7 +6603,7 @@
                         btn.innerHTML = originalHtml;
                         showToast('Error de red al intentar eliminar en masa.', 'error');
                     });
-            });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -6662,82 +6683,6 @@
             }
             switchTab(ADMIN_VALID_TABS.includes(tabToOpen) ? tabToOpen : 'dashboard');
         });
-    </script>
-
-    <!-- Custom Confirm Modal -->
-    <div id="custom-confirm-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm transition-all duration-300">
-        <div class="bg-surface rounded-3xl border border-outline-variant shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200 ease-out" id="custom-confirm-box">
-            <div class="p-6 text-center space-y-4">
-                <div class="w-16 h-16 rounded-full bg-error-container/10 text-error flex items-center justify-center mx-auto">
-                    <span class="material-symbols-outlined text-[36px]">warning</span>
-                </div>
-                <div class="space-y-2">
-                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold" id="custom-confirm-title">¿Confirmar acción?</h3>
-                    <p class="text-body-md text-on-surface-variant leading-relaxed" id="custom-confirm-message">Esta acción no se puede deshacer.</p>
-                </div>
-            </div>
-            <div class="flex border-t border-outline-variant">
-                <button id="custom-confirm-btn-cancel" class="flex-1 px-4 py-4 text-body-medium font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors outline-none cursor-pointer">
-                    Cancelar
-                </button>
-                <div class="w-[1px] bg-outline-variant"></div>
-                <button id="custom-confirm-btn-ok" class="flex-1 px-4 py-4 text-body-medium font-bold text-error hover:bg-error-container/10 transition-colors outline-none cursor-pointer">
-                    Confirmar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Custom Confirm Modal Helper
-        function showCustomConfirm(options = {}) {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('custom-confirm-modal');
-                const box = document.getElementById('custom-confirm-box');
-                const titleEl = document.getElementById('custom-confirm-title');
-                const msgEl = document.getElementById('custom-confirm-message');
-                const btnCancel = document.getElementById('custom-confirm-btn-cancel');
-                const btnOk = document.getElementById('custom-confirm-btn-ok');
-
-                if (!modal || !box) {
-                    resolve(confirm(options.message || '¿Confirmar acción?'));
-                    return;
-                }
-
-                titleEl.textContent = options.title || '¿Confirmar acción?';
-                msgEl.textContent = options.message || 'Esta acción no se puede deshacer.';
-                btnOk.textContent = options.btnOkText || 'Confirmar';
-                btnCancel.textContent = options.btnCancelText || 'Cancelar';
-
-                if (options.type === 'info') {
-                    btnOk.className = 'flex-1 px-4 py-4 text-body-medium font-bold text-primary hover:bg-primary/5 transition-colors outline-none cursor-pointer';
-                    box.querySelector('.w-16').className = 'w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto';
-                    box.querySelector('.w-16 span').textContent = 'info';
-                } else {
-                    btnOk.className = 'flex-1 px-4 py-4 text-body-medium font-bold text-error hover:bg-error-container/10 transition-colors outline-none cursor-pointer';
-                    box.querySelector('.w-16').className = 'w-16 h-16 rounded-full bg-error-container/10 text-error flex items-center justify-center mx-auto';
-                    box.querySelector('.w-16 span').textContent = 'warning';
-                }
-
-                modal.classList.remove('hidden');
-                setTimeout(() => box.classList.remove('scale-95'), 10);
-
-                function cleanup(result) {
-                    box.classList.add('scale-95');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                    }, 200);
-                    
-                    btnCancel.replaceWith(btnCancel.cloneNode(true));
-                    btnOk.replaceWith(btnOk.cloneNode(true));
-                    
-                    resolve(result);
-                }
-
-                document.getElementById('custom-confirm-btn-cancel').addEventListener('click', () => cleanup(false));
-                document.getElementById('custom-confirm-btn-ok').addEventListener('click', () => cleanup(true));
-            });
-        }
     </script>
 </body>
 

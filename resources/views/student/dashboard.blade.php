@@ -847,34 +847,29 @@
     }
     
     function deleteCv(id) {
-        showCustomConfirm({
-            title: 'Eliminar Currículum',
-            message: '¿Está seguro de que desea eliminar este currículum?'
-        }).then(confirmed => {
-            if (!confirmed) return;
-            
-            fetch('/student/cv/delete/' + id, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Currículum eliminado.');
-                    const el = document.getElementById('cv-item-' + id);
-                    if (el) el.remove();
-                    location.reload();
-                } else {
-                    showToast(data.message || 'Error al eliminar.');
-                }
-            })
-            .catch(err => {
-                showToast('Error en el servidor.');
-            });
+        if (!confirm('¿Está seguro de que desea eliminar este currículum?')) return;
+        
+        fetch('/student/cv/delete/' + id, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Currículum eliminado.');
+                const el = document.getElementById('cv-item-' + id);
+                if (el) el.remove();
+                location.reload();
+            } else {
+                showToast(data.message || 'Error al eliminar.');
+            }
+        })
+        .catch(err => {
+            showToast('Error en el servidor.');
         });
     }
 
@@ -1404,71 +1399,5 @@
     <span id="toast-icon" class="material-symbols-outlined text-[20px] text-primary">info</span>
     <span id="toast-message" class="text-body-sm font-semibold">Mensaje</span>
 </div>
-
-<!-- Custom Confirm Modal -->
-<div id="custom-confirm-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200 ease-out" id="custom-confirm-box">
-        <div class="p-6 text-center space-y-4">
-            <div class="w-16 h-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-                <span class="material-symbols-outlined text-[36px]">warning</span>
-            </div>
-            <div class="space-y-2">
-                <h3 class="font-headline-sm text-[18px] text-slate-800 font-bold" id="custom-confirm-title">¿Confirmar acción?</h3>
-                <p class="text-sm text-slate-500 leading-relaxed" id="custom-confirm-message">Esta acción no se puede deshacer.</p>
-            </div>
-        </div>
-        <div class="flex border-t border-slate-100">
-            <button id="custom-confirm-btn-cancel" class="flex-1 px-4 py-4 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors outline-none cursor-pointer">
-                Cancelar
-            </button>
-            <div class="w-[1px] bg-slate-100"></div>
-            <button id="custom-confirm-btn-ok" class="flex-1 px-4 py-4 text-sm font-bold text-red-600 hover:bg-red-50/50 transition-colors outline-none cursor-pointer">
-                Confirmar
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Custom Confirm Modal Helper
-    function showCustomConfirm(options = {}) {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('custom-confirm-modal');
-            const box = document.getElementById('custom-confirm-box');
-            const titleEl = document.getElementById('custom-confirm-title');
-            const msgEl = document.getElementById('custom-confirm-message');
-            const btnCancel = document.getElementById('custom-confirm-btn-cancel');
-            const btnOk = document.getElementById('custom-confirm-btn-ok');
-
-            if (!modal || !box) {
-                resolve(confirm(options.message || '¿Confirmar acción?'));
-                return;
-            }
-
-            titleEl.textContent = options.title || '¿Confirmar acción?';
-            msgEl.textContent = options.message || 'Esta acción no se puede deshacer.';
-            btnOk.textContent = options.btnOkText || 'Confirmar';
-            btnCancel.textContent = options.btnCancelText || 'Cancelar';
-
-            modal.classList.remove('hidden');
-            setTimeout(() => box.classList.remove('scale-95'), 10);
-
-            function cleanup(result) {
-                box.classList.add('scale-95');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 200);
-                
-                btnCancel.replaceWith(btnCancel.cloneNode(true));
-                btnOk.replaceWith(btnOk.cloneNode(true));
-                
-                resolve(result);
-            }
-
-            document.getElementById('custom-confirm-btn-cancel').addEventListener('click', () => cleanup(false));
-            document.getElementById('custom-confirm-btn-ok').addEventListener('click', () => cleanup(true));
-        });
-    }
-</script>
 </body>
 </html>
