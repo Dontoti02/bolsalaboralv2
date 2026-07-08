@@ -382,6 +382,43 @@ class JobOpportunityController extends Controller
     }
 
     /**
+     * Remove multiple job offers in bulk (soft delete).
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'IDs de ofertas no válidos.'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            JobOpportunityOffer::whereIn('id', $request->ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ofertas seleccionadas eliminadas exitosamente.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar ofertas en masa: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get lookup/metadata for forms and filters.
      */
     public function getMetadata()

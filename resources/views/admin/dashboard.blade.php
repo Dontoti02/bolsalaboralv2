@@ -1384,6 +1384,21 @@
                         </div>
                     </div>
 
+                    <!-- Bulk Actions (BARRA DE ELIMINACIÓN MASIVA DE OFERTAS) -->
+                    <div id="offers-bulk-actions" class="hidden flex flex-col sm:flex-row items-center justify-between bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm gap-md">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-red-600 text-3xl">gavel</span>
+                            <div>
+                                <p class="text-body-sm font-bold text-red-950" id="offers-selected-count">0 ofertas seleccionadas</p>
+                                <p class="text-[12px] text-red-800">Esta acción eliminará de forma permanente (borrado lógico) las convocatorias seleccionadas.</p>
+                            </div>
+                        </div>
+                        <button onclick="bulkDeleteOffers()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md rounded-xl transition-all shadow-sm flex items-center gap-1 font-semibold">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                            Eliminar seleccionadas
+                        </button>
+                    </div>
+
                     <!-- Offers Table -->
                     <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
                         <div class="overflow-x-auto">
@@ -1391,7 +1406,9 @@
                                 <thead>
                                     <tr
                                         class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
-                                        <th class="px-4 py-3.5 w-12">Acción</th>
+                                        <th class="px-4 py-3.5 w-10">
+                                            <input type="checkbox" id="select-all-offers" onchange="toggleSelectAllOffers(this)" class="rounded border-outline-variant focus:ring-primary text-primary cursor-pointer">
+                                        </th>
                                         <th class="px-4 py-3.5 w-24">Estado</th>
                                         <th class="px-4 py-3.5">Título</th>
                                         <th class="px-4 py-3.5">Salario</th>
@@ -1399,12 +1416,13 @@
                                         <th class="px-4 py-3.5">Jornada de trabajo</th>
                                         <th class="px-4 py-3.5">Modalidad de trabajo</th>
                                         <th class="px-4 py-3.5">Tipo de contrato</th>
+                                        <th class="px-4 py-3.5 text-right w-12">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody id="offers-table-body"
                                     class="divide-y divide-outline-variant/60 font-body-sm text-body-sm text-on-surface">
                                     <tr>
-                                        <td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando
+                                        <td colspan="9" class="text-center py-xl text-on-surface-variant">Cargando
                                             ofertas...</td>
                                     </tr>
                                 </tbody>
@@ -4776,8 +4794,14 @@
         function loadOffers() {
             const tbody = document.getElementById('offers-table-body');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando ofertas...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">Cargando ofertas...</td></tr>';
             }
+
+            // Reset master checkbox and bulk actions bar on load
+            const selectAll = document.getElementById('select-all-offers');
+            if (selectAll) selectAll.checked = false;
+            const bulkBar = document.getElementById('offers-bulk-actions');
+            if (bulkBar) bulkBar.classList.add('hidden');
 
             const search = document.getElementById('search-offers-input').value;
             const sortBy = document.getElementById('filter-sort').value;
@@ -4811,12 +4835,12 @@
                         offersList = data.offers;
                         renderOffersTable(data.offers);
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-red-600">Error al cargar ofertas.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-red-600">Error al cargar ofertas.</td></tr>';
                     }
                 })
                 .catch(err => {
                     if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-red-600">Error de red.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-red-600">Error de red.</td></tr>';
                     }
                 });
         }
@@ -4827,7 +4851,7 @@
             if (!tbody) return;
 
             if (offers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">No se encontraron convocatorias.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">No se encontraron convocatorias.</td></tr>';
                 return;
             }
 
@@ -4858,10 +4882,8 @@
                 const contractText = offer.contract_type ? offer.contract_type.name : 'Plazo Fijo';
 
                 tr.innerHTML = `
-                <td class="px-4 py-3 text-center">
-                    <button type="button" onclick="toggleOfferActions(event, ${offer.id})" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center">
-                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                    </button>
+                <td class="px-4 py-3">
+                    <input type="checkbox" value="${offer.id}" onchange="updateSelectedOffers()" class="offer-checkbox rounded border-outline-variant focus:ring-primary text-primary cursor-pointer">
                 </td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded-full text-xs font-semibold uppercase ${stateClass}">
@@ -4876,6 +4898,11 @@
                 <td class="px-4 py-3">${workdayText}</td>
                 <td class="px-4 py-3">${modalityText}</td>
                 <td class="px-4 py-3">${contractText}</td>
+                <td class="px-4 py-3 text-right">
+                    <button type="button" onclick="toggleOfferActions(event, ${offer.id})" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant inline-flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                    </button>
+                </td>
             `;
                 tbody.appendChild(tr);
             });
@@ -5175,6 +5202,84 @@
                 .catch(err => {
                     showToast('Error de red al eliminar oferta.', 'error');
                 });
+        }
+
+        // Toggle all checkboxes in the offers list
+        function toggleSelectAllOffers(master) {
+            const checkboxes = document.querySelectorAll('.offer-checkbox');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+            updateSelectedOffers();
+        }
+
+        // Update selected offers count and show/hide bulk bar
+        function updateSelectedOffers() {
+            const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+            const count = checkboxes.length;
+            
+            const bulkBar = document.getElementById('offers-bulk-actions');
+            const countLabel = document.getElementById('offers-selected-count');
+            const selectAll = document.getElementById('select-all-offers');
+            const allCheckboxes = document.querySelectorAll('.offer-checkbox');
+
+            if (count > 0) {
+                bulkBar.classList.remove('hidden');
+                bulkBar.classList.add('flex');
+                countLabel.textContent = `${count} ${count === 1 ? 'oferta seleccionada' : 'ofertas seleccionadas'}`;
+            } else {
+                bulkBar.classList.add('hidden');
+                bulkBar.classList.remove('flex');
+            }
+
+            // Sync select-all master checkbox state
+            if (selectAll && allCheckboxes.length > 0) {
+                selectAll.checked = (count === allCheckboxes.length);
+            }
+        }
+
+        // Bulk Delete selected job offers
+        function bulkDeleteOffers() {
+            const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (ids.length === 0) return;
+
+            if (confirm(`¿Está seguro de que desea eliminar permanentemente estas ${ids.length} ofertas laborales? Esta acción no se puede deshacer y también eliminará las postulaciones asociadas.`)) {
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const bulkBar = document.getElementById('offers-bulk-actions');
+
+                // disable button
+                const btn = bulkBar.querySelector('button');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">progress_activity</span> Eliminando...';
+
+                fetch('/admin/offers/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ ids: ids })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+
+                        if (data.success) {
+                            showToast(data.message);
+                            loadOffers(); // reload completely
+                        } else {
+                            showToast(data.message || 'Error al eliminar ofertas en masa.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        showToast('Error de red al intentar eliminar en masa.', 'error');
+                    });
+            }
         }
 
         // Edit Offer - Load values into form

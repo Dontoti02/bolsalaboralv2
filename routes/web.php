@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/offers/{id}', [JobOpportunityController::class, 'show']);
         Route::put('/admin/offers/{id}', [JobOpportunityController::class, 'update']);
         Route::delete('/admin/offers/{id}', [JobOpportunityController::class, 'destroy']);
+        Route::post('/admin/offers/bulk-delete', [JobOpportunityController::class, 'bulkDestroy']);
         Route::post('/admin/offers/{id}/toggle-state', [JobOpportunityController::class, 'toggleState']);
         Route::get('/admin/offers/{id}/applicants', [UserController::class, 'getOfferApplicants']);
     });
