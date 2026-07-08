@@ -69,7 +69,17 @@ class CompanyDashboardController extends Controller
                     ->whereIn('offer_id', $offerIds)
                     ->whereNull('job_opportunity_applications.deleted_at')
                     ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
-                    ->select('job_opportunity_applications.*', 'job_opportunity_offer.title as offer_title')
+                    ->leftJoin('user', 'job_opportunity_applications.user_id', '=', 'user.id')
+                    ->leftJoin('person', 'user.person_id', '=', 'person.id')
+                    ->select(
+                        'job_opportunity_applications.*',
+                        'job_opportunity_offer.title as offer_title',
+                        'user.avatar as user_avatar',
+                        'person.names as person_names',
+                        'person.career as person_career',
+                        'person.about_me as person_about_me',
+                        'person.skills as person_skills'
+                    )
                     ->orderBy('job_opportunity_applications.created_at', 'desc')
                     ->get();
                 

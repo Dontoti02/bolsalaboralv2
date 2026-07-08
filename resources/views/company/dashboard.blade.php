@@ -271,7 +271,7 @@
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title ?? 'Puesto' }}</td>
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->diffForHumans() : '-' }}</td>
                                     <td class="px-lg py-md text-right">
-                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
+                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->person_career ?? $app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}', '{{ $app->user_avatar ?? '' }}', @json($app->person_skills ?? []), '{{ addslashes($app->person_about_me ?? '') }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     </td>
                                 </tr>
                                 @empty
@@ -600,7 +600,7 @@
                                     <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ strtoupper($app->status) }}</span>
                                 </td>
                                 <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
-                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
+                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->person_career ?? $app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}', '{{ $app->user_avatar ?? '' }}', @json($app->person_skills ?? []), '{{ addslashes($app->person_about_me ?? '') }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     @if($app->cv)
                                     <a href="{{ $app->cv }}" target="_blank" style="color:#002741; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'"><span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span> CV</a>
                                     @endif
@@ -769,8 +769,9 @@
             </button>
             
             <div style="display:flex;align-items:center;gap:16px;">
-                <div id="applicant-modal-avatar" style="width:80px;height:80px;border-radius:16px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:bold;border:2px solid rgba(255,255,255,0.3);">
-                    -
+                <div id="applicant-modal-avatar" style="width:80px;height:80px;border-radius:16px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:bold;border:2px solid rgba(255,255,255,0.3);overflow:hidden;flex-shrink:0;">
+                    <img id="applicant-modal-avatar-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                    <span id="applicant-modal-avatar-initials">-</span>
                 </div>
                 <div style="flex:1;">
                     <h3 id="applicant-modal-name" style="font-size:20px;font-weight:bold;margin:0 0 4px 0;">-</h3>
@@ -783,7 +784,30 @@
         </div>
         
         <!-- Content -->
-        <div style="padding:24px;">
+        <div style="padding:24px;max-height:50vh;overflow-y:auto;">
+            <!-- Sobre mí -->
+            <div id="applicant-modal-about-section" style="margin-bottom:16px;display:none;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:#6b7280;">person</span>
+                    <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;">Sobre mí</span>
+                </div>
+                <div style="background:#f9fafb;border-radius:12px;padding:16px;border:1px solid #e5e7eb;">
+                    <p id="applicant-modal-about" style="font-size:14px;color:#374151;white-space:pre-wrap;line-height:1.6;margin:0;">
+                        -
+                    </p>
+                </div>
+            </div>
+
+            <!-- Habilidades -->
+            <div id="applicant-modal-skills-section" style="margin-bottom:16px;display:none;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:#6b7280;">star</span>
+                    <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;">Habilidades</span>
+                </div>
+                <div id="applicant-modal-skills" style="display:flex;flex-wrap:wrap;gap:6px;">
+                </div>
+            </div>
+
             <!-- Mensaje de presentación -->
             <div style="margin-bottom:16px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -1475,7 +1499,7 @@
             .catch(() => showToast('Error de red al agregar opción.', 'error'));
     }
 
-    function openApplicantModal(name, career, msg, cvUrl) {
+    function openApplicantModal(name, career, msg, cvUrl, avatarUrl, skillsJson, aboutMe) {
         const modal = document.getElementById('applicant-detail-modal');
         const modalContent = modal.querySelector('div');
         
@@ -1484,10 +1508,53 @@
         document.getElementById('applicant-modal-career').querySelector('span:last-child').textContent = career || 'No especificado';
         document.getElementById('applicant-modal-message').textContent = msg ? msg.trim() : 'Sin mensaje de presentación.';
         
-        // Avatar initials
-        const avatar = document.getElementById('applicant-modal-avatar');
-        const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-        avatar.textContent = initials || 'C';
+        // Avatar - foto real o iniciales
+        const avatarImg = document.getElementById('applicant-modal-avatar-img');
+        const avatarInitials = document.getElementById('applicant-modal-avatar-initials');
+        if (avatarUrl && avatarUrl !== '') {
+            avatarImg.src = avatarUrl;
+            avatarImg.style.display = 'block';
+            avatarInitials.style.display = 'none';
+        } else {
+            avatarImg.style.display = 'none';
+            avatarInitials.style.display = 'flex';
+            const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            avatarInitials.textContent = initials || 'C';
+        }
+
+        // Sobre mí
+        const aboutSection = document.getElementById('applicant-modal-about-section');
+        const aboutText = document.getElementById('applicant-modal-about');
+        if (aboutMe && aboutMe.trim() !== '') {
+            aboutText.textContent = aboutMe.trim();
+            aboutSection.style.display = 'block';
+        } else {
+            aboutSection.style.display = 'none';
+        }
+
+        // Habilidades
+        const skillsSection = document.getElementById('applicant-modal-skills-section');
+        const skillsContainer = document.getElementById('applicant-modal-skills');
+        skillsContainer.innerHTML = '';
+        let skills = [];
+        if (skillsJson) {
+            try {
+                skills = typeof skillsJson === 'string' ? JSON.parse(skillsJson) : skillsJson;
+            } catch(e) {
+                skills = [];
+            }
+        }
+        if (Array.isArray(skills) && skills.length > 0) {
+            skills.forEach(function(skill) {
+                const tag = document.createElement('span');
+                tag.textContent = skill;
+                tag.style.cssText = 'background:#e0f2f1;color:#004d45;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;';
+                skillsContainer.appendChild(tag);
+            });
+            skillsSection.style.display = 'block';
+        } else {
+            skillsSection.style.display = 'none';
+        }
 
         // CV Link
         const cvLink = document.getElementById('applicant-modal-cv-link');
