@@ -5139,15 +5139,57 @@
         }
 
         // Copy Share Link to Clipboard
+        // Copy/Share Link for Offer
         function copyShareLink(id) {
-            const link = `${window.location.origin}/offers/${id}`;
-            navigator.clipboard.writeText(link)
-                .then(() => {
-                    showToast('¡Enlace de oferta copiado al portapapeles!');
-                })
-                .catch(err => {
-                    showToast('Error al copiar enlace.', 'error');
+            const offer = offersList.find(o => o.id === id);
+            const title = offer ? offer.title : 'Oferta de Empleo';
+            const company = (offer && offer.company) ? offer.company.name : '';
+            
+            const shareUrl = `${window.location.origin}?offer=${id}`;
+            const shareText = `Mira esta oferta de trabajo: ${title}${company ? ' en ' + company : ''} - Bolsa Laboral`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: shareText,
+                    url: shareUrl
+                }).catch(() => {
+                    // Fallback to copy if sharing fails
+                    fallbackCopyToClipboard(shareUrl);
                 });
+            } else {
+                fallbackCopyToClipboard(shareUrl);
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showToast('¡Enlace de oferta copiado al portapapeles!');
+                    })
+                    .catch(() => {
+                        fallbackCopyExecute(text);
+                    });
+            } else {
+                fallbackCopyExecute(text);
+            }
+        }
+
+        function fallbackCopyExecute(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('¡Enlace de oferta copiado al portapapeles!');
+            } catch (err) {
+                showToast('Error al copiar el enlace.', 'error');
+            }
+            document.body.removeChild(textArea);
         }
 
         // Update state
