@@ -719,6 +719,7 @@
 </main>
 
 {{-- ══ EMPRESA CTA ══ --}}
+@if(!$authUser)
 <section id="empresas" style="background:linear-gradient(160deg,var(--pri),#0a3452 50%,#004d45);padding:72px 20px;text-align:center;color:#fff;margin-top:40px">
     <div style="max-width:680px;margin:0 auto">
         <span class="material-symbols-outlined filled" style="font-size:56px;color:var(--secc);display:block;margin-bottom:16px">rocket_launch</span>
@@ -736,6 +737,7 @@
         </div>
     </div>
 </section>
+@endif
 
 {{-- ══ FOOTER ══ --}}
 <footer class="footer">
@@ -745,10 +747,12 @@
             {{ $config['application_name'] ?? 'Bolsa Laboral' }}
         </div>
         <p class="footer-copy">&copy; {{ date('Y') }} {{ $config['application_name'] ?? 'Bolsa Laboral' }}. Todos los derechos reservados.</p>
+        @if(!$authUser)
         <div class="footer-links">
             <a href="{{ route('login') }}" class="footer-link">Iniciar Sesión</a>
             <a href="{{ route('login') }}#empresa" class="footer-link">Para Empresas</a>
         </div>
+        @endif
     </div>
 </footer>
 
