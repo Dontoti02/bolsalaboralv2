@@ -3064,6 +3064,47 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación personalizado para Borrado Masivo de Empresas -->
+    <div id="confirm-bulk-delete-companies-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-red-50/50">
+                <div class="flex items-center gap-2 text-red-700">
+                    <span class="material-symbols-outlined text-2xl font-bold">warning</span>
+                    <h2 class="text-headline-md font-headline-md font-bold">¿Eliminar empresas?</h2>
+                </div>
+                <button onclick="toggleConfirmBulkDeleteCompaniesModal(false)"
+                    class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-lg space-y-md">
+                <p class="text-body-md text-on-surface-variant">
+                    ¿Está seguro de que desea eliminar permanentemente las <span id="bulk-delete-companies-count" class="font-bold text-red-700">0</span> empresas seleccionadas?
+                </p>
+                <div class="bg-red-50/50 border border-red-200/65 rounded-xl p-md flex gap-sm">
+                    <span class="material-symbols-outlined text-red-600 text-2xl shrink-0">info</span>
+                    <p class="text-[12px] text-red-800 leading-normal">Esta acción no se puede deshacer y también eliminará permanentemente todas las cuentas de usuario, ofertas de trabajo y postulaciones asociadas a estas empresas.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-md p-lg border-t border-outline-variant bg-surface-container-low">
+                <button type="button" onclick="toggleConfirmBulkDeleteCompaniesModal(false)"
+                    class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-xl hover:bg-surface-container-high transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-bulk-delete-companies" type="button" onclick="executeBulkDeleteCompanies()"
+                    class="px-6 py-2.5 bg-red-600 text-white font-label-md text-label-md rounded-xl hover:bg-red-700 shadow-sm transition-all font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Simple Toast Notification -->
     <div id="toast"
         class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
@@ -5912,11 +5953,40 @@
                 return;
             }
 
-            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${ids.length} empresa(s) y todos sus usuarios/ofertas asociados?`)) {
-                return;
+            // Set count in the modal content
+            document.getElementById('bulk-delete-companies-count').textContent = ids.length;
+
+            // Open custom modal
+            toggleConfirmBulkDeleteCompaniesModal(true);
+        }
+
+        // Toggle custom bulk delete confirmation modal for companies
+        function toggleConfirmBulkDeleteCompaniesModal(show) {
+            const modal = document.getElementById('confirm-bulk-delete-companies-modal');
+            if (!modal) return;
+            const container = modal.querySelector('.max-w-md');
+
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => container.classList.remove('scale-95'), 10);
+            } else {
+                container.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
             }
+        }
+
+        // Execute bulk delete companies via AJAX
+        function executeBulkDeleteCompanies() {
+            const ids = Array.from(selectedCompanyIds);
+            if (ids.length === 0) return;
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const btn = document.getElementById('btn-confirm-bulk-delete-companies');
+            const originalHtml = btn.innerHTML;
+
+            // disable buttons
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Eliminando...';
 
             fetch('/admin/companies/bulk-delete', {
                 method: 'POST',
@@ -5929,6 +5999,10 @@
             })
                 .then(res => res.json())
                 .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    toggleConfirmBulkDeleteCompaniesModal(false);
+
                     if (data.success) {
                         showToast(data.message);
                         selectedCompanyIds.clear();
@@ -5939,6 +6013,9 @@
                     }
                 })
                 .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    toggleConfirmBulkDeleteCompaniesModal(false);
                     showToast('Error de red al intentar eliminar.', 'error');
                 });
         }
