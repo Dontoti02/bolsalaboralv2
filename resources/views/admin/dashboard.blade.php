@@ -5676,14 +5676,14 @@
                 container.innerHTML = companiesList.map(company => {
                     const isVerified = company.is_verified;
                     const verifiedBadge = isVerified
-                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
-                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[12px] mr-1">check_circle</span>Aprobado</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><span class="material-symbols-outlined text-[12px] mr-1">pending</span>Pendiente</span>`;
                     const logoHTML = company.logo
                         ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-sm font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
                         : `<span class="text-sm font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
-                    const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
-                    const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
-                    const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50';
+                    const verifyTitle = isVerified ? 'Desaprobar empresa (suspender acceso)' : 'Aprobar empresa (permitir acceso)';
+                    const verifyIcon  = isVerified ? 'block' : 'check_circle';
+                    const verifyColor = isVerified ? 'text-amber-600 hover:bg-amber-50 border border-amber-200' : 'text-green-600 hover:bg-green-50 border border-green-200';
                     const isSelected = selectedCompanyIds.has(company.id);
                     return `<tr id="company-card-${company.id}" class="hover:bg-surface-container-low transition-colors ${isSelected ? 'bg-primary-fixed/30' : ''}">
                         <td class="px-4 py-3 text-center">
@@ -5709,7 +5709,7 @@
                                 <button onclick="editCompany(${company.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary transition-colors">
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                                <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 rounded-lg transition-colors ${verifyColor}">
+                                <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 border rounded-lg transition-colors ${verifyColor}">
                                     <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
                                 </button>
                                 <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error transition-colors">
@@ -5723,14 +5723,14 @@
                 gridContainer.innerHTML = companiesList.map(company => {
                     const isVerified = company.is_verified;
                     const verifiedBadge = isVerified
-                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[11px] mr-0.5">verified</span>Verificado</span>`
-                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">Sin verificar</span>`;
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200"><span class="material-symbols-outlined text-[12px] mr-1">check_circle</span>Aprobado</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><span class="material-symbols-outlined text-[12px] mr-1">pending</span>Pendiente</span>`;
                     const logoHTML = company.logo
                         ? `<img src="${company.logo}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-lg font-bold text-primary\'>${company.name.charAt(0).toUpperCase()}</span>'">`
                         : `<span class="text-lg font-bold text-primary">${company.name.charAt(0).toUpperCase()}</span>`;
-                    const verifyTitle = isVerified ? 'Quitar verificación' : 'Verificar empresa';
-                    const verifyIcon  = isVerified ? 'remove_moderator' : 'verified_user';
-                    const verifyColor = isVerified ? 'text-yellow-600 hover:bg-yellow-50 border-yellow-200/60' : 'text-green-600 hover:bg-green-50 border-green-200/60';
+                    const verifyTitle = isVerified ? 'Desaprobar empresa (suspender acceso)' : 'Aprobar empresa (permitir acceso)';
+                    const verifyIcon  = isVerified ? 'block' : 'check_circle';
+                    const verifyColor = isVerified ? 'text-amber-600 hover:bg-amber-50 border-amber-200/60' : 'text-green-600 hover:bg-green-50 border-green-200/60';
                     const isSelected = selectedCompanyIds.has(company.id);
                     
                     return `
