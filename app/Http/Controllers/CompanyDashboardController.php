@@ -81,8 +81,17 @@ class CompanyDashboardController extends Controller
                         'person.skills as person_skills'
                     )
                     ->orderBy('job_opportunity_applications.created_at', 'desc')
-                    ->get();
-                
+                    ->get()
+                    ->map(function ($app) {
+                        // Alias fullname
+                        $app->fullname = $app->person_names ?? null;
+                        // Decode skills from JSON string (raw query doesn't apply model casts)
+                        $app->person_skills = !empty($app->person_skills)
+                            ? (json_decode($app->person_skills, true) ?? [])
+                            : [];
+                        return $app;
+                    });
+
                 $recentApplicants = $applicants->take(5);
             } else {
                 $applicants = collect();

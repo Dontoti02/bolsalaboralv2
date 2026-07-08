@@ -205,6 +205,7 @@
         .footer{background:var(--sur);border-top:1px solid var(--bor);padding:20px;margin-top:32px}
         .footer-inner{max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
         .footer-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--pri);font-size:16px;display:flex;align-items:center;gap:8px}
+        .footer-brand img{height:28px;width:auto}
         .footer-copy{font-size:12px;color:var(--tm)}
         .footer-links{display:flex;gap:16px}
         .footer-link{font-size:13px;color:var(--tv);transition:color .15s}
@@ -320,6 +321,93 @@
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         .btn-postular:disabled{opacity:.6;cursor:not-allowed;transform:none}
         .tag-applied{background:rgba(249,115,22,.1);color:#c2410c;font-weight:700}
+
+        /* ── BUSCADOR MÓVIL DEDICADO ── */
+        .mobile-search-bar {
+            display: none;
+            background: var(--sur);
+            border-bottom: 1px solid var(--bor);
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.03);
+        }
+        .mobile-search-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            border: 1.5px solid var(--bor);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            transition: border-color .15s;
+        }
+        .mobile-search-field:focus-within {
+            border-color: var(--pri);
+            background: #fff;
+        }
+        .mobile-search-field span {
+            color: var(--tm);
+            font-size: 20px;
+        }
+        .mobile-search-field input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--txt);
+            width: 100%;
+        }
+        .mobile-search-btn {
+            width: 100%;
+            background: var(--pri);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity .15s;
+        }
+        .mobile-search-btn:active {
+            opacity: .8;
+        }
+
+        /* ── MEJORAS MÓVILES EN MEDIA QUERIES ── */
+        @media(max-width:640px) {
+            .mobile-search-bar {
+                display: block;
+            }
+            .warning-banner {
+                padding: 10px 14px;
+            }
+            .warning-banner-inner {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .btn-warning-action {
+                width: 100%;
+                text-align: center;
+            }
+            /* Campanita de notificaciones en móvil */
+            #student-notifications-menu {
+                width: calc(100vw - 24px) !important;
+                right: -12px !important;
+            }
+            /* Ajustar paddings de la lista para aprovechar espacio */
+            .main {
+                padding: 10px 6px !important;
+            }
+            .job-item {
+                padding: 16px !important;
+                border-radius: 12px !important;
+            }
+        }
 
     </style>
 </head>
@@ -493,13 +581,13 @@
                         <span class="cv-badge">{{ $studentCvs->count() }}</span>
                         @endif
                     </button>
-                    <button class="profile-dropdown-item" onclick="openModal('modal-postulaciones');closeProfileMenu()">
+                    <a href="{{ route('student.applications') }}" class="profile-dropdown-item">
                         <span class="material-symbols-outlined">assignment_turned_in</span>
                         Mis postulaciones
                         @if($studentApplications->count())
                         <span class="cv-badge" style="background:var(--sec)">{{ $studentApplications->count() }}</span>
                         @endif
-                    </button>
+                    </a>
                     @endif
                     <button class="profile-dropdown-item" onclick="openModal('modal-password');closeProfileMenu()">
                         <span class="material-symbols-outlined">lock</span> Cambiar contraseña
@@ -538,6 +626,21 @@
 </div>
 @endif
 
+
+{{-- ══ MOBILE SEARCH BAR ══ --}}
+<div class="mobile-search-bar">
+    <div class="mobile-search-field">
+        <span class="material-symbols-outlined">work</span>
+        <input id="mobile-search-q" type="text" placeholder="Cargo, categoría o empresa..." onkeydown="if(event.key === 'Enter') triggerSearch()">
+    </div>
+    <div class="mobile-search-field">
+        <span class="material-symbols-outlined">location_on</span>
+        <input id="mobile-search-loc" type="text" placeholder="Departamento..." onkeydown="if(event.key === 'Enter') triggerSearch()">
+    </div>
+    <button class="mobile-search-btn" onclick="triggerSearch()">
+        <span class="material-symbols-outlined">search</span> Buscar
+    </button>
+</div>
 
 {{-- ══ FILTERS BAR ══ --}}
 <div class="filters-bar">
@@ -762,7 +865,11 @@
 <footer class="footer">
     <div class="footer-inner">
         <div class="footer-brand">
-            <span class="material-symbols-outlined filled" style="font-size:22px">work</span>
+            @if($config['logo'] ?? '')
+                <img src="{{ $config['logo'] }}" alt="Logo">
+            @else
+                <span class="material-symbols-outlined filled" style="font-size:22px">work</span>
+            @endif
             {{ $config['application_name'] ?? 'Bolsa Laboral' }}
         </div>
         <p class="footer-copy">&copy; {{ date('Y') }} {{ $config['application_name'] ?? 'Bolsa Laboral' }}. Todos los derechos reservados.</p>
@@ -920,8 +1027,28 @@
                 </div>
             </div>
             <div class="s-form-group">
-                <label class="s-form-label">Sobre mí</label>
-                <textarea id="p-about" class="s-form-input" rows="3" placeholder="Breve descripción sobre ti...">{{ $authUser->person->about_me ?? '' }}</textarea>
+                <label class="s-form-label">Carrera / Programa de estudios</label>
+                <input type="text" id="p-career" class="s-form-input" value="{{ $authUser->person->career ?? '' }}" placeholder="Ej: Contabilidad, Enfermería, Computación...">
+            </div>
+            <div class="s-form-group">
+                <label class="s-form-label">Presentación personal <span style="font-size:10px;color:var(--tm);font-weight:400;text-transform:none">(visible para empresas)</span></label>
+                <textarea id="p-about" class="s-form-input" rows="4" placeholder="Cuéntale a las empresas sobre ti, tus objetivos y fortalezas...">{{ $authUser->person->about_me ?? '' }}</textarea>
+            </div>
+            <div class="s-form-group">
+                <label class="s-form-label">Habilidades <span style="font-size:10px;color:var(--tm);font-weight:400;text-transform:none">(escribe y presiona Enter)</span></label>
+                <div id="skills-tag-container" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:42px;padding:6px 10px;border:1.5px solid var(--bor);border-radius:10px;background:#fff;cursor:text;" onclick="document.getElementById('p-skill-input').focus()">
+                    @if(!empty($authUser->person->skills) && is_array($authUser->person->skills))
+                        @foreach($authUser->person->skills as $skill)
+                        <span class="skill-tag" style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,107,96,.1);color:var(--sec);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500;">
+                            {{ $skill }}
+                            <button type="button" onclick="removeSkillTag(this)" style="background:none;border:none;cursor:pointer;color:inherit;font-size:14px;line-height:1;padding:0 0 0 2px;">&times;</button>
+                        </span>
+                        @endforeach
+                    @endif
+                    <input type="text" id="p-skill-input" placeholder="Ej: Excel, Atención al cliente..." style="border:none;outline:none;font-size:13px;font-family:inherit;color:var(--txt);background:transparent;min-width:140px;flex:1;padding:2px 4px;"
+                        onkeydown="handleSkillInput(event)">
+                </div>
+                <input type="hidden" id="p-skills-json" value="{{ htmlspecialchars(json_encode($authUser->person->skills ?? []), ENT_QUOTES, 'UTF-8') }}">
             </div>
             <button class="btn-s-primary" onclick="saveProfile()">
                 <span class="material-symbols-outlined" style="font-size:18px">save</span>
@@ -1010,61 +1137,6 @@
         </div>
 </div>
 
-{{-- ══ MODAL POSTULACIONES ══ --}}
-<div id="modal-postulaciones" class="s-modal" onclick="if(event.target===this)closeModal('modal-postulaciones')">
-    <div class="s-modal-box" style="max-width:600px">
-        <div class="s-modal-header">
-            <h2 class="s-modal-title">Mis Postulaciones</h2>
-            <button class="s-modal-close" onclick="closeModal('modal-postulaciones')"><span class="material-symbols-outlined" style="font-size:20px">close</span></button>
-        </div>
-        <div class="s-modal-body" style="gap:12px">
-            @forelse($studentApplications as $app)
-            <div style="padding:14px;border:1px solid var(--bor);border-radius:12px;background:#fff;display:flex;flex-direction:column;gap:10px">
-                <div style="display:flex;align-items:start;gap:12px">
-                    <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;border:1px solid var(--bor);background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        @if($app->company_logo)
-                            <img src="{{ $app->company_logo }}" alt="{{ $app->company_name }}" style="width:100%;height:100%;object-fit:contain;padding:2px">
-                        @else
-                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;font-size:12px;font-weight:700;">{{ strtoupper(substr($app->company_name, 0, 2)) }}</div>
-                        @endif
-                    </div>
-                    <div style="flex:1;min-width:0">
-                        <h4 style="font-size:14px;font-weight:700;color:var(--txt);margin:0 0 2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $app->offer_title }}</h4>
-                        <p style="font-size:12px;color:var(--tv);margin:0">{{ $app->company_name }} · <span style="color:var(--tm)">{{ $app->formatted_date }}</span></p>
-                    </div>
-                    <div>
-                        @if($app->app_status === 'postulated')
-                            <span class="badge-app postulated">Postulado</span>
-                        @elseif($app->app_status === 'reviewed')
-                            <span class="badge-app reviewed">Revisado</span>
-                        @elseif($app->app_status === 'selected')
-                            <span class="badge-app selected">Seleccionado</span>
-                        @elseif($app->app_status === 'rejected')
-                            <span class="badge-app rejected">Descartado</span>
-                        @elseif($app->app_status === 'finished')
-                            <span class="badge-app finished">Finalizado</span>
-                        @else
-                            <span class="badge-app postulated">{{ $app->app_status }}</span>
-                        @endif
-                    </div>
-                </div>
-                
-                @if($app->app_feedback)
-                <div style="background:#f9fafb;border-left:3px solid var(--pri);padding:8px 12px;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--txt)">
-                    <p style="font-weight:700;margin:0 0 4px 0;color:var(--pri);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em">Respuesta de la empresa:</p>
-                    <p style="margin:0;font-style:italic">"{{ $app->app_feedback }}"</p>
-                </div>
-                @endif
-            </div>
-            @empty
-            <div style="text-align:center;padding:40px 20px;color:var(--tm)">
-                <span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">assignment_late</span>
-                <p style="font-size:14px">Aún no has postulado a ninguna oferta laboral.</p>
-            </div>
-            @endforelse
-        </div>
-    </div>
-</div>
 @endif
 
 <script>
@@ -1073,6 +1145,48 @@ var currentPage = 1;
 var isLoading   = false;
 var searchTimer = null;
 var activeItemId= null;
+
+// ── Skills tag input ─────────────────────────────────────────────────────────
+var currentSkills = (function(){
+    try {
+        var el = document.getElementById('p-skills-json');
+        return el ? JSON.parse(el.value) : [];
+    } catch(e) { return []; }
+})();
+
+function handleSkillInput(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        var input = document.getElementById('p-skill-input');
+        var val = input.value.replace(/,/g,'').trim();
+        if (val && !currentSkills.includes(val)) {
+            currentSkills.push(val);
+            var container = document.getElementById('skills-tag-container');
+            var tag = document.createElement('span');
+            tag.className = 'skill-tag';
+            tag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:rgba(0,107,96,.1);color:var(--sec);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500;';
+            tag.innerHTML = val + '<button type="button" onclick="removeSkillTag(this)" style="background:none;border:none;cursor:pointer;color:inherit;font-size:14px;line-height:1;padding:0 0 0 2px;">&times;</button>';
+            container.insertBefore(tag, input);
+        }
+        input.value = '';
+    }
+    if (e.key === 'Backspace' && document.getElementById('p-skill-input').value === '') {
+        var tags = document.querySelectorAll('#skills-tag-container .skill-tag');
+        if (tags.length > 0) {
+            var last = tags[tags.length - 1];
+            var skillText = last.textContent.replace('×','').trim();
+            currentSkills = currentSkills.filter(function(s){ return s !== skillText; });
+            last.remove();
+        }
+    }
+}
+
+function removeSkillTag(btn) {
+    var tag = btn.parentElement;
+    var skillText = tag.textContent.replace('×','').trim();
+    currentSkills = currentSkills.filter(function(s){ return s !== skillText; });
+    tag.remove();
+}
 var loadedOffers = [];
 var sharedOffer  = @json($sharedOffer);
 var appliedOffers = new Set(@json($studentApplicationIds));
@@ -1094,8 +1208,10 @@ function applyFilters() {
 }
 
 function clearFilters() {
-    document.getElementById('nav-search-q').value    = '';
-    document.getElementById('nav-search-loc').value  = '';
+    if (document.getElementById('nav-search-q'))     document.getElementById('nav-search-q').value = '';
+    if (document.getElementById('mobile-search-q'))  document.getElementById('mobile-search-q').value = '';
+    if (document.getElementById('nav-search-loc'))   document.getElementById('nav-search-loc').value = '';
+    if (document.getElementById('mobile-search-loc')) document.getElementById('mobile-search-loc').value = '';
     document.getElementById('filter-sort').value     = 'recent';
     document.getElementById('filter-location').value = '';
     document.getElementById('filter-schedule').value = '';
@@ -1108,8 +1224,16 @@ function clearFilters() {
 // ── Params ──────────────────────────────────────────────────────────────────
 function buildParams(page) {
     var p = new URLSearchParams();
-    var q   = document.getElementById('nav-search-q').value.trim();
-    var loc = document.getElementById('nav-search-loc').value.trim();
+    
+    // Read from desktop or mobile search inputs
+    var desktopQ = document.getElementById('nav-search-q') ? document.getElementById('nav-search-q').value.trim() : '';
+    var mobileQ  = document.getElementById('mobile-search-q') ? document.getElementById('mobile-search-q').value.trim() : '';
+    var q = desktopQ || mobileQ;
+
+    var desktopLoc = document.getElementById('nav-search-loc') ? document.getElementById('nav-search-loc').value.trim() : '';
+    var mobileLoc  = document.getElementById('mobile-search-loc') ? document.getElementById('mobile-search-loc').value.trim() : '';
+    var loc = desktopLoc || mobileLoc;
+
     if (q)   p.set('search', q);
     if (loc) p.set('province', loc);
 
@@ -1151,11 +1275,17 @@ function loadOffers(page, reset) {
     }
 
     var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    fetch('/buscar-ofertas?' + buildParams(page).toString(), {
+    var url = '/buscar-ofertas?' + buildParams(page).toString() + '&_=' + Date.now();
+    console.log('[loadOffers] Fetching:', url);
+    fetch(url, {
         headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
      })
-     .then(function(r){ return r.json(); })
+     .then(function(r){ 
+         console.log('[loadOffers] Response status:', r.status);
+         return r.json(); 
+     })
      .then(function(data){
+         console.log('[loadOffers] Data received:', data);
          if (!data.success) throw new Error(data.message);
          if (reset) {
              list.innerHTML = '';
@@ -1196,8 +1326,9 @@ function loadOffers(page, reset) {
               }
          }
      })
-    .catch(function(){
-        list.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tm)"><span class="material-symbols-outlined" style="font-size:48px;color:var(--bor);display:block;margin-bottom:12px">cloud_off</span><p>Error al cargar. Intenta de nuevo.</p></div>';
+    .catch(function(err){
+        console.error('[loadOffers] Error:', err);
+        list.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tm)"><span class="material-symbols-outlined" style="font-size:48px;color:var(--bor);display:block;margin-bottom:12px">cloud_off</span><p>Error al cargar: ' + (err.message || err) + '. Intenta de nuevo.</p></div>';
     })
     .finally(function(){ isLoading = false; });
 }
@@ -1749,6 +1880,8 @@ function saveProfile(){
         birth_date:       document.getElementById('p-birth').value,
         native_language:  document.getElementById('p-lang').value,
         about_me:         document.getElementById('p-about').value,
+        career:           document.getElementById('p-career').value,
+        skills:           currentSkills,
     };
     fetch('/student/profile', {
         method:'POST',
@@ -2036,6 +2169,13 @@ function fetchStudentNotifications() {
     });
 }
 
+function handleNotifClick(el) {
+    var link = el.getAttribute('data-link');
+    if (link && link !== '#' && link !== '') {
+        window.location.href = link;
+    }
+}
+
 function renderStudentNotifications() {
     var list = document.getElementById('student-notifications-list');
     if (!list) return;
@@ -2047,7 +2187,9 @@ function renderStudentNotifications() {
         var isUnread = !n.read_at;
         var border = isUnread ? 'border-left:3px solid var(--pri);background:rgba(0,39,65,.03);' : '';
         var time = n.created_at ? new Date(n.created_at).toLocaleString('es-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-        return '<div onclick="if(\'' + (n.link||'#') + '\' !== \'#') window.location.href=\'' + (n.link||'#') + '\'" style="padding:12px 16px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s;' + border + '" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'' + (isUnread ? 'rgba(0,39,65,.03)' : 'transparent') + '\'">' +
+        var bgOut = isUnread ? 'rgba(0,39,65,.03)' : 'transparent';
+        var link = esc(n.link || '');
+        return '<div data-link="' + link + '" onclick="handleNotifClick(this)" style="padding:12px 16px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s;' + border + '" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'' + bgOut + '\'">' +
             '<div style="display:flex;align-items:flex-start;gap:10px;">' +
             '<span class="material-symbols-outlined" style="font-size:20px;color:var(--pri);margin-top:2px;">notifications</span>' +
             '<div style="flex:1;min-width:0;">' +

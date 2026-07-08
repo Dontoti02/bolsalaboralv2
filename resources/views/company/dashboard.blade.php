@@ -269,7 +269,15 @@
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title ?? 'Puesto' }}</td>
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->diffForHumans() : '-' }}</td>
                                     <td class="px-lg py-md text-right">
-                                        <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->person_career ?? $app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}', '{{ $app->user_avatar ?? '' }}', @json($app->person_skills ?? []), '{{ addslashes($app->person_about_me ?? '') }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
+                                        <button type="button" data-name="{{ addslashes($app->fullname ?? 'Candidato') }}"
+                                            data-career="{{ addslashes($app->person_career ?? $app->program_study ?? '') }}"
+                                            data-msg="{{ addslashes($app->message ?? '') }}"
+                                            data-cv="{{ $app->cv ?? '' }}"
+                                            data-avatar="{{ $app->user_avatar ?? '' }}"
+                                            data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
+                                            data-about="{{ addslashes($app->person_about_me ?? '') }}"
+                                            onclick="openApplicantModal(this)"
+                                            style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     </td>
                                 </tr>
                                 @empty
@@ -595,10 +603,18 @@
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title }}</td>
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ \Carbon\Carbon::parse($app->created_at)->format('d M Y') }}</td>
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">
-                                    <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ strtoupper($app->status) }}</span>
+                                    <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ ['postulated'=>'POSTULADO','accepted'=>'ACEPTADO','rejected'=>'RECHAZADO','selected'=>'SELECCIONADO','finished'=>'FINALIZADO'][$app->status] ?? strtoupper($app->status) }}</span>
                                 </td>
                                 <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
-                                    <button type="button" onclick="openApplicantModal('{{ addslashes($app->fullname ?? 'Candidato') }}', '{{ addslashes($app->person_career ?? $app->program_study ?? '') }}', '{{ addslashes($app->message ?? '') }}', '{{ $app->cv }}', '{{ $app->user_avatar ?? '' }}', @json($app->person_skills ?? []), '{{ addslashes($app->person_about_me ?? '') }}')" style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
+                                    <button type="button" data-name="{{ addslashes($app->fullname ?? 'Candidato') }}"
+                                            data-career="{{ addslashes($app->person_career ?? $app->program_study ?? '') }}"
+                                            data-msg="{{ addslashes($app->message ?? '') }}"
+                                            data-cv="{{ $app->cv ?? '' }}"
+                                            data-avatar="{{ $app->user_avatar ?? '' }}"
+                                            data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
+                                            data-about="{{ addslashes($app->person_about_me ?? '') }}"
+                                            onclick="openApplicantModal(this)"
+                                            style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     @if($app->cv)
                                     <a href="{{ $app->cv }}" target="_blank" style="color:#002741; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'"><span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span> CV</a>
                                     @endif
@@ -1590,15 +1606,24 @@
             .catch(() => showToast('Error de red al agregar opción.', 'error'));
     }
 
-    function openApplicantModal(name, career, msg, cvUrl, avatarUrl, skillsJson, aboutMe) {
+    function openApplicantModal(btn) {
+        // Read data from data-* attributes to avoid inline JS injection issues
+        const name     = btn.dataset.name    || 'Candidato';
+        const career   = btn.dataset.career  || '';
+        const msg      = btn.dataset.msg     || '';
+        const cvUrl    = btn.dataset.cv      || '';
+        const avatarUrl= btn.dataset.avatar  || '';
+        const aboutMe  = btn.dataset.about   || '';
+        let skillsJson = btn.dataset.skills  || '[]';
+
         const modal = document.getElementById('applicant-detail-modal');
         const modalContent = modal.querySelector('div');
-        
+
         // Set values
         document.getElementById('applicant-modal-name').textContent = name;
         document.getElementById('applicant-modal-career').querySelector('span:last-child').textContent = career || 'No especificado';
         document.getElementById('applicant-modal-message').textContent = msg ? msg.trim() : 'Sin mensaje de presentación.';
-        
+
         // Avatar - foto real o iniciales
         const avatarImg = document.getElementById('applicant-modal-avatar-img');
         const avatarInitials = document.getElementById('applicant-modal-avatar-initials');
@@ -1628,12 +1653,10 @@
         const skillsContainer = document.getElementById('applicant-modal-skills');
         skillsContainer.innerHTML = '';
         let skills = [];
-        if (skillsJson) {
-            try {
-                skills = typeof skillsJson === 'string' ? JSON.parse(skillsJson) : skillsJson;
-            } catch(e) {
-                skills = [];
-            }
+        try {
+            skills = JSON.parse(skillsJson);
+        } catch(e) {
+            skills = [];
         }
         if (Array.isArray(skills) && skills.length > 0) {
             skills.forEach(function(skill) {
@@ -1649,7 +1672,7 @@
 
         // CV Link
         const cvLink = document.getElementById('applicant-modal-cv-link');
-        if (cvUrl && cvUrl !== '#') {
+        if (cvUrl && cvUrl !== '') {
             cvLink.href = cvUrl;
             cvLink.style.display = 'flex';
         } else {

@@ -1384,6 +1384,43 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Delete multiple applications in bulk (admin only).
+     */
+    public function bulkDeleteApplications(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'IDs de postulaciones no válidos.'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            JobOpportunityApplication::whereIn('id', $request->ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Postulaciones seleccionadas eliminadas exitosamente.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar postulaciones en masa: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function updateOwnProfile(Request $request)
     {
         $user = $request->user();

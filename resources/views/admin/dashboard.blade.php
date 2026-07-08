@@ -2004,6 +2004,21 @@
                     </div>
                 </div>
 
+                <!-- Bulk Actions (BARRA DE ELIMINACIÓN MASIVA) -->
+                <div id="apps-bulk-actions" class="hidden flex flex-col sm:flex-row items-center justify-between bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm gap-md">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-red-600 text-3xl">gavel</span>
+                        <div>
+                            <p class="text-body-sm font-bold text-red-950" id="apps-selected-count">0 postulaciones seleccionadas</p>
+                            <p class="text-[12px] text-red-800">Esta acción eliminará de forma permanente los registros seleccionados del sistema.</p>
+                        </div>
+                    </div>
+                    <button onclick="bulkDeleteApplications()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md rounded-xl transition-all shadow-sm flex items-center gap-1 font-semibold">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        Eliminar seleccionados
+                    </button>
+                </div>
+
                 <!-- Applications Table -->
                 <div
                     class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
@@ -2012,6 +2027,9 @@
                             <thead>
                                 <tr
                                     class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+                                    <th class="p-4 w-10">
+                                        <input type="checkbox" id="select-all-apps" onchange="toggleSelectAllApps(this)" class="rounded border-outline-variant focus:ring-primary text-primary cursor-pointer">
+                                    </th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Candidato</th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Programa de Estudio</th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Oferta / Empresa</th>
@@ -2022,7 +2040,7 @@
                             </thead>
                             <tbody class="text-body-md font-body-md" id="applications-table-body">
                                 <tr>
-                                    <td colspan="6" class="p-8 text-center text-on-surface-variant">Cargando
+                                    <td colspan="7" class="p-8 text-center text-on-surface-variant">Cargando
                                         postulaciones...</td>
                                 </tr>
                             </tbody>
@@ -6059,8 +6077,14 @@
             const tbody = document.getElementById('applications-table-body');
             if (!tbody) return;
 
+            // Reset master checkbox and bulk actions bar on render
+            const selectAll = document.getElementById('select-all-apps');
+            if (selectAll) selectAll.checked = false;
+            const bulkBar = document.getElementById('apps-bulk-actions');
+            if (bulkBar) bulkBar.classList.add('hidden');
+
             if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-on-surface-variant">No se encontraron postulaciones.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-on-surface-variant">No se encontraron postulaciones.</td></tr>';
                 return;
             }
 
@@ -6090,6 +6114,9 @@
 
                 html += `
                 <tr id="app-row-${app.id}" class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
+                    <td class="p-4">
+                        <input type="checkbox" value="${app.id}" onchange="updateSelectedApps()" class="app-checkbox rounded border-outline-variant focus:ring-primary text-primary cursor-pointer">
+                    </td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-label-md shrink-0">
@@ -6274,12 +6301,91 @@
                             }
                             // update local state
                             applicationsList = applicationsList.filter(a => a.id !== id);
+                            updateSelectedApps(); // Recalculate selections in case it was checked
                         } else {
                             showToast(data.message || 'Error al eliminar postulación.', 'error');
                         }
                     })
                     .catch(err => {
                         showToast('Error de red al intentar eliminar.', 'error');
+                    });
+            }
+        }
+
+        // Toggle all checkboxes in the applications list
+        function toggleSelectAllApps(master) {
+            const checkboxes = document.querySelectorAll('.app-checkbox');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+            updateSelectedApps();
+        }
+
+        // Update selected items count and show/hide bulk bar
+        function updateSelectedApps() {
+            const checkboxes = document.querySelectorAll('.app-checkbox:checked');
+            const count = checkboxes.length;
+            
+            const bulkBar = document.getElementById('apps-bulk-actions');
+            const countLabel = document.getElementById('apps-selected-count');
+            const selectAll = document.getElementById('select-all-apps');
+            const allCheckboxes = document.querySelectorAll('.app-checkbox');
+
+            if (count > 0) {
+                bulkBar.classList.remove('hidden');
+                bulkBar.classList.add('flex');
+                countLabel.textContent = `${count} ${count === 1 ? 'postulación seleccionada' : 'postulaciones seleccionadas'}`;
+            } else {
+                bulkBar.classList.add('hidden');
+                bulkBar.classList.remove('flex');
+            }
+
+            // Sync select-all master checkbox state
+            if (selectAll && allCheckboxes.length > 0) {
+                selectAll.checked = (count === allCheckboxes.length);
+            }
+        }
+
+        // Bulk Delete selected applications
+        function bulkDeleteApplications() {
+            const checkboxes = document.querySelectorAll('.app-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (ids.length === 0) return;
+
+            if (confirm(`¿Está seguro de que desea eliminar permanentemente estas ${ids.length} postulaciones? Esta acción no se puede deshacer.`)) {
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const bulkBar = document.getElementById('apps-bulk-actions');
+
+                // disable button
+                const btn = bulkBar.querySelector('button');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">progress_activity</span> Eliminando...';
+
+                fetch('/admin/applications/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ ids: ids })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+
+                        if (data.success) {
+                            showToast(data.message);
+                            loadApplications(); // reload completely
+                        } else {
+                            showToast(data.message || 'Error al eliminar postulaciones en masa.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        showToast('Error de red al intentar eliminar en masa.', 'error');
                     });
             }
         }

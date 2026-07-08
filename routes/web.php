@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/export/excel', [UserController::class, 'exportExcel'])->name('admin.export.excel');
         Route::get('/admin/applications', [UserController::class, 'listApplications']);
         Route::post('/admin/applications/{id}/status', [UserController::class, 'updateApplicationStatus']);
+        Route::post('/admin/applications/bulk-delete', [UserController::class, 'bulkDeleteApplications']);
         Route::delete('/admin/applications/{id}', [UserController::class, 'deleteApplication']);
 
         // Job Opportunities (Ofertas Laborales) Routes
@@ -85,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:3'])->group(function () {
         // El dashboard del estudiante es la landing (/)
         Route::get('/student/dashboard', fn() => redirect('/'))->name('student.dashboard');
+        Route::get('/student/applications', [\App\Http\Controllers\StudentController::class, 'myApplications'])->name('student.applications');
         Route::post('/student/cv/upload', [\App\Http\Controllers\StudentController::class, 'uploadCv'])->name('student.cv.upload');
         Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');
         Route::get('/student/cv/download/{id}', [\App\Http\Controllers\StudentController::class, 'downloadCv'])->name('student.cv.download');

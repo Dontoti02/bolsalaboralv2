@@ -509,5 +509,55 @@ class StudentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Display a list of the student's applications on a dedicated page.
+     */
+    public function myApplications()
+    {
+        try {
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        } catch (\Exception $e) {
+            $config = [];
+        }
+
+        $authUser = Auth::user()->load('person');
+        
+        $studentCvs = DB::table('job_opportunity_user_cv')
+            ->where('user_id', $authUser->id)
+            ->whereNull('deleted_at')
+            ->orderBy('version', 'desc')
+            ->get();
+
+        $studentApplications = DB::table('job_opportunity_applications')
+            ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
+            ->join('job_opportunity_company', 'job_opportunity_offer.company_id', '=', 'job_opportunity_company.id')
+            ->where('job_opportunity_applications.user_id', $authUser->id)
+            ->whereNull('job_opportunity_applications.deleted_at')
+            ->select(
+                'job_opportunity_applications.id as app_id',
+                'job_opportunity_applications.status as app_status',
+                'job_opportunity_applications.created_at as app_date',
+                'job_opportunity_applications.feedback as app_feedback',
+                'job_opportunity_offer.id as offer_id',
+                'job_opportunity_offer.title as offer_title',
+                'job_opportunity_company.name as company_name',
+                'job_opportunity_company.logo as company_logo'
+            )
+            ->orderBy('job_opportunity_applications.created_at', 'desc')
+            ->get()
+            ->map(function ($app) {
+                $app->formatted_date = $app->app_date 
+                    ? \Carbon\Carbon::parse($app->app_date)->format('d M Y') : '-';
+                return $app;
+            });
+
+        return view('student.applications', compact(
+            'config',
+            'authUser',
+            'studentCvs',
+            'studentApplications'
+        ));
+    }
 }
 
