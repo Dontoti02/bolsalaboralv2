@@ -53,13 +53,23 @@
     function renderNotifications() {
         const list = document.getElementById(menuId + '-list');
         if (!list) return;
-        if (!notificationsData.length) {
+
+        const now = new Date();
+        // Filter out read notifications that are older than 1 minute (60000 ms)
+        const visibleNotifications = notificationsData.filter(n => {
+            if (!n.read_at) return true; // Unread notifications are always shown
+            const readTime = new Date(n.read_at);
+            return (now - readTime) < 60000;
+        });
+
+        if (!visibleNotifications.length) {
             list.innerHTML = '<div class="p-6 text-center"><span class="material-symbols-outlined text-4xl text-outline mb-2">notifications_none</span>' +
                 '<p class="font-semibold text-on-surface">Todo est&aacute; al d&iacute;a</p>' +
                 '<p class="text-body-sm text-on-surface-variant mt-1">Las novedades importantes aparecer&aacute;n aqu&iacute;.</p></div>';
             return;
         }
-        list.innerHTML = notificationsData.map(n => {
+
+        list.innerHTML = visibleNotifications.map(n => {
             const isUnread = !n.read_at;
             const borderClass = isUnread ? 'border-l-4 border-primary bg-surface-container-high/30' : '';
             const timeText = n.created_at ? new Date(n.created_at).toLocaleString('es-ES', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '';
@@ -112,5 +122,16 @@
                 }
             });
     };
+
+    // Close notifications menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const button = document.getElementById('{{ $id }}');
+        const menu = document.getElementById('{{ $menuId }}');
+        if (button && menu && !menu.classList.contains('hidden')) {
+            if (!button.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        }
+    });
 })();
 </script>

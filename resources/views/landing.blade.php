@@ -2179,11 +2179,20 @@ function handleNotifClick(el) {
 function renderStudentNotifications() {
     var list = document.getElementById('student-notifications-list');
     if (!list) return;
-    if (!studentNotifData.length) {
+
+    var now = new Date();
+    // Filter out read notifications that are older than 1 minute (60000 ms)
+    var visibleNotifications = studentNotifData.filter(function(n) {
+        if (!n.read_at) return true; // Unread notifications are always shown
+        var readTime = new Date(n.read_at);
+        return (now - readTime) < 60000;
+    });
+
+    if (!visibleNotifications.length) {
         list.innerHTML = '<div style="padding:32px 20px;text-align:center;"><span class="material-symbols-outlined" style="font-size:40px;color:var(--bor);display:block;margin-bottom:8px;">notifications_none</span><p style="font-weight:600;color:var(--txt);">Todo está al día</p><p style="font-size:13px;color:var(--tm);margin-top:4px;">Las novedades importantes aparecerán aquí.</p></div>';
         return;
     }
-    list.innerHTML = studentNotifData.map(function(n) {
+    list.innerHTML = visibleNotifications.map(function(n) {
         var isUnread = !n.read_at;
         var border = isUnread ? 'border-left:3px solid var(--pri);background:rgba(0,39,65,.03);' : '';
         var time = n.created_at ? new Date(n.created_at).toLocaleString('es-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
@@ -2220,9 +2229,11 @@ function markStudentNotifRead() {
 document.addEventListener('click', function(e) {
     var menu = document.getElementById('student-notifications-menu');
     var btn = document.getElementById('student-notifications-button');
-    if (studentNotifOpen && menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
-        studentNotifOpen = false;
-        menu.style.display = 'none';
+    if (menu && menu.style.display === 'block') {
+        if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+            studentNotifOpen = false;
+            menu.style.display = 'none';
+        }
     }
 });
 </script>
