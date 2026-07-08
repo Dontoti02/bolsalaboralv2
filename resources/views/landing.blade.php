@@ -25,7 +25,7 @@
             --rad:   12px;
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
         a{text-decoration:none;color:inherit}
         button{font-family:inherit;cursor:pointer}
         img{display:block;max-width:100%}
@@ -202,7 +202,7 @@
         .modal-btn-sec:hover{border-color:var(--pri);color:var(--pri)}
 
         /* ── FOOTER ── */
-        .footer{background:var(--sur);border-top:1px solid var(--bor);padding:20px;margin-top:32px}
+        .footer{background:var(--sur);border-top:1px solid var(--bor);padding:20px;margin-top:auto}
         .footer-inner{max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
         .footer-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--pri);font-size:16px;display:flex;align-items:center;gap:8px}
         .footer-brand img{height:28px;width:auto}
@@ -547,17 +547,18 @@
                 </div>
             </div>
             @if($authUser->rol_id == 4)
-                <a href="/company/dashboard?tab=offers" class="btn-empresa" style="background:var(--sec);margin-right:12px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:8px 16px;border-radius:50px;color:#fff;font-size:13.5px;font-weight:700;">
-                    <span class="material-symbols-outlined" style="font-size:18px">add_circle</span>
-                    Publicar Oferta
+                <a href="/company/dashboard?tab=offers" class="btn-empresa" style="margin-right:12px;">
+                    <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
+                    Publicar empleo
                 </a>
-                @endif
-                @if($authUser->rol_id == 1)
-                <a href="/admin/dashboard" class="btn-empresa" style="background:var(--pri);margin-right:12px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:8px 16px;border-radius:50px;color:#fff;font-size:13.5px;font-weight:700;">
+            @endif
+            @if($authUser->rol_id == 1)
+                <a href="/admin/dashboard" class="btn-empresa" style="background:var(--pri);margin-right:12px;">
                     <span class="material-symbols-outlined" style="font-size:18px">dashboard</span>
                     Panel Admin
                 </a>
-                @endif
+            @endif
+
             {{-- Menú de perfil del estudiante --}}
             <div class="profile-menu-wrap" id="profile-menu-wrap">
                 <button class="profile-trigger" id="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
@@ -613,12 +614,14 @@
                     </form>
                 </div>
             </div>
-            @elseif(!request()->has('offer'))
-            <a href="{{ route('login') }}" class="btn-login">Ingresar</a>
-            <a href="{{ route('login') }}#empresa" class="btn-empresa">
-                <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
-                Publicar empleo
-            </a>
+            @else
+                @if(!request()->has('offer'))
+                <a href="{{ route('login') }}" class="btn-login">Ingresar</a>
+                @endif
+                <a href="{{ route('login') }}#empresa" class="btn-empresa">
+                    <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
+                    Publicar empleo
+                </a>
             @endif
         </div>
 </nav>
@@ -791,6 +794,16 @@
                             <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
                                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
                                 Vista Docente
+                            </div>
+                        @elseif($authUser && $authUser->rol_id == 4)
+                            <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
+                                <span class="material-symbols-outlined" style="font-size:16px;color:var(--sec)">visibility</span>
+                                Vista Empresa
+                            </div>
+                        @elseif($authUser && $authUser->rol_id == 1)
+                            <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
+                                <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
+                                Vista Admin
                             </div>
                         @else
                             <button class="btn-postular" onclick="openPostularModal()">
