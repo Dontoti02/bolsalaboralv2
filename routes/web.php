@@ -23,6 +23,9 @@ Route::middleware(['auth'])->group(function () {
     // Landing Page privada (solo para logueados)
     Route::get('/', [LandingController::class, 'index'])->name('landing');
     Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
+
+    // Secure CV Download Route
+    Route::get('/applications/{id}/cv', [\App\Http\Controllers\CompanyDashboardController::class, 'downloadApplicationCv'])->name('applications.cv.download');
     Route::post('/clear-password-warning', [LandingController::class, 'clearPasswordWarning'])->name('clear.password.warning');
 
     // Notifications

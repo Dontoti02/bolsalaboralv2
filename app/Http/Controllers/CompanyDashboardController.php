@@ -89,6 +89,8 @@ class CompanyDashboardController extends Controller
                         $app->person_skills = !empty($app->person_skills)
                             ? (json_decode($app->person_skills, true) ?? [])
                             : [];
+                        $app->cv = $app->cv ? route('applications.cv.download', $app->id) : null;
+                        $app->user_avatar = $app->user_avatar ? asset($app->user_avatar) : null;
                         return $app;
                     });
 
@@ -715,5 +717,68 @@ class CompanyDashboardController extends Controller
                 'message' => 'Error al agregar opción: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Download the CV associated with a job application securely.
+     */
+    public function downloadApplicationCv($id)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'No autenticado.');
+        }
+
+        // Find the application
+        $application = DB::table('job_opportunity_applications')
+            ->where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$application) {
+            abort(404, 'Postulación no encontrada.');
+        }
+
+        // Check authorization
+        $authorized = false;
+        if ($user->rol_id == 1) {
+            // Admin can download anything
+            $authorized = true;
+        } elseif ($user->rol_id == 4) {
+            // Company must own the offer
+            $company = $user->company;
+            if ($company) {
+                $ownsOffer = DB::table('job_opportunity_offer')
+                    ->where('id', $application->offer_id)
+                    ->where('company_id', $company->id)
+                    ->exists();
+                if ($ownsOffer) {
+                    $authorized = true;
+                }
+            }
+        } elseif ($user->rol_id == 3) {
+            // Student must own the application
+            if ($application->user_id == $user->id) {
+                $authorized = true;
+            }
+        }
+
+        if (!$authorized) {
+            abort(403, 'No tiene permiso para descargar este currículum.');
+        }
+
+        if (empty($application->cv)) {
+            abort(404, 'Esta postulación no tiene currículum adjunto.');
+        }
+
+        // Clean relative path (remove leading slash if present for public_path helper)
+        $cleanPath = ltrim($application->cv, '/');
+        $filePath = public_path($cleanPath);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'El archivo físico del currículum no existe en el servidor.');
+        }
+
+        return response()->download($filePath);
     }
 }

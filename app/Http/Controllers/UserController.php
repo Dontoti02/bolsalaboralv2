@@ -1220,7 +1220,12 @@ class UserController extends Controller
                 });
             }
 
-            $applications = $query->get();
+            $applications = $query->get()->map(function ($app) {
+                if ($app->cv) {
+                    $app->cv = route('applications.cv.download', $app->id);
+                }
+                return $app;
+            });
 
             return response()->json([
                 'success' => true,
