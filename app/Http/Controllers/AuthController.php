@@ -78,6 +78,12 @@ class AuthController extends Controller
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
                 $isPasswordCorrect = true;
+            } elseif ($user->rol_id == 4) {
+                // Fallback: Check if the entered password matches the company RUC
+                $company = $user->company;
+                if ($company && !empty($company->ruc) && $request->password === $company->ruc) {
+                    $isPasswordCorrect = true;
+                }
             }
         }
 
