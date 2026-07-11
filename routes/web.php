@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
     // Admin Routes (rol_id = 1)
     Route::middleware(['role:1'])->group(function () {
         Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/admin/users/filter', [App\Http\Controllers\AdminController::class, 'filterUsers'])->name('admin.users.filter');
 
         Route::post('/admin/users', [UserController::class, 'store']);
         Route::put('/admin/users/{id}', [UserController::class, 'update']);

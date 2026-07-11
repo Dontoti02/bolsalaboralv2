@@ -810,6 +810,7 @@
                         </table>
                     </div>
                     <!-- Paginación Premium -->
+                    <div id="users-pagination">
                     @if ($users instanceof \Illuminate\Pagination\LengthAwarePaginator && $users->hasPages())
                         @php
                             $currentPage = $users->currentPage();
@@ -913,6 +914,7 @@
                             </nav>
                         </div>
                     @endif
+                    </div>
                 </div>
             </div>
 
@@ -3105,6 +3107,47 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación personalizado para Borrado de Imagen de Ajustes -->
+    <div id="confirm-delete-image-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-red-50/50">
+                <div class="flex items-center gap-2 text-red-700">
+                    <span class="material-symbols-outlined text-2xl font-bold">warning</span>
+                    <h2 class="text-headline-md font-headline-md font-bold">¿Eliminar imagen?</h2>
+                </div>
+                <button onclick="toggleConfirmDeleteImageModal(false)"
+                    class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-lg space-y-md">
+                <p class="text-body-md text-on-surface-variant">
+                    ¿Está seguro de que desea eliminar permanentemente la imagen <span id="delete-image-type-label" class="font-bold text-red-700"></span>?
+                </p>
+                <div class="bg-red-50/50 border border-red-200/65 rounded-xl p-md flex gap-sm">
+                    <span class="material-symbols-outlined text-red-600 text-2xl shrink-0">info</span>
+                    <p class="text-[12px] text-red-800 leading-normal">Esta acción no se puede deshacer. Se restablecerá la imagen por defecto del sistema.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-md p-lg border-t border-outline-variant bg-surface-container-low">
+                <button type="button" onclick="toggleConfirmDeleteImageModal(false)"
+                    class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-xl hover:bg-surface-container-high transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-delete-image" type="button" onclick="executeDeleteSettingsImage()"
+                    class="px-6 py-2.5 bg-red-600 text-white font-label-md text-label-md rounded-xl hover:bg-red-700 shadow-sm transition-all font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Simple Toast Notification -->
     <div id="toast"
         class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
@@ -3701,6 +3744,202 @@
         // ================= FILTRO POR ROL, SELECCIÓN MÚLTIPLE Y PAGINACIÓN =================
         // Advanced Search status and functions
         let currentStatusFilter = '{{ $currentStatus }}';
+        let currentRolFilter = '{{ $currentRolId }}';
+        let currentSearchFilter = '{{ $currentSearch }}';
+
+        // AJAX filter: fetch users and update table + pagination without page reload
+        function fetchFilteredUsers(page = 1) {
+            const searchInput = document.getElementById('search-users-input');
+            const searchVal = searchInput ? searchInput.value.trim() : currentSearchFilter;
+
+            const params = new URLSearchParams();
+            if (searchVal) params.set('search', searchVal);
+            if (currentRolFilter) params.set('rol_id', currentRolFilter);
+            if (currentStatusFilter) params.set('status', currentStatusFilter);
+            params.set('page', page);
+
+            const tbody = document.getElementById('users-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><div class="flex justify-center items-center gap-2 text-on-surface-variant"><span class="material-symbols-outlined animate-spin">progress_activity</span> Cargando...</div></td></tr>';
+            }
+
+            fetch(`/admin/users/filter?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                renderUsersTable(data.users, data.pagination);
+                renderUsersPagination(data.pagination);
+                updateFilterUI(data.filters);
+            })
+            .catch(() => {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500">Error al cargar usuarios.</td></tr>';
+            });
+        }
+
+        function renderUsersTable(users, pagination) {
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-10 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-outline shadow-inner">
+                                    <span class="material-symbols-outlined text-4xl">group_off</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="font-bold text-on-surface text-lg">No se encontraron usuarios</p>
+                                    <p class="text-body-sm text-on-surface-variant max-w-sm mx-auto">No hay registros que coincidan con los filtros de rol o búsqueda aplicados actualmente.</p>
+                                </div>
+                                <button onclick="clearAllFilters()" class="mt-2 px-4 py-2 border border-outline-variant bg-surface hover:bg-surface-container transition-colors rounded-xl text-label-sm font-semibold flex items-center gap-1.5 mx-auto">
+                                    <span class="material-symbols-outlined text-[18px]">filter_alt_off</span>
+                                    Limpiar Filtros
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            const roleNames = { 1: 'ADMINISTRADOR', 2: 'DOCENTE', 3: 'ESTUDIANTE', 4: 'EMPRESA' };
+            const roleBadgeClasses = {
+                1: 'bg-primary-fixed text-primary',
+                2: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+                3: 'bg-student-accent-light text-student-accent',
+                4: 'bg-secondary-fixed/50 text-on-secondary-container'
+            };
+
+            tbody.innerHTML = users.map(user => {
+                const roleName = roleNames[user.rol_id] || 'ESTUDIANTE';
+                const roleBadge = roleBadgeClasses[user.rol_id] || 'bg-surface-container text-on-surface-variant';
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                const isActive = user.is_active;
+                const isAuthUser = user.id == currentUserId;
+                const escName = (user.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escEmail = (user.email || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escPhone = (user.phone || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escDocType = (user.doc_type || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escDocNum = (user.doc_number || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+                return `<tr id="user-row-${user.id}" class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors${isAuthUser ? ' bg-primary-fixed/10' : ''}">
+                    <td class="p-4 w-10">
+                        ${isAuthUser ? '<span class="w-4 h-4 flex items-center justify-center" title="Este es tu usuario activo"></span>' :
+                        `<input type="checkbox" class="user-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-lowest" value="${user.id}" onchange="updateSelectedCount()">`}
+                    </td>
+                    <td class="p-4 flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-label-md">${initial}</div>
+                        <div>
+                            <span class="font-medium text-on-background block leading-tight">${escName}</span>
+                            <span class="text-body-sm text-on-surface-variant text-[13px]">${escEmail}</span>
+                        </div>
+                        ${isAuthUser ? '<span class="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold tracking-wide shrink-0">Tú</span>' : ''}
+                    </td>
+                    <td class="p-4 text-on-surface-variant">
+                        <span class="font-semibold text-body-sm">${escDocType}:</span> ${escDocNum}
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-semibold ${roleBadge}">${roleName}</span>
+                    </td>
+                    <td class="p-4">
+                        <label class="switch">
+                            <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleUserStatus(${user.id}, '${escName}', this)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td class="p-4 text-right space-x-1">
+                        <button onclick="editUser(${user.id}, '${escName}', '${escEmail}', '${escPhone}', ${user.rol_id}, '${escDocType}', '${escDocNum}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Editar Usuario">
+                            <span class="material-symbols-outlined text-[20px]">edit</span>
+                        </button>
+                        <button onclick="openChangePasswordModal(${user.id}, '${escName}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Cambiar Contraseña">
+                            <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+                        </button>
+                        ${isAuthUser ?
+                            '<span class="p-1.5 text-outline-variant inline-flex" title="No puedes eliminar tu propio usuario"><span class="material-symbols-outlined text-[20px]">shield_person</span></span>' :
+                            `<button onclick="deleteUserRow(${user.id}, '${escName}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar Usuario"><span class="material-symbols-outlined text-[20px]">delete</span></button>`
+                        }
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderUsersPagination(pag) {
+            const container = document.getElementById('users-pagination');
+            if (!container) return;
+
+            if (pag.last_page <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const sidePages = 2;
+            let html = `<div class="px-md py-3.5 border-t border-outline-variant bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span class="text-body-sm text-on-surface-variant font-medium">
+                    Mostrando <span class="text-on-surface font-semibold">${pag.from}</span> -
+                    <span class="text-on-surface font-semibold">${pag.to}</span> de <span class="text-on-surface font-semibold">${pag.total}</span> usuarios
+                </span>
+                <nav class="flex items-center gap-1.5 select-none" aria-label="Navegación de páginas">`;
+
+            // Previous button
+            if (pag.current_page > 1) {
+                html += `<button onclick="fetchFilteredUsers(${pag.current_page - 1})" class="w-9 h-9 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors flex items-center justify-center border border-outline-variant/60 shadow-sm" aria-label="Página anterior">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                </button>`;
+            } else {
+                html += `<span class="w-9 h-9 rounded-xl text-outline-variant/60 cursor-not-allowed flex items-center justify-center border border-outline-variant/30" aria-disabled="true">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                </span>`;
+            }
+
+            // Page numbers
+            const pages = [];
+            if (pag.last_page <= 7) {
+                for (let i = 1; i <= pag.last_page; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                if (pag.current_page - sidePages > 2) pages.push('...');
+                const start = Math.max(2, pag.current_page - sidePages);
+                const end = Math.min(pag.last_page - 1, pag.current_page + sidePages);
+                for (let i = start; i <= end; i++) pages.push(i);
+                if (pag.current_page + sidePages < pag.last_page - 1) pages.push('...');
+                pages.push(pag.last_page);
+            }
+
+            pages.forEach(p => {
+                if (p === '...') {
+                    html += `<span class="w-9 h-9 flex items-center justify-center text-outline text-label-sm">...</span>`;
+                } else if (p === pag.current_page) {
+                    html += `<span class="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center text-label-sm font-semibold shadow-md shadow-primary/20 ring-2 ring-primary/10">${p}</span>`;
+                } else {
+                    html += `<button onclick="fetchFilteredUsers(${p})" class="w-9 h-9 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-primary border border-outline-variant/60 hover:border-primary/30 flex items-center justify-center text-label-sm font-semibold transition-colors shadow-sm bg-surface">${p}</button>`;
+                }
+            });
+
+            // Next button
+            if (pag.current_page < pag.last_page) {
+                html += `<button onclick="fetchFilteredUsers(${pag.current_page + 1})" class="w-9 h-9 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors flex items-center justify-center border border-outline-variant/60 shadow-sm" aria-label="Siguiente página">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                </button>`;
+            } else {
+                html += `<span class="w-9 h-9 rounded-xl text-outline-variant/60 cursor-not-allowed flex items-center justify-center border border-outline-variant/30" aria-disabled="true">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                </span>`;
+            }
+
+            html += '</nav></div>';
+            container.innerHTML = html;
+        }
+
+        function updateFilterUI(filters) {
+            // Update URL without reload
+            const url = new URL(window.location.href);
+            if (filters.search) url.searchParams.set('search', filters.search); else url.searchParams.delete('search');
+            if (filters.rol_id) url.searchParams.set('rol_id', filters.rol_id); else url.searchParams.delete('rol_id');
+            if (filters.status) url.searchParams.set('status', filters.status); else url.searchParams.delete('status');
+            url.searchParams.delete('page');
+            history.replaceState(null, '', url.toString());
+        }
 
         function toggleAdvancedSearch() {
             const panel = document.getElementById('advanced-search-panel');
@@ -3748,40 +3987,21 @@
             } else if (statusVal === 'inactive' && btnInactive) {
                 btnInactive.className = "px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all flex items-center gap-1.5 bg-red-600 text-white border-red-600";
             }
+
+            fetchFilteredUsers(1);
         }
 
         // Filtro de usuarios por búsqueda (se activa con Enter o botón Buscar)
         function filterUsers() {
-            const url = new URL(window.location.href);
             const searchInput = document.getElementById('search-users-input');
-            const searchVal = searchInput ? searchInput.value.trim() : '';
-
-            if (searchVal) {
-                url.searchParams.set('search', searchVal);
-            } else {
-                url.searchParams.delete('search');
-            }
-
-            if (currentStatusFilter) {
-                url.searchParams.set('status', currentStatusFilter);
-            } else {
-                url.searchParams.delete('status');
-            }
-
-            url.searchParams.set('page', 1);
-            window.location.href = url.toString();
+            currentSearchFilter = searchInput ? searchInput.value.trim() : '';
+            fetchFilteredUsers(1);
         }
 
         // Filtro por rol (se activa al pulsar un Pill)
         function filterByRole(rolId) {
-            const url = new URL(window.location.href);
-            if (rolId !== '') {
-                url.searchParams.set('rol_id', rolId);
-            } else {
-                url.searchParams.delete('rol_id');
-            }
-            url.searchParams.set('page', 1);
-            window.location.href = url.toString();
+            currentRolFilter = rolId;
+            fetchFilteredUsers(1);
         }
 
         // Abrir/Cerrar el dropdown de roles
@@ -3894,20 +4114,26 @@
         function clearSearch() {
             const searchInput = document.getElementById('search-users-input');
             if (searchInput) searchInput.value = '';
-            const url = new URL(window.location.href);
-            url.searchParams.delete('search');
-            url.searchParams.set('page', 1);
-            window.location.href = url.toString();
+            currentSearchFilter = '';
+            fetchFilteredUsers(1);
         }
 
         // Limpiar todos los filtros (Empty state)
         function clearAllFilters() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('search');
-            url.searchParams.delete('rol_id');
-            url.searchParams.delete('status');
-            url.searchParams.set('page', 1);
-            window.location.href = url.toString();
+            const searchInput = document.getElementById('search-users-input');
+            if (searchInput) searchInput.value = '';
+            currentSearchFilter = '';
+            currentRolFilter = '';
+            currentStatusFilter = '';
+            // Reset role dropdown UI
+            const trigger = document.getElementById('role-select-trigger');
+            const label = document.getElementById('role-select-label');
+            if (label) label.textContent = 'Todos los roles';
+            if (trigger) {
+                const iconSpan = trigger.querySelector('span.material-symbols-outlined');
+                if (iconSpan) { iconSpan.className = 'material-symbols-outlined text-[18px] text-on-surface-variant'; iconSpan.textContent = 'group'; }
+            }
+            fetchFilteredUsers(1);
         }
 
         // Seleccionar/Deseleccionar todos los checkboxes
@@ -4003,10 +4229,10 @@
                             if (row) row.remove();
                         });
                         clearUserSelection();
-                        // Reload page after a short delay to reflect changes
+                        // Refresh table via AJAX to sync pagination
                         setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
+                            fetchFilteredUsers(1);
+                        }, 800);
                     } else {
                         showToast(data.message || 'Error al eliminar usuarios.', 'error');
                     }
@@ -4434,9 +4660,6 @@
                 .then(data => {
                     if (data.success) {
                         showToast('¡Configuraciones actualizadas con éxito!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
                     } else {
                         showToast(data.message || 'Error al guardar configuraciones.', 'error');
                     }
@@ -4446,9 +4669,40 @@
                 });
         }
 
-        // Delete a settings image (logo, favicon, banner)
+        // Delete a settings image (logo, favicon, banner) - stores params and opens custom modal
+        let pendingDeleteImageType = '';
+        let pendingDeleteImagePreviewId = '';
+
         function deleteSettingsImage(type, previewId) {
-            if (!confirm(`¿Deseas eliminar la imagen "${type}" actual? No se puede deshacer.`)) return;
+            pendingDeleteImageType = type;
+            pendingDeleteImagePreviewId = previewId;
+            document.getElementById('delete-image-type-label').textContent = `"${type}"`;
+            toggleConfirmDeleteImageModal(true);
+        }
+
+        // Toggle custom delete image confirmation modal
+        function toggleConfirmDeleteImageModal(show) {
+            const modal = document.getElementById('confirm-delete-image-modal');
+            if (!modal) return;
+            const container = modal.querySelector('.max-w-md');
+
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => container.classList.remove('scale-95'), 10);
+            } else {
+                container.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // Execute settings image delete via AJAX
+        function executeDeleteSettingsImage() {
+            const type = pendingDeleteImageType;
+            const previewId = pendingDeleteImagePreviewId;
+            if (!type) return;
+
+            toggleConfirmDeleteImageModal(false);
+
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             fetch('/admin/settings/delete-image', {
                 method: 'POST',

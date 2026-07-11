@@ -206,4 +206,81 @@ class AdminController extends Controller
             ));
         }
     }
+
+    /**
+     * AJAX endpoint: filter users and return JSON with paginated results.
+     */
+    public function filterUsers()
+    {
+        $usersQuery = User::with(['person', 'company'])->latest();
+
+        $search = request()->input('search', '');
+        $rolId = request()->input('rol_id', '');
+        $status = request()->input('status', '');
+        $page = request()->input('page', 1);
+
+        if ($search) {
+            $usersQuery->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                    ->orWhereHas('person', function ($pq) use ($search) {
+                        $pq->where('names', 'like', "%{$search}%")
+                            ->orWhere('document_number', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('company', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%")
+                            ->orWhere('ruc', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($rolId !== '') {
+            $usersQuery->where('rol_id', $rolId);
+        }
+
+        if ($status !== '') {
+            if ($status === 'active') {
+                $usersQuery->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $usersQuery->where('is_active', false);
+            }
+        }
+
+        $users = $usersQuery->paginate(10)->withQueryString();
+
+        $usersData = $users->getCollection()->map(function ($user) {
+            $name = '';
+            if ($user->person) {
+                $name = $user->person->names ?? '';
+            } elseif ($user->company) {
+                $name = $user->company->name ?? '';
+            }
+            return [
+                'id' => $user->id,
+                'name' => $name,
+                'email' => $user->email ?? '',
+                'phone' => $user->person->phone ?? '',
+                'doc_type' => $user->person->document_type ?? 'Cédula',
+                'doc_number' => $user->person->document_number ?? '',
+                'rol_id' => $user->rol_id,
+                'is_active' => (bool) $user->is_active,
+            ];
+        });
+
+        return response()->json([
+            'users' => $usersData,
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'rol_id' => $rolId,
+                'status' => $status,
+            ],
+        ]);
+    }
 }
