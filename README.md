@@ -550,7 +550,7 @@ routes/web.php                     # Rutas web (auth, dashboards, API notificaci
 
 ## 📝 Licencia
 
-Proyecto privado para **IESTP Purús**. Uso interno institucional.
+Proyecto privado para **IESTP Colonia del Caco**. Uso interno institucional.
 
 ---
 
