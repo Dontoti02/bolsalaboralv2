@@ -131,6 +131,7 @@
                         ['key' => 'offers', 'icon' => 'list_alt', 'label' => 'Ofertas'],
                         ['key' => 'companies-manage', 'icon' => 'corporate_fare', 'label' => 'Empresas · Gestionar'],
                         ['key' => 'applications', 'icon' => 'person_search', 'label' => 'Postulaciones'],
+                        ['key' => 'assign-study-program', 'icon' => 'school', 'label' => 'Asignar Programa'],
                     ],
                 ],
                 [
@@ -2094,6 +2095,9 @@
                                 onclick="selectMaintainerType('contract_type')"
                                 class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Tipos
                                 de contrato</button>
+                            <button type="button" data-maintainer-type="study_program"
+                                onclick="selectMaintainerType('study_program')"
+                                class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Programas de Estudio</button>
                         </div>
                     </div>
 
@@ -2213,6 +2217,118 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {{-- ================= PANEL: ASIGNAR PROGRAMA DE ESTUDIO ================= --}}
+            <div id="panel-assign-study-program" class="tab-panel space-y-lg hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Asignar Programa de Estudio</h1>
+                        <p class="text-body-md text-on-surface-variant">Asigna o cambia el programa de estudio de cada postulante o docente registrado en el sistema.</p>
+                    </div>
+                </div>
+
+                {{-- Stats rápidas --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-2xl">school</span>
+                        </div>
+                        <div>
+                            <p class="text-body-sm text-on-surface-variant">Programas disponibles</p>
+                            <p id="asp-programs-count" class="text-headline-sm font-headline-sm text-on-surface font-bold">—</p>
+                        </div>
+                    </div>
+                    <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-secondary text-2xl">group</span>
+                        </div>
+                        <div>
+                            <p class="text-body-sm text-on-surface-variant">Usuarios mostrados</p>
+                            <p id="asp-users-count" class="text-headline-sm font-headline-sm text-on-surface font-bold">—</p>
+                        </div>
+                    </div>
+                    <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-tertiary text-2xl">assignment_ind</span>
+                        </div>
+                        <div>
+                            <p class="text-body-sm text-on-surface-variant">Con programa asignado</p>
+                            <p id="asp-assigned-count" class="text-headline-sm font-headline-sm text-on-surface font-bold">—</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Filtros de búsqueda --}}
+                <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                            <input id="asp-search-input" type="text" placeholder="Buscar por nombre o correo..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-background border border-outline-variant rounded-xl text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                        </div>
+                        <select id="asp-program-filter"
+                            class="px-4 py-2.5 bg-background border border-outline-variant rounded-xl text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all min-w-[220px]">
+                            <option value="">Todos los programas</option>
+                            <option value="__none__">Sin programa asignado</option>
+                            @foreach($studyPrograms as $sp)
+                                <option value="{{ $sp->id }}">{{ $sp->name }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" onclick="aspLoadUsers()" id="asp-search-btn"
+                            class="px-5 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center gap-2 shadow-sm transition-all whitespace-nowrap">
+                            <span class="material-symbols-outlined text-[18px]">filter_list</span>Aplicar
+                        </button>
+                        <button type="button" onclick="aspClearFilters()"
+                            class="px-4 py-2.5 border border-outline-variant text-on-surface rounded-xl text-label-md font-label-md hover:bg-surface-container-high flex items-center gap-2 transition-all whitespace-nowrap">
+                            <span class="material-symbols-outlined text-[18px]">refresh</span>Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Tabla de usuarios --}}
+                <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+                                    <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Usuario</th>
+                                    <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Rol</th>
+                                    <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Programa Actual</th>
+                                    <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider text-right w-72">Asignar Programa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="asp-table-body">
+                                <tr>
+                                    <td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                                        <span class="material-symbols-outlined text-4xl text-outline mb-2 block">search</span>
+                                        Cargando usuarios...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {{-- Paginación simple --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-lg py-md border-t border-outline-variant">
+                        <span id="asp-page-summary" class="text-body-sm text-on-surface-variant">—</span>
+                        <div class="flex items-center gap-2">
+                            <button id="asp-prev-page" onclick="aspChangePage(-1)" disabled
+                                class="p-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                            </button>
+                            <span id="asp-page-indicator" class="text-body-sm text-on-surface min-w-[80px] text-center">—</span>
+                            <button id="asp-next-page" onclick="aspChangePage(1)" disabled
+                                class="p-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Datos PHP para JS --}}
+                <script>
+                    window.aspStudyPrograms = @json($studyPrograms->values());
+                </script>
             </div>
 
         </div>
@@ -3160,7 +3276,7 @@
         let editingCompanyMode = false;
         const ADMIN_ACTIVE_TAB_KEY = 'talentum.admin.activeTab';
         const ADMIN_MAINTAINER_TYPE_KEY = 'talentum.admin.maintainerType';
-        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'maintainers', 'support'];
+        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'maintainers', 'support', 'assign-study-program'];
 
         function getStoredAdminValue(key) {
             try {
@@ -3240,6 +3356,9 @@
                 initMaintainersModule();
             } else if (tabId === 'support') {
                 targetPanelId = 'panel-support';
+            } else if (tabId === 'assign-study-program') {
+                targetPanelId = 'panel-assign-study-program';
+                aspLoadUsers();
             }
 
             const targetPanel = document.getElementById(targetPanelId);
@@ -3269,7 +3388,8 @@
                 'companies-register': 'Registrar Empresa',
                 'applications': 'Postulaciones Recibidas',
                 'maintainers': 'Mantenimiento del Sistema',
-                'support': 'Soporte'
+                'support': 'Soporte',
+                'assign-study-program': 'Asignar Programa de Estudio'
             };
             if (headerTitle) {
                 headerTitle.textContent = tabTitles[tabId] || 'Panel de Control';
@@ -4892,7 +5012,8 @@
             work_schedule: { collection: 'work_schedules', singular: 'jornada laboral' },
             category: { collection: 'categories', singular: 'categor\u00eda' },
             location: { collection: 'locations', singular: 'ubicaci\u00f3n' },
-            contract_type: { collection: 'contract_types', singular: 'tipo de contrato' }
+            contract_type: { collection: 'contract_types', singular: 'tipo de contrato' },
+            study_program: { collection: 'study_programs', singular: 'programa de estudio' }
         };
         const storedMaintainerType = getStoredAdminValue(ADMIN_MAINTAINER_TYPE_KEY);
         let maintainerActiveType = maintainerConfig[storedMaintainerType] ? storedMaintainerType : 'work_schedule';
@@ -7014,6 +7135,220 @@
             }
             switchTab(ADMIN_VALID_TABS.includes(tabToOpen) ? tabToOpen : 'dashboard');
         });
+
+        // =====================================================================
+        // MÓDULO: ASIGNAR PROGRAMA DE ESTUDIO (ASP)
+        // =====================================================================
+        let aspAllUsers       = [];
+        let aspFilteredUsers  = [];
+        let aspCurrentPage    = 1;
+        const aspPageSize     = 15;
+
+        function aspLoadUsers() {
+            const q       = document.getElementById('asp-search-input')?.value.trim() ?? '';
+            const progFilter = document.getElementById('asp-program-filter')?.value ?? '';
+
+            // Show loading state
+            const tbody = document.getElementById('asp-table-body');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-4xl text-outline mb-2 block animate-spin">refresh</span>Cargando...</td></tr>`;
+            }
+
+            fetch(`/admin/users/search-persons?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) throw new Error('Error al cargar usuarios');
+                    aspAllUsers = data.users || [];
+
+                    // Apply program filter on client side
+                    aspFilteredUsers = aspAllUsers.filter(u => {
+                        if (!progFilter) return true;
+                        if (progFilter === '__none__') return !u.study_program_id;
+                        return String(u.study_program_id) === String(progFilter);
+                    });
+
+                    aspCurrentPage = 1;
+                    aspRenderTable();
+                    aspUpdateStats();
+                })
+                .catch(err => {
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-red-500">
+                            <span class="material-symbols-outlined text-3xl block mb-2">error</span>Error al cargar usuarios.</td></tr>`;
+                    }
+                    console.error(err);
+                });
+        }
+
+        function aspUpdateStats() {
+            const programs = window.aspStudyPrograms || [];
+            const assigned = aspAllUsers.filter(u => u.study_program_id).length;
+            const el1 = document.getElementById('asp-programs-count');
+            const el2 = document.getElementById('asp-users-count');
+            const el3 = document.getElementById('asp-assigned-count');
+            if (el1) el1.textContent = programs.length;
+            if (el2) el2.textContent = aspFilteredUsers.length;
+            if (el3) el3.textContent = assigned;
+        }
+
+        function aspRenderTable() {
+            const tbody = document.getElementById('asp-table-body');
+            if (!tbody) return;
+
+            const totalPages = Math.max(1, Math.ceil(aspFilteredUsers.length / aspPageSize));
+            aspCurrentPage   = Math.min(aspCurrentPage, totalPages);
+            const start      = (aspCurrentPage - 1) * aspPageSize;
+            const pageItems  = aspFilteredUsers.slice(start, start + aspPageSize);
+
+            if (!pageItems.length) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-4xl text-outline mb-2 block">person_search</span>
+                    No se encontraron usuarios con esos criterios.</td></tr>`;
+            } else {
+                const programs = window.aspStudyPrograms || [];
+                const optionsHtml = programs.map(p =>
+                    `<option value="${p.id}">${aspEscapeHtml(p.name)}</option>`
+                ).join('');
+
+                tbody.innerHTML = pageItems.map(u => {
+                    const rolLabel = u.rol_id == 2 ? 'Docente' : 'Postulante';
+                    const rolColor = u.rol_id == 2 ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    const currentProgram = u.study_program ? aspEscapeHtml(u.study_program) : '—';
+                    const badgeClass = u.study_program ? 'bg-primary/10 text-primary' : 'bg-surface-container text-on-surface-variant';
+                    return `<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary font-bold text-sm shrink-0">
+                                    ${aspEscapeHtml((u.name || 'U').charAt(0).toUpperCase())}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-body-sm text-on-surface">${aspEscapeHtml(u.name)}</p>
+                                    <p class="text-[11px] text-on-surface-variant">${aspEscapeHtml(u.email)}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${rolColor}">${rolLabel}</span>
+                        </td>
+                        <td class="px-lg py-md">
+                            <span class="text-xs font-medium px-2 py-1 rounded-lg ${badgeClass}">${currentProgram}</span>
+                        </td>
+                        <td class="px-lg py-md text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <select id="asp-select-${u.person_id}"
+                                    class="px-3 py-1.5 bg-background border border-outline-variant rounded-lg text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all max-w-[200px]">
+                                    <option value="">Sin asignar</option>
+                                    ${optionsHtml}
+                                </select>
+                                <button type="button"
+                                    onclick="aspAssign(${u.person_id}, ${u.user_id})"
+                                    class="px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-label-sm font-label-sm hover:opacity-90 flex items-center gap-1 transition-all shadow-sm whitespace-nowrap">
+                                    <span class="material-symbols-outlined text-[15px]">save</span>Guardar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                // Set current values in selects
+                pageItems.forEach(u => {
+                    const sel = document.getElementById(`asp-select-${u.person_id}`);
+                    if (sel && u.study_program_id) {
+                        sel.value = String(u.study_program_id);
+                    }
+                });
+            }
+
+            // Pagination
+            const visibleStart = aspFilteredUsers.length ? start + 1 : 0;
+            const visibleEnd   = Math.min(start + aspPageSize, aspFilteredUsers.length);
+            const summary      = document.getElementById('asp-page-summary');
+            const indicator    = document.getElementById('asp-page-indicator');
+            const prevBtn      = document.getElementById('asp-prev-page');
+            const nextBtn      = document.getElementById('asp-next-page');
+            if (summary)    summary.textContent   = `${visibleStart}–${visibleEnd} de ${aspFilteredUsers.length} usuarios`;
+            if (indicator)  indicator.textContent  = `Pág. ${aspCurrentPage} / ${totalPages}`;
+            if (prevBtn)    prevBtn.disabled       = aspCurrentPage <= 1;
+            if (nextBtn)    nextBtn.disabled       = aspCurrentPage >= totalPages;
+        }
+
+        function aspChangePage(dir) {
+            const totalPages = Math.max(1, Math.ceil(aspFilteredUsers.length / aspPageSize));
+            aspCurrentPage   = Math.min(Math.max(1, aspCurrentPage + dir), totalPages);
+            aspRenderTable();
+        }
+
+        function aspClearFilters() {
+            const searchInput = document.getElementById('asp-search-input');
+            const programFilter = document.getElementById('asp-program-filter');
+            if (searchInput) searchInput.value = '';
+            if (programFilter) programFilter.value = '';
+            aspLoadUsers();
+        }
+
+        function aspAssign(personId, userId) {
+            const sel = document.getElementById(`asp-select-${personId}`);
+            if (!sel) return;
+            const studyProgramId = sel.value || null;
+            const btn = sel.closest('td').querySelector('button');
+            if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            fetch('/admin/study-programs/assign', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ person_id: personId, study_program_id: studyProgramId }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || '¡Programa asignado!', 'check_circle');
+                    // Update local cache
+                    const user = aspAllUsers.find(u => u.person_id === personId);
+                    if (user) {
+                        user.study_program_id = studyProgramId ? parseInt(studyProgramId) : null;
+                        const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(studyProgramId));
+                        user.study_program = prog ? prog.name : null;
+                    }
+                    aspRenderTable();
+                    aspUpdateStats();
+                } else {
+                    showToast(data.message || 'Error al asignar.', 'error');
+                }
+            })
+            .catch(() => showToast('Error de conexión.', 'error'))
+            .finally(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[15px]">save</span>Guardar';
+                }
+            });
+        }
+
+        function aspEscapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Search on Enter key
+        document.addEventListener('DOMContentLoaded', function () {
+            const aspInput = document.getElementById('asp-search-input');
+            if (aspInput) {
+                aspInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') aspLoadUsers();
+                });
+            }
+            const aspProgramFilter = document.getElementById('asp-program-filter');
+            if (aspProgramFilter) {
+                aspProgramFilter.addEventListener('change', aspLoadUsers);
+            }
+        });
+        // =====================================================================
     </script>
 </body>
 

@@ -26,6 +26,7 @@ class Person extends Model
         'document_number',
         'names',
         'career',
+        'study_program_id',
         'phone',
         'email',
         'sex',
@@ -56,5 +57,10 @@ class Person extends Model
     public function users()
     {
         return $this->hasMany(User::class, 'person_id');
+    }
+
+    public function studyProgram()
+    {
+        return $this->belongsTo(StudyProgram::class, 'study_program_id');
     }
 }

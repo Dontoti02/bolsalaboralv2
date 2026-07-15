@@ -1,0 +1,24 @@
+﻿<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('person', function (Blueprint $table) {
+            $table->unsignedBigInteger('study_program_id')->nullable()->after('career');
+            $table->foreign('study_program_id')->references('id')->on('study_programs')->nullOnDelete();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('person', function (Blueprint $table) {
+            $table->dropForeign(['study_program_id']);
+            $table->dropColumn('study_program_id');
+        });
+    }
+};

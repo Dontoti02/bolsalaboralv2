@@ -9,6 +9,7 @@ use App\Models\JobOpportunityLocation;
 use App\Models\JobOpportunityOfferCategory;
 use App\Models\JobOpportunityOfferState;
 use App\Models\Company;
+use App\Models\StudyProgram;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -432,6 +433,7 @@ class JobOpportunityController extends Controller
                 'work_schedules' => JobOpportunityWorkSchedule::all(),
                 'contract_types' => JobOpportunityContractType::all(),
                 'states' => JobOpportunityOfferState::all(),
+                'study_programs' => StudyProgram::orderBy('name')->get(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -447,7 +449,7 @@ class JobOpportunityController extends Controller
     public function addMetadataItem(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'type' => 'required|string|in:contract_type,work_schedule,location,category',
+            'type' => 'required|string|in:contract_type,work_schedule,location,category,study_program',
             'name' => 'required|string|max:255',
         ]);
 
@@ -476,6 +478,9 @@ class JobOpportunityController extends Controller
                 case 'category':
                     $item = JobOpportunityOfferCategory::create(['name' => $name]);
                     break;
+                case 'study_program':
+                    $item = StudyProgram::create(['name' => $name]);
+                    break;
             }
 
             return response()->json([
@@ -496,7 +501,7 @@ class JobOpportunityController extends Controller
         $validator = Validator::make(
             ['type' => $type, 'name' => $request->input('name')],
             [
-                'type' => 'required|string|in:contract_type,work_schedule,location,category',
+                'type' => 'required|string|in:contract_type,work_schedule,location,category,study_program',
                 'name' => 'required|string|max:255',
             ]
         );
@@ -546,7 +551,7 @@ class JobOpportunityController extends Controller
 
     public function deleteMetadataItem(string $type, int $id)
     {
-        if (!in_array($type, ['contract_type', 'work_schedule', 'location', 'category'], true)) {
+        if (!in_array($type, ['contract_type', 'work_schedule', 'location', 'category', 'study_program'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => "El tipo de mantenedor no es v\u{00E1}lido."
@@ -557,10 +562,18 @@ class JobOpportunityController extends Controller
             $modelClass = $this->metadataModelClass($type);
             $item = $modelClass::findOrFail($id);
 
-            if ($item->offers()->exists()) {
+            // Para study_program verificar si tiene personas asociadas
+            if ($type === 'study_program') {
+                if ($item->persons()->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se puede eliminar porque este programa está asignado a uno o más usuarios.',
+                    ], 422);
+                }
+            } elseif ($item->offers()->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => "No se puede eliminar porque esta opci\u{00F3}n est\u{00E1} asociada a una oferta laboral."
+                    'message' => "No se puede eliminar porque esta opción está asociada a una oferta laboral."
                 ], 422);
             }
 
@@ -590,6 +603,7 @@ class JobOpportunityController extends Controller
             'work_schedule' => JobOpportunityWorkSchedule::class,
             'location' => JobOpportunityLocation::class,
             'category' => JobOpportunityOfferCategory::class,
+            'study_program' => StudyProgram::class,
         };
     }
 }

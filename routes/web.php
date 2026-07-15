@@ -78,6 +78,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/offers/bulk-delete', [JobOpportunityController::class, 'bulkDestroy']);
         Route::post('/admin/offers/{id}/toggle-state', [JobOpportunityController::class, 'toggleState']);
         Route::get('/admin/offers/{id}/applicants', [UserController::class, 'getOfferApplicants']);
+
+        // Study Program Routes
+        Route::get('/admin/users/search-persons', [App\Http\Controllers\AdminController::class, 'searchPersonUsers'])->name('admin.users.search-persons');
+        Route::post('/admin/study-programs/assign', [App\Http\Controllers\AdminController::class, 'assignStudyProgram'])->name('admin.study-programs.assign');
     });
     
     // Rutas comunes de perfil para Estudiantes y Docentes (rol_id = 3 y 2)

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Person;
 use App\Models\Company;
+use App\Models\StudyProgram;
 use App\Models\JobOpportunityOffer;
 use App\Models\JobOpportunityApplication;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
@@ -157,6 +160,9 @@ class AdminController extends Controller
             $lastMonthApplications = JobOpportunityApplication::where('created_at', '<', now()->subMonth())->count();
             $appGrowth = $lastMonthApplications > 0 ? round((($totalApplications - $lastMonthApplications) / $lastMonthApplications) * 100, 1) : 0;
 
+            // Cargar programas de estudio para el select de asignación
+            $studyPrograms = StudyProgram::orderBy('name')->get();
+
             return view('admin.dashboard', compact(
                 'totalUsers',
                 'pendingCompanies',
@@ -170,7 +176,8 @@ class AdminController extends Controller
                 'appGrowth',
                 'currentSearch',
                 'currentRolId',
-                'currentStatus'
+                'currentStatus',
+                'studyPrograms'
             ));
 
         } catch (\Exception $e) {
@@ -183,6 +190,7 @@ class AdminController extends Controller
             $recentActivity = collect();
             $config = [];
             $users = collect();
+            $studyPrograms = collect();
             $userGrowth = 0;
             $appGrowth = 0;
             $currentSearch = '';
@@ -202,7 +210,8 @@ class AdminController extends Controller
                 'appGrowth',
                 'currentSearch',
                 'currentRolId',
-                'currentStatus'
+                'currentStatus',
+                'studyPrograms'
             ));
         }
     }
@@ -282,5 +291,69 @@ class AdminController extends Controller
                 'status' => $status,
             ],
         ]);
+    }
+
+    /**
+     * Search users that have an associated person (students/teachers) for study program assignment.
+     */
+    public function searchPersonUsers(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        $users = User::with(['person.studyProgram'])
+            ->whereNotNull('person_id')
+            ->whereIn('rol_id', [2, 3])
+            ->when($query, function ($q) use ($query) {
+                $q->where(function ($sub) use ($query) {
+                    $sub->where('email', 'like', "%{$query}%")
+                        ->orWhereHas('person', fn($p) => $p->where('names', 'like', "%{$query}%"));
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'user_id'          => $user->id,
+                    'person_id'        => $user->person_id,
+                    'name'             => $user->person->names ?? '-',
+                    'email'            => $user->email,
+                    'rol_id'           => $user->rol_id,
+                    'study_program_id' => $user->person->study_program_id,
+                    'study_program'    => $user->person->studyProgram->name ?? null,
+                ];
+            });
+
+        return response()->json(['success' => true, 'users' => $users]);
+    }
+
+    /**
+     * Assign a study program to a person.
+     */
+    public function assignStudyProgram(Request $request)
+    {
+        $request->validate([
+            'person_id'        => 'required|integer|exists:person,id',
+            'study_program_id' => 'nullable|integer|exists:study_programs,id',
+        ]);
+
+        try {
+            Person::where('id', $request->person_id)
+                ->update(['study_program_id' => $request->study_program_id ?: null]);
+
+            $program = $request->study_program_id
+                ? StudyProgram::find($request->study_program_id)->name
+                : 'Sin asignar';
+
+            return response()->json([
+                'success' => true,
+                'message' => "Programa de estudio actualizado a: {$program}",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al asignar programa: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
