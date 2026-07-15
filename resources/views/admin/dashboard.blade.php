@@ -132,11 +132,6 @@
                         ['key' => 'companies-manage', 'icon' => 'corporate_fare', 'label' => 'Empresas · Gestionar'],
                         ['key' => 'applications', 'icon' => 'person_search', 'label' => 'Postulaciones'],
                         ['key' => 'assign-study-program', 'icon' => 'school', 'label' => 'Asignar Programa'],
-                    ],
-                ],
-                [
-                    'label' => '',
-                    'items' => [
                         ['key' => 'maintainers', 'icon' => 'settings', 'label' => 'Mantenedores'],
                     ],
                 ],

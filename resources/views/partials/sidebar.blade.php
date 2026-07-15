@@ -98,6 +98,16 @@
             @csrf
         </form>
     </div>
+    <style>
+        /* Ocultar barra de desplazamiento en el sidebar manteniendo el scroll funcional */
+        #sidebar nav {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        #sidebar nav::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+    </style>
 </aside>
 
 <!-- Backdrop for mobile sidebar -->
