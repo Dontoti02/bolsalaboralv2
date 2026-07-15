@@ -23,7 +23,7 @@ class JobOpportunityController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = JobOpportunityOffer::with(['company', 'location', 'state', 'category', 'workSchedule', 'contractType']);
+            $query = JobOpportunityOffer::with(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType']);
 
             // Search query (title, description, requirements)
             if ($request->filled('search')) {
@@ -46,8 +46,9 @@ class JobOpportunityController extends Controller
             }
 
             // Location / Work modality filter
-            if ($request->filled('location_id')) {
-                $query->where('location_id', $request->location_id);
+            if ($request->filled('modality_id') || $request->filled('location_id')) {
+                $modalityId = $request->modality_id ?? $request->location_id;
+                $query->where('modality_id', $modalityId);
             }
 
             // Contract type filter
@@ -149,7 +150,7 @@ class JobOpportunityController extends Controller
             'department' => 'required|string|max:255',
             'province' => 'required|string|max:255',
             'company_id' => 'required|integer',
-            'location_id' => 'required|integer',
+            'modality_id' => 'required|integer',
             'category_id' => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
@@ -161,6 +162,11 @@ class JobOpportunityController extends Controller
                 'success' => false,
                 'message' => $validator->errors()->first()
             ], 422);
+        }
+
+        // Mapeo para retrocompatibilidad
+        if ($request->has('location_id') && !$request->has('modality_id')) {
+            $request->merge(['modality_id' => $request->location_id]);
         }
 
         try {
@@ -192,7 +198,7 @@ class JobOpportunityController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Oferta laboral creada exitosamente.',
-                'offer' => $offer->load(['company', 'location', 'state', 'category', 'workSchedule', 'contractType'])
+                'offer' => $offer->load(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -208,7 +214,7 @@ class JobOpportunityController extends Controller
      */
     public function show($id)
     {
-        $offer = JobOpportunityOffer::with(['company', 'location', 'state', 'category', 'workSchedule', 'contractType'])->find($id);
+        $offer = JobOpportunityOffer::with(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])->find($id);
 
         if (!$offer) {
             return response()->json([
@@ -237,6 +243,11 @@ class JobOpportunityController extends Controller
             ], 404);
         }
 
+        // Mapeo para retrocompatibilidad
+        if ($request->has('location_id') && !$request->has('modality_id')) {
+            $request->merge(['modality_id' => $request->location_id]);
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -250,7 +261,7 @@ class JobOpportunityController extends Controller
             'department' => 'required|string|max:255',
             'province' => 'required|string|max:255',
             'company_id' => 'required|integer',
-            'location_id' => 'required|integer',
+            'modality_id' => 'required|integer',
             'category_id' => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
@@ -287,7 +298,7 @@ class JobOpportunityController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Oferta laboral actualizada exitosamente.',
-                'offer' => $offer->load(['company', 'location', 'state', 'category', 'workSchedule', 'contractType'])
+                'offer' => $offer->load(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

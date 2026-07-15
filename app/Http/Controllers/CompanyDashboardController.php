@@ -267,7 +267,7 @@ class CompanyDashboardController extends Controller
         }
 
         try {
-            $query = JobOpportunityOffer::with(['company', 'location', 'state', 'category', 'workSchedule', 'contractType'])
+            $query = JobOpportunityOffer::with(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])
                 ->where('company_id', $company->id);
 
             if ($request->filled('search')) {

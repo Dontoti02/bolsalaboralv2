@@ -43,7 +43,7 @@ class StudentController extends Controller
                 ->get();
 
             // All active offers (recommended jobs)
-            $activeOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'workSchedule', 'location', 'contractType'])
+            $activeOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'workSchedule', 'modality', 'contractType'])
                 ->whereHas('state', function ($q) {
                     $q->where('key', 'active');
                 })
@@ -51,7 +51,7 @@ class StudentController extends Controller
                 ->take(6)
                 ->get()
                 ->map(function ($offer) {
-                    $offer->location_name = $offer->location->name ?? 'No especificada';
+                    $offer->location_name = $offer->modality->name ?? 'No especificada';
                     $offer->company_name = $offer->company->name ?? 'Empresa';
                     return $offer;
                 });

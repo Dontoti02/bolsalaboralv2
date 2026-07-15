@@ -22,7 +22,7 @@ class TeacherController extends Controller
                     'state',
                     'category:id,name',
                     'workSchedule:id,name',
-                    'location:id,name',
+                    'modality:id,name',
                     'contractType:id,name'
                 ])
                 ->where('state_id', $activeStateId)
@@ -31,7 +31,7 @@ class TeacherController extends Controller
                 ->get()
                 ->map(function ($offer) {
                     $offer->company_name = $offer->company->name ?? 'Empresa';
-                    $offer->location_name = $offer->location->name ?? 'No especificada';
+                    $offer->location_name = $offer->modality->name ?? 'No especificada';
                     $offer->schedule_name = $offer->workSchedule->name ?? 'Jornada completa';
                     $offer->category_name = $offer->category->name ?? 'General';
                     $offer->state_name = $offer->state->name ?? 'Activa';
@@ -51,7 +51,7 @@ class TeacherController extends Controller
                     'state',
                     'category:id,name',
                     'workSchedule:id,name',
-                    'location:id,name',
+                    'modality:id,name',
                     'contractType:id,name'
                 ])
                 ->where('state_id', $closedStateId)
@@ -60,7 +60,7 @@ class TeacherController extends Controller
                 ->get()
                 ->map(function ($offer) {
                     $offer->company_name = $offer->company->name ?? 'Empresa';
-                    $offer->location_name = $offer->location->name ?? 'No especificada';
+                    $offer->location_name = $offer->modality->name ?? 'No especificada';
                     $offer->schedule_name = $offer->workSchedule->name ?? 'Jornada completa';
                     $offer->category_name = $offer->category->name ?? 'General';
                     $offer->state_name = $offer->state->name ?? 'Cerrada';
