@@ -340,14 +340,14 @@
 
     <!-- Chart 2: Role Distribution (spans 1 col) -->
     <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-        <div class="p-lg border-b border-outline-variant">
+        <div class="px-lg pt-lg pb-md border-b border-outline-variant">
             <h3 class="text-headline-sm font-headline-sm text-on-background">Distribución por Roles</h3>
         </div>
-        <div class="p-lg flex flex-col items-center" style="height: 360px;">
-            <div class="flex-1 w-full flex items-center justify-center">
+        <div class="p-lg flex flex-col items-center">
+            <div class="w-full flex items-center justify-center" style="height: 280px;">
                 <canvas id="roleChart"></canvas>
             </div>
-            <div id="roleLegend" class="flex flex-wrap justify-center gap-3 mt-4"></div>
+            <div id="roleLegend" class="flex flex-wrap justify-center gap-2 mt-4 w-full"></div>
         </div>
     </div>
 </div>
@@ -7764,10 +7764,10 @@ const totalUsersCount = roleDistribution.reduce((sum, r) => sum + r.total, 0);
 roleDistribution.forEach(r => {
     const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(0) : 0;
     legendContainer.innerHTML += `
-        <div class="flex items-center gap-2 px-2.5 py-1 rounded-full border border-outline-variant/50 bg-surface-container-lowest">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${r.color}"></span>
-            <span class="text-xs text-on-surface-variant font-medium">${r.label}</span>
-            <span class="text-xs font-bold px-1.5 py-0.5 rounded-md text-white" style="background-color: ${r.color}">${pct}%</span>
+        <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low border border-outline-variant/40">
+            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${r.color}"></span>
+            <span class="text-[11px] text-on-surface-variant font-medium whitespace-nowrap">${r.label}</span>
+            <span class="text-[11px] font-bold text-primary">${pct}%</span>
         </div>
     `;
 });
