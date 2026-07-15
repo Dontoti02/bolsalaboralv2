@@ -31,6 +31,51 @@ class AdminController extends Controller
             // Total applications count
             $totalApplications = JobOpportunityApplication::count();
 
+            // Monthly stats for charts (last 6 months)
+            $monthlyStats = collect();
+            for ($i = 5; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $monthlyStats->push([
+                    'label' => $date->locale('es')->isoFormat('MMM'),
+                    'users' => User::whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)->count(),
+                    'offers' => JobOpportunityOffer::whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)->count(),
+                    'applications' => JobOpportunityApplication::whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)->count(),
+                ]);
+            }
+
+            // Role distribution for doughnut chart
+            $roleDistribution = User::select('rol_id', DB::raw('count(*) as total'))
+                ->groupBy('rol_id')
+                ->get()
+                ->map(function ($item) {
+                    $labels = [1 => 'Administradores', 2 => 'Docentes', 3 => 'Estudiantes', 4 => 'Empresas'];
+                    $colors = [1 => '#002741', 2 => '#006b60', 3 => '#ff9f43', 4 => '#18A999'];
+                    return [
+                        'label' => $labels[$item->rol_id] ?? 'Otro',
+                        'total' => $item->total,
+                        'color' => $colors[$item->rol_id] ?? '#94a3b8',
+                    ];
+                });
+
+            // Top 5 companies by offer count
+            $topCompanies = JobOpportunityOffer::with('company')
+                ->select('company_id', DB::raw('count(*) as total'))
+                ->groupBy('company_id')
+                ->orderByDesc('total')
+                ->take(5)
+                ->get()
+                ->filter(fn($item) => $item->company)
+                ->values()
+                ->map(function ($item) {
+                    return [
+                        'name' => $item->company->name,
+                        'total' => $item->total,
+                    ];
+                });
+
             // Recent companies (last 5)
             $recentCompanies = Company::orderBy('created_at', 'desc')
                 ->take(5)
@@ -177,7 +222,10 @@ class AdminController extends Controller
                 'currentSearch',
                 'currentRolId',
                 'currentStatus',
-                'studyPrograms'
+                'studyPrograms',
+                'monthlyStats',
+                'roleDistribution',
+                'topCompanies'
             ));
 
         } catch (\Exception $e) {
@@ -196,6 +244,9 @@ class AdminController extends Controller
             $currentSearch = '';
             $currentRolId = '';
             $currentStatus = '';
+            $monthlyStats = collect();
+            $roleDistribution = collect();
+            $topCompanies = collect();
 
             return view('admin.dashboard', compact(
                 'totalUsers',
@@ -211,7 +262,10 @@ class AdminController extends Controller
                 'currentSearch',
                 'currentRolId',
                 'currentStatus',
-                'studyPrograms'
+                'studyPrograms',
+                'monthlyStats',
+                'roleDistribution',
+                'topCompanies'
             ));
         }
     }
