@@ -7540,7 +7540,6 @@
         // =====================================================================
     </script>
 
-@push('scripts')
 <script type="module">
 // Chart.js is loaded globally via Vite bundle (app.js)
 // Data from controller
@@ -7769,9 +7768,6 @@ new Chart(companiesCtx, {
     },
 });
 </script>
-@endpush
-
-@stack('scripts')
 </body>
 
 </html>
