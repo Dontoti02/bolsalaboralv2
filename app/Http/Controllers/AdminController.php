@@ -302,7 +302,7 @@ class AdminController extends Controller
 
         $users = User::with(['person.studyProgram'])
             ->whereNotNull('person_id')
-            ->whereIn('rol_id', [2, 3])
+            ->where('rol_id', 3)
             ->when($query, function ($q) use ($query) {
                 $q->where(function ($sub) use ($query) {
                     $sub->where('email', 'like', "%{$query}%")

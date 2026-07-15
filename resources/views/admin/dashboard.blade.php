@@ -2224,7 +2224,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Asignar Programa de Estudio</h1>
-                        <p class="text-body-md text-on-surface-variant">Asigna o cambia el programa de estudio de cada postulante o docente registrado en el sistema.</p>
+                        <p class="text-body-md text-on-surface-variant">Asigna el programa de estudio a los <strong>estudiantes</strong> registrados. El programa se mostrará automáticamente cuando postulen a ofertas laborales.</p>
                     </div>
                 </div>
 
@@ -2255,6 +2255,32 @@
                         <div>
                             <p class="text-body-sm text-on-surface-variant">Con programa asignado</p>
                             <p id="asp-assigned-count" class="text-headline-sm font-headline-sm text-on-surface font-bold">—</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Asignación en MASA --}}
+                <div class="bg-primary/5 border border-primary/20 rounded-xl p-lg shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div class="flex items-center gap-3 flex-1">
+                            <span class="material-symbols-outlined text-primary text-2xl shrink-0">rocket_launch</span>
+                            <div>
+                                <p class="font-semibold text-on-surface text-body-md">Asignación en masa</p>
+                                <p class="text-body-sm text-on-surface-variant">Elige un programa y aplícalo a <strong>todos los estudiantes visibles</strong> en la tabla con un clic.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                            <select id="asp-bulk-program"
+                                class="px-4 py-2.5 bg-background border border-primary/40 rounded-xl text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all min-w-[240px]">
+                                <option value="">— Selecciona un programa —</option>
+                                @foreach($studyPrograms as $sp)
+                                    <option value="{{ $sp->id }}">{{ $sp->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="button" onclick="aspBulkAssign()"
+                                class="px-5 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap font-semibold">
+                                <span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a todos
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -7212,8 +7238,8 @@
                 ).join('');
 
                 tbody.innerHTML = pageItems.map(u => {
-                    const rolLabel = u.rol_id == 2 ? 'Docente' : 'Postulante';
-                    const rolColor = u.rol_id == 2 ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    const rolLabel = 'Estudiante';
+                    const rolColor = 'bg-green-100 text-green-800';
                     const currentProgram = u.study_program ? aspEscapeHtml(u.study_program) : '—';
                     const badgeClass = u.study_program ? 'bg-primary/10 text-primary' : 'bg-surface-container text-on-surface-variant';
                     return `<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
@@ -7333,6 +7359,63 @@
         function aspEscapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function aspBulkAssign() {
+            const programId = document.getElementById('asp-bulk-program')?.value;
+            if (!programId) {
+                showToast('Selecciona un programa de estudio primero.', 'warning');
+                return;
+            }
+            if (!aspFilteredUsers.length) {
+                showToast('No hay estudiantes en la tabla para asignar.', 'info');
+                return;
+            }
+            const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(programId));
+            const progName = prog ? prog.name : 'el programa seleccionado';
+            const total = aspFilteredUsers.length;
+
+            if (!confirm(`¿Asignar "${progName}" a los ${total} estudiantes visibles en la tabla?`)) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            // Deshabilitar botón durante proceso
+            const btn = document.querySelector('[onclick="aspBulkAssign()"]');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>Asignando...'; }
+
+            const promises = aspFilteredUsers.map(u =>
+                fetch('/admin/study-programs/assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: JSON.stringify({ person_id: u.person_id, study_program_id: programId }),
+                }).then(r => r.json())
+            );
+
+            Promise.all(promises).then(results => {
+                const ok = results.filter(r => r.success).length;
+                const fail = results.length - ok;
+
+                // Update local cache
+                aspFilteredUsers.forEach(u => {
+                    u.study_program_id = parseInt(programId);
+                    u.study_program = progName;
+                    const allUser = aspAllUsers.find(a => a.person_id === u.person_id);
+                    if (allUser) { allUser.study_program_id = parseInt(programId); allUser.study_program = progName; }
+                });
+
+                aspRenderTable();
+                aspUpdateStats();
+
+                if (fail === 0) {
+                    showToast(`✓ ${ok} estudiantes actualizados con "${progName}"`, 'check_circle');
+                } else {
+                    showToast(`${ok} actualizados, ${fail} fallaron.`, 'warning');
+                }
+            }).catch(() => {
+                showToast('Error de conexión durante la asignación.', 'error');
+            }).finally(() => {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a todos'; }
+            });
         }
 
         // Search on Enter key

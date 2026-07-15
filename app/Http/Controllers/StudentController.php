@@ -279,7 +279,7 @@ class StudentController extends Controller
 
             $application = JobOpportunityApplication::create([
                 'fullname' => $person->names,
-                'program_study' => 'Computación y Sistemas', // default study program
+                'program_study' => ($person->studyProgram?->name ?? $person->career ?? 'Sin programa asignado'),
                 'message' => $request->message ?? '',
                 'status' => 'postulated', // Initial status
                 'cv' => $cv->url,
