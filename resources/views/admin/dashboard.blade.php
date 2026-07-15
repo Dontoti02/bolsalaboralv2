@@ -2291,9 +2291,9 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
-                                    <th class="pl-lg pr-md py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider w-12">
+                                    <th class="px-lg py-md text-center align-middle w-12">
                                         <input type="checkbox" id="asp-select-all" onclick="aspToggleSelectAll(this)"
-                                            class="w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer">
+                                            class="w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer inline-block align-middle">
                                     </th>
                                     <th class="px-md py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Usuario</th>
                                     <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Rol</th>
@@ -7286,9 +7286,9 @@
                     const isChecked = aspSelectedPersonIds.has(parseInt(u.person_id)) ? 'checked' : '';
 
                     return `<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
-                        <td class="pl-lg pr-md py-md">
+                        <td class="px-lg py-md text-center align-middle w-12">
                             <input type="checkbox" data-person-id="${u.person_id}" onchange="aspToggleUserSelect(${u.person_id}, this)" ${isChecked}
-                                class="asp-user-checkbox w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer">
+                                class="asp-user-checkbox w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer inline-block align-middle">
                         </td>
                         <td class="px-md py-md">
                             <div class="flex items-center gap-3">
