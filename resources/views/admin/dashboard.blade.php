@@ -343,7 +343,7 @@
         <div class="p-lg border-b border-outline-variant">
             <h3 class="text-headline-sm font-headline-sm text-on-background">Distribución por Roles</h3>
         </div>
-        <div class="p-lg flex flex-col items-center" style="height: 320px;">
+        <div class="p-lg flex flex-col items-center" style="height: 360px;">
             <div class="flex-1 w-full flex items-center justify-center">
                 <canvas id="roleChart"></canvas>
             </div>
@@ -7655,11 +7655,69 @@ new Chart(trendCtx, {
     },
 });
 
-// --- Chart 2: Role Distribution (Doughnut) ---
+// --- Chart 2: Role Distribution (Doughnut Premium) ---
 const roleCtx = document.getElementById('roleChart').getContext('2d');
+
+// Plugin: draw percentages on each slice
+const slicePercentagePlugin = {
+    id: 'slicePercentage',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+
+        meta.data.forEach((arc, i) => {
+            const value = chart.data.datasets[0].data[i];
+            const pct = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+            if (pct < 3) return; // skip tiny slices
+
+            const { x, y } = arc.tooltipPosition();
+            const angle = (arc.startAngle + arc.endAngle) / 2;
+            const radius = (arc.innerRadius + arc.outerRadius) / 2;
+            const labelX = x + Math.cos(angle) * radius;
+            const labelY = y + Math.sin(angle) * radius;
+
+            ctx.save();
+            ctx.font = 'bold 12px Inter';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 3;
+            ctx.fillText(`${pct}%`, labelX, labelY);
+            ctx.restore();
+        });
+    },
+};
+
+// Plugin: center label with total
+const centerLabelPlugin = {
+    id: 'centerLabel',
+    afterDraw(chart) {
+        const { ctx, width, height } = chart;
+        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Total number
+        ctx.font = 'bold 28px Manrope';
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillText(total, width / 2, height / 2 - 8);
+
+        // Label
+        ctx.font = '500 11px Inter';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('TOTAL', width / 2, height / 2 + 16);
+
+        ctx.restore();
+    },
+};
 
 new Chart(roleCtx, {
     type: 'doughnut',
+    plugins: [slicePercentagePlugin, centerLabelPlugin],
     data: {
         labels: roleDistribution.map(r => r.label),
         datasets: [{
@@ -7668,26 +7726,31 @@ new Chart(roleCtx, {
             borderColor: '#ffffff',
             borderWidth: 3,
             hoverBorderWidth: 0,
-            hoverOffset: 8,
+            hoverOffset: 10,
         }],
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '65%',
+        cutout: '62%',
+        layout: {
+            padding: 6,
+        },
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleFont: { family: 'Inter', size: 13 },
+                backgroundColor: 'rgba(0, 39, 65, 0.95)',
+                titleFont: { family: 'Inter', size: 13, weight: '600' },
                 bodyFont: { family: 'Inter', size: 12 },
-                padding: 12,
-                cornerRadius: 8,
+                padding: 14,
+                cornerRadius: 10,
+                displayColors: true,
+                boxPadding: 4,
                 callbacks: {
                     label: function(context) {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${context.label}: ${context.raw} (${pct}%)`;
+                        return ` ${context.raw} usuarios (${pct}%)`;
                     },
                 },
             },
@@ -7695,16 +7758,16 @@ new Chart(roleCtx, {
     },
 });
 
-// Render custom legend
+// Render premium legend with badges
 const legendContainer = document.getElementById('roleLegend');
 const totalUsersCount = roleDistribution.reduce((sum, r) => sum + r.total, 0);
 roleDistribution.forEach(r => {
-    const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(1) : 0;
+    const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(0) : 0;
     legendContainer.innerHTML += `
-        <div class="flex items-center gap-1.5 text-xs">
+        <div class="flex items-center gap-2 px-2.5 py-1 rounded-full border border-outline-variant/50 bg-surface-container-lowest">
             <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${r.color}"></span>
-            <span class="text-on-surface-variant font-medium">${r.label}</span>
-            <span class="text-on-surface font-semibold">${pct}%</span>
+            <span class="text-xs text-on-surface-variant font-medium">${r.label}</span>
+            <span class="text-xs font-bold px-1.5 py-0.5 rounded-md text-white" style="background-color: ${r.color}">${pct}%</span>
         </div>
     `;
 });
