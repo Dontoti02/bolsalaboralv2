@@ -7542,8 +7542,7 @@
 
 @push('scripts')
 <script type="module">
-import Chart from 'chart.js/auto';
-
+// Chart.js is loaded globally via Vite bundle (app.js)
 // Data from controller
 const monthlyStats = @json($monthlyStats);
 const roleDistribution = @json($roleDistribution);
