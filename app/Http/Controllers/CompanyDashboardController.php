@@ -303,7 +303,7 @@ class CompanyDashboardController extends Controller
             return response()->json([
                 'success'        => true,
                 'categories'     => DB::table('job_opportunity_offer_category')->get(),
-                'locations'      => DB::table('job_opportunity_location')->get(),
+                'locations'      => DB::table('job_opportunity_modalities')->get(),
                 'work_schedules' => DB::table('job_opportunity_work_schedules')->get(),
                 'contract_types' => DB::table('job_opportunity_contract_types')->get(),
                 'states'         => DB::table('job_opportunity_offer_state')->get(),
