@@ -2266,7 +2266,7 @@
                             <span class="material-symbols-outlined text-primary text-2xl shrink-0">rocket_launch</span>
                             <div>
                                 <p class="font-semibold text-on-surface text-body-md">Asignación en masa</p>
-                                <p class="text-body-sm text-on-surface-variant">Elige un programa y aplícalo a <strong>todos los estudiantes visibles</strong> en la tabla con un clic.</p>
+                                <p class="text-body-sm text-on-surface-variant">Elige un programa y aplícalo a los <strong>estudiantes seleccionados</strong> (usando las casillas de verificación).</p>
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -2279,7 +2279,7 @@
                             </select>
                             <button type="button" onclick="aspBulkAssign()"
                                 class="px-5 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap font-semibold">
-                                <span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a todos
+                                <span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a seleccionados
                             </button>
                         </div>
                     </div>
@@ -2291,7 +2291,11 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
-                                    <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Usuario</th>
+                                    <th class="pl-lg pr-md py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider w-12">
+                                        <input type="checkbox" id="asp-select-all" onclick="aspToggleSelectAll(this)"
+                                            class="w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer">
+                                    </th>
+                                    <th class="px-md py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Usuario</th>
                                     <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Rol</th>
                                     <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider">Programa Actual</th>
                                     <th class="px-lg py-md text-label-sm font-label-sm font-semibold uppercase tracking-wider text-right w-72">Asignar Programa</th>
@@ -2299,7 +2303,7 @@
                             </thead>
                             <tbody id="asp-table-body">
                                 <tr>
-                                    <td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                                    <td colspan="5" class="px-lg py-xl text-center text-on-surface-variant">
                                         <span class="material-symbols-outlined text-4xl text-outline mb-2 block">search</span>
                                         Cargando usuarios...
                                     </td>
@@ -3280,11 +3284,11 @@
             <!-- Content -->
             <div class="p-lg space-y-md">
                 <p class="text-body-md text-on-surface-variant">
-                    ¿Está seguro de que desea asignar el programa <span id="asp-confirm-program-name" class="font-bold text-primary"></span> a todos los estudiantes visibles en la tabla?
+                    ¿Está seguro de que desea asignar el programa <span id="asp-confirm-program-name" class="font-bold text-primary"></span> a los <span id="asp-confirm-total-count" class="font-bold text-primary">0</span> estudiantes seleccionados?
                 </p>
                 <div class="bg-primary/5 border border-primary/20 rounded-xl p-md flex gap-sm">
                     <span class="material-symbols-outlined text-primary text-2xl shrink-0">info</span>
-                    <p class="text-[12px] text-primary/80 leading-normal">Esta acción actualizará el programa de estudio de todos los estudiantes listados actualmente.</p>
+                    <p class="text-[12px] text-primary/80 leading-normal">Esta acción actualizará el programa de estudio de los estudiantes que has marcado con el checkbox.</p>
                 </div>
             </div>
             <!-- Actions -->
@@ -7181,12 +7185,18 @@
         let aspFilteredUsers  = [];
         let aspCurrentPage    = 1;
         const aspPageSize     = 15;
+        let aspSelectedPersonIds = new Set();
 
         function aspLoadUsers() {
+            // Vaciar selección previa
+            aspSelectedPersonIds.clear();
+            const master = document.getElementById('asp-select-all');
+            if (master) master.checked = false;
+
             // Show loading state
             const tbody = document.getElementById('asp-table-body');
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                tbody.innerHTML = `<tr><td colspan="5" class="px-lg py-xl text-center text-on-surface-variant">
                     <span class="material-symbols-outlined text-4xl text-outline mb-2 block animate-spin">refresh</span>Cargando...</td></tr>`;
             }
 
@@ -7203,7 +7213,7 @@
                 })
                 .catch(err => {
                     if (tbody) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-red-500">
+                        tbody.innerHTML = `<tr><td colspan="5" class="px-lg py-xl text-center text-red-500">
                             <span class="material-symbols-outlined text-3xl block mb-2">error</span>Error al cargar usuarios.</td></tr>`;
                     }
                     console.error(err);
@@ -7221,6 +7231,34 @@
             if (el3) el3.textContent = assigned;
         }
 
+        function aspToggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.asp-user-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = master.checked;
+                const personId = parseInt(cb.getAttribute('data-person-id'));
+                if (master.checked) {
+                    aspSelectedPersonIds.add(personId);
+                } else {
+                    aspSelectedPersonIds.delete(personId);
+                }
+            });
+        }
+
+        function aspToggleUserSelect(personId, chk) {
+            if (chk.checked) {
+                aspSelectedPersonIds.add(parseInt(personId));
+            } else {
+                aspSelectedPersonIds.delete(parseInt(personId));
+            }
+            // Actualizar estado del checkbox maestro
+            const master = document.getElementById('asp-select-all');
+            if (master) {
+                const checkboxes = document.querySelectorAll('.asp-user-checkbox');
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                master.checked = allChecked;
+            }
+        }
+
         function aspRenderTable() {
             const tbody = document.getElementById('asp-table-body');
             if (!tbody) return;
@@ -7231,7 +7269,7 @@
             const pageItems  = aspFilteredUsers.slice(start, start + aspPageSize);
 
             if (!pageItems.length) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
+                tbody.innerHTML = `<tr><td colspan="5" class="px-lg py-xl text-center text-on-surface-variant">
                     <span class="material-symbols-outlined text-4xl text-outline mb-2 block">person_search</span>
                     No se encontraron usuarios.</td></tr>`;
             } else {
@@ -7245,8 +7283,14 @@
                     const rolColor = 'bg-green-100 text-green-800';
                     const currentProgram = u.study_program ? aspEscapeHtml(u.study_program) : '—';
                     const badgeClass = u.study_program ? 'bg-primary/10 text-primary' : 'bg-surface-container text-on-surface-variant';
+                    const isChecked = aspSelectedPersonIds.has(parseInt(u.person_id)) ? 'checked' : '';
+
                     return `<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
-                        <td class="px-lg py-md">
+                        <td class="pl-lg pr-md py-md">
+                            <input type="checkbox" data-person-id="${u.person_id}" onchange="aspToggleUserSelect(${u.person_id}, this)" ${isChecked}
+                                class="asp-user-checkbox w-4 h-4 text-primary bg-background border-outline-variant rounded focus:ring-primary/20 cursor-pointer">
+                        </td>
+                        <td class="px-md py-md">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary font-bold text-sm shrink-0">
                                     ${aspEscapeHtml((u.name || 'U').charAt(0).toUpperCase())}
@@ -7287,6 +7331,14 @@
                         sel.value = String(u.study_program_id);
                     }
                 });
+            }
+
+            // Actualizar checkbox maestro basado en elementos visibles
+            const master = document.getElementById('asp-select-all');
+            if (master) {
+                const checkboxes = document.querySelectorAll('.asp-user-checkbox');
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                master.checked = allChecked;
             }
 
             // Pagination
@@ -7377,8 +7429,8 @@
                 showToast('Selecciona un programa de estudio primero.', 'warning');
                 return;
             }
-            if (!aspFilteredUsers.length) {
-                showToast('No hay estudiantes en la tabla para asignar.', 'info');
+            if (aspSelectedPersonIds.size === 0) {
+                showToast('Selecciona al menos un estudiante con la casilla de verificación.', 'warning');
                 return;
             }
             const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(programId));
@@ -7386,7 +7438,9 @@
 
             // Cargar datos al modal
             const nameEl = document.getElementById('asp-confirm-program-name');
+            const totalEl = document.getElementById('asp-confirm-total-count');
             if (nameEl) nameEl.textContent = progName;
+            if (totalEl) totalEl.textContent = aspSelectedPersonIds.size;
 
             toggleAspBulkModal(true);
         }
@@ -7396,7 +7450,8 @@
             const programId = document.getElementById('asp-bulk-program')?.value;
             const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(programId));
             const progName = prog ? prog.name : 'el programa seleccionado';
-            const okMsg = `✓ Estudiantes actualizados con "${progName}"`;
+            const totalToUpdate = aspSelectedPersonIds.size;
+            const okMsg = `✓ ${totalToUpdate} estudiantes actualizados con "${progName}"`;
 
             // Cerrar el modal
             toggleAspBulkModal(false);
@@ -7407,11 +7462,11 @@
             const btn = document.querySelector('[onclick="aspBulkAssign()"]');
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>Asignando...'; }
 
-            const promises = aspFilteredUsers.map(u =>
+            const promises = Array.from(aspSelectedPersonIds).map(pid =>
                 fetch('/admin/study-programs/assign', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ person_id: u.person_id, study_program_id: programId }),
+                    body: JSON.stringify({ person_id: pid, study_program_id: programId }),
                 }).then(r => r.json())
             );
 
@@ -7420,12 +7475,18 @@
                 const fail = results.length - ok;
 
                 // Update local cache
-                aspFilteredUsers.forEach(u => {
-                    u.study_program_id = parseInt(programId);
-                    u.study_program = progName;
-                    const allUser = aspAllUsers.find(a => a.person_id === u.person_id);
-                    if (allUser) { allUser.study_program_id = parseInt(programId); allUser.study_program = progName; }
+                Array.from(aspSelectedPersonIds).forEach(pid => {
+                    const u = aspAllUsers.find(x => x.person_id === pid);
+                    if (u) {
+                        u.study_program_id = parseInt(programId);
+                        u.study_program = progName;
+                    }
                 });
+
+                // Vaciar selección
+                aspSelectedPersonIds.clear();
+                const master = document.getElementById('asp-select-all');
+                if (master) master.checked = false;
 
                 aspRenderTable();
                 aspUpdateStats();
@@ -7438,7 +7499,7 @@
             }).catch(() => {
                 showToast('Error de conexión durante la asignación.', 'error');
             }).finally(() => {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a todos'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">group_add</span>Asignar a seleccionados'; }
             });
         }
 
