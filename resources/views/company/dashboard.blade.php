@@ -575,7 +575,21 @@
         <!-- ================= PANEL 3: POSTULANTES ================= -->
         <div id="panel-applicants" class="tab-panel space-y-xl hidden">
             <h2 class="text-headline-sm font-headline-sm text-on-surface">Candidatos Postulados</h2>
-            
+
+            {{-- Nota informativa: correos de postulación pueden ir a spam --}}
+            <div class="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 shadow-sm" role="alert">
+                <span class="material-symbols-outlined text-amber-500 mt-0.5 flex-shrink-0" style="font-size:20px;">mark_email_unread</span>
+                <div>
+                    <p class="font-semibold text-amber-800 text-sm mb-0.5">¿No ves los correos de postulación?</p>
+                    <p class="text-amber-700 text-sm leading-relaxed">
+                        Los mensajes de correo con el CV de los postulantes pueden llegar a la carpeta de
+                        <strong>Spam</strong> o <strong>Correo no deseado</strong> de su bandeja de entrada.
+                        Si no los encuentra en su bandeja principal, revise esa carpeta y marque el remitente
+                        como <em>«No es spam»</em> para recibir futuros correos sin inconvenientes.
+                    </p>
+                </div>
+            </div>
+
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
