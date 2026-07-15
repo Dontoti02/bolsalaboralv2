@@ -2285,33 +2285,6 @@
                     </div>
                 </div>
 
-                {{-- Filtros de búsqueda --}}
-                <div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <div class="relative flex-1">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
-                            <input id="asp-search-input" type="text" placeholder="Buscar por nombre o correo..."
-                                class="w-full pl-10 pr-4 py-2.5 bg-background border border-outline-variant rounded-xl text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-                        </div>
-                        <select id="asp-program-filter"
-                            class="px-4 py-2.5 bg-background border border-outline-variant rounded-xl text-body-sm font-body-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all min-w-[220px]">
-                            <option value="">Todos los programas</option>
-                            <option value="__none__">Sin programa asignado</option>
-                            @foreach($studyPrograms as $sp)
-                                <option value="{{ $sp->id }}">{{ $sp->name }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" onclick="aspLoadUsers()" id="asp-search-btn"
-                            class="px-5 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center gap-2 shadow-sm transition-all whitespace-nowrap">
-                            <span class="material-symbols-outlined text-[18px]">filter_list</span>Aplicar
-                        </button>
-                        <button type="button" onclick="aspClearFilters()"
-                            class="px-4 py-2.5 border border-outline-variant text-on-surface rounded-xl text-label-md font-label-md hover:bg-surface-container-high flex items-center gap-2 transition-all whitespace-nowrap">
-                            <span class="material-symbols-outlined text-[18px]">refresh</span>Limpiar
-                        </button>
-                    </div>
-                </div>
-
                 {{-- Tabla de usuarios --}}
                 <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
@@ -3284,6 +3257,45 @@
                 <button id="btn-confirm-delete-image" type="button" onclick="executeDeleteSettingsImage()"
                     class="px-6 py-2.5 bg-red-600 text-white font-label-md text-label-md rounded-xl hover:bg-red-700 shadow-sm transition-all font-semibold flex items-center gap-1">
                     <span class="material-symbols-outlined text-[18px]">delete</span>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CONFIRMACIÓN ASIGNACIÓN EN MASA ================= -->
+    <div id="asp-bulk-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
+        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-lg py-md border-b border-outline-variant bg-surface-container-low">
+                <div class="flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined text-2xl font-bold">school</span>
+                    <h2 class="text-headline-md font-headline-md font-bold">Confirmar Asignación</h2>
+                </div>
+                <button type="button" onclick="toggleAspBulkModal(false)"
+                    class="text-on-surface-variant hover:bg-surface-container-high p-1 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Content -->
+            <div class="p-lg space-y-md">
+                <p class="text-body-md text-on-surface-variant">
+                    ¿Está seguro de que desea asignar el programa <span id="asp-confirm-program-name" class="font-bold text-primary"></span> a todos los estudiantes visibles en la tabla?
+                </p>
+                <div class="bg-primary/5 border border-primary/20 rounded-xl p-md flex gap-sm">
+                    <span class="material-symbols-outlined text-primary text-2xl shrink-0">info</span>
+                    <p class="text-[12px] text-primary/80 leading-normal">Esta acción actualizará el programa de estudio de todos los estudiantes listados actualmente.</p>
+                </div>
+            </div>
+            <!-- Actions -->
+            <div class="flex justify-end gap-md p-lg border-t border-outline-variant bg-surface-container-low">
+                <button type="button" onclick="toggleAspBulkModal(false)"
+                    class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-xl hover:bg-surface-container-high transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-asp-bulk" type="button" onclick="executeAspBulkAssign()"
+                    class="px-6 py-2.5 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:opacity-95 shadow-sm transition-all font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">done</span>
                     Confirmar
                 </button>
             </div>
@@ -7171,9 +7183,6 @@
         const aspPageSize     = 15;
 
         function aspLoadUsers() {
-            const q       = document.getElementById('asp-search-input')?.value.trim() ?? '';
-            const progFilter = document.getElementById('asp-program-filter')?.value ?? '';
-
             // Show loading state
             const tbody = document.getElementById('asp-table-body');
             if (tbody) {
@@ -7181,18 +7190,12 @@
                     <span class="material-symbols-outlined text-4xl text-outline mb-2 block animate-spin">refresh</span>Cargando...</td></tr>`;
             }
 
-            fetch(`/admin/users/search-persons?q=${encodeURIComponent(q)}`)
+            fetch('/admin/users/search-persons')
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) throw new Error('Error al cargar usuarios');
                     aspAllUsers = data.users || [];
-
-                    // Apply program filter on client side
-                    aspFilteredUsers = aspAllUsers.filter(u => {
-                        if (!progFilter) return true;
-                        if (progFilter === '__none__') return !u.study_program_id;
-                        return String(u.study_program_id) === String(progFilter);
-                    });
+                    aspFilteredUsers = aspAllUsers;
 
                     aspCurrentPage = 1;
                     aspRenderTable();
@@ -7230,7 +7233,7 @@
             if (!pageItems.length) {
                 tbody.innerHTML = `<tr><td colspan="4" class="px-lg py-xl text-center text-on-surface-variant">
                     <span class="material-symbols-outlined text-4xl text-outline mb-2 block">person_search</span>
-                    No se encontraron usuarios con esos criterios.</td></tr>`;
+                    No se encontraron usuarios.</td></tr>`;
             } else {
                 const programs = window.aspStudyPrograms || [];
                 const optionsHtml = programs.map(p =>
@@ -7305,14 +7308,6 @@
             aspRenderTable();
         }
 
-        function aspClearFilters() {
-            const searchInput = document.getElementById('asp-search-input');
-            const programFilter = document.getElementById('asp-program-filter');
-            if (searchInput) searchInput.value = '';
-            if (programFilter) programFilter.value = '';
-            aspLoadUsers();
-        }
-
         function aspAssign(personId, userId) {
             const sel = document.getElementById(`asp-select-${personId}`);
             if (!sel) return;
@@ -7361,6 +7356,21 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
+        // Toggle Modal
+        function toggleAspBulkModal(show) {
+            const modal = document.getElementById('asp-bulk-confirm-modal');
+            if (!modal) return;
+            const container = modal.querySelector('.max-w-md');
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => container.classList.remove('scale-95'), 10);
+            } else {
+                container.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // Open Modal Confirmation
         function aspBulkAssign() {
             const programId = document.getElementById('asp-bulk-program')?.value;
             if (!programId) {
@@ -7373,9 +7383,23 @@
             }
             const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(programId));
             const progName = prog ? prog.name : 'el programa seleccionado';
-            const total = aspFilteredUsers.length;
 
-            if (!confirm(`¿Asignar "${progName}" a los ${total} estudiantes visibles en la tabla?`)) return;
+            // Cargar datos al modal
+            const nameEl = document.getElementById('asp-confirm-program-name');
+            if (nameEl) nameEl.textContent = progName;
+
+            toggleAspBulkModal(true);
+        }
+
+        // Execute bulk assignment
+        function executeAspBulkAssign() {
+            const programId = document.getElementById('asp-bulk-program')?.value;
+            const prog = (window.aspStudyPrograms || []).find(p => String(p.id) === String(programId));
+            const progName = prog ? prog.name : 'el programa seleccionado';
+            const okMsg = `✓ Estudiantes actualizados con "${progName}"`;
+
+            // Cerrar el modal
+            toggleAspBulkModal(false);
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -7407,7 +7431,7 @@
                 aspUpdateStats();
 
                 if (fail === 0) {
-                    showToast(`✓ ${ok} estudiantes actualizados con "${progName}"`, 'check_circle');
+                    showToast(okMsg, 'check_circle');
                 } else {
                     showToast(`${ok} actualizados, ${fail} fallaron.`, 'warning');
                 }
@@ -7418,19 +7442,7 @@
             });
         }
 
-        // Search on Enter key
-        document.addEventListener('DOMContentLoaded', function () {
-            const aspInput = document.getElementById('asp-search-input');
-            if (aspInput) {
-                aspInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') aspLoadUsers();
-                });
-            }
-            const aspProgramFilter = document.getElementById('asp-program-filter');
-            if (aspProgramFilter) {
-                aspProgramFilter.addEventListener('change', aspLoadUsers);
-            }
-        });
+
         // =====================================================================
     </script>
 </body>
