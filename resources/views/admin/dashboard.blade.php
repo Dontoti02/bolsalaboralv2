@@ -7539,6 +7539,240 @@
 
         // =====================================================================
     </script>
+
+@push('scripts')
+<script type="module">
+import Chart from 'chart.js/auto';
+
+// Data from controller
+const monthlyStats = @json($monthlyStats);
+const roleDistribution = @json($roleDistribution);
+const topCompanies = @json($topCompanies);
+
+// --- Chart 1: Registration Trends (Line/Area) ---
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+
+// Create gradients
+const gradientUsers = trendCtx.createLinearGradient(0, 0, 0, 300);
+gradientUsers.addColorStop(0, 'rgba(0, 39, 65, 0.3)');
+gradientUsers.addColorStop(1, 'rgba(0, 39, 65, 0.0)');
+
+const gradientOffers = trendCtx.createLinearGradient(0, 0, 0, 300);
+gradientOffers.addColorStop(0, 'rgba(0, 107, 96, 0.3)');
+gradientOffers.addColorStop(1, 'rgba(0, 107, 96, 0.0)');
+
+const gradientApps = trendCtx.createLinearGradient(0, 0, 0, 300);
+gradientApps.addColorStop(0, 'rgba(255, 159, 67, 0.3)');
+gradientApps.addColorStop(1, 'rgba(255, 159, 67, 0.0)');
+
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: monthlyStats.map(m => m.label),
+        datasets: [
+            {
+                label: 'Usuarios',
+                data: monthlyStats.map(m => m.users),
+                borderColor: '#002741',
+                backgroundColor: gradientUsers,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#002741',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            },
+            {
+                label: 'Ofertas',
+                data: monthlyStats.map(m => m.offers),
+                borderColor: '#006b60',
+                backgroundColor: gradientOffers,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#006b60',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            },
+            {
+                label: 'Postulaciones',
+                data: monthlyStats.map(m => m.applications),
+                borderColor: '#ff9f43',
+                backgroundColor: gradientApps,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ff9f43',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            },
+        ],
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index',
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 20,
+                    font: { family: 'Inter', size: 12 },
+                },
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: { family: 'Inter', size: 13 },
+                bodyFont: { family: 'Inter', size: 12 },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+            },
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Inter', size: 11 } },
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: {
+                    font: { family: 'Inter', size: 11 },
+                    stepSize: 1,
+                },
+            },
+        },
+    },
+});
+
+// --- Chart 2: Role Distribution (Doughnut) ---
+const roleCtx = document.getElementById('roleChart').getContext('2d');
+
+new Chart(roleCtx, {
+    type: 'doughnut',
+    data: {
+        labels: roleDistribution.map(r => r.label),
+        datasets: [{
+            data: roleDistribution.map(r => r.total),
+            backgroundColor: roleDistribution.map(r => r.color),
+            borderColor: '#ffffff',
+            borderWidth: 3,
+            hoverBorderWidth: 0,
+            hoverOffset: 8,
+        }],
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: { family: 'Inter', size: 13 },
+                bodyFont: { family: 'Inter', size: 12 },
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                        return ` ${context.label}: ${context.raw} (${pct}%)`;
+                    },
+                },
+            },
+        },
+    },
+});
+
+// Render custom legend
+const legendContainer = document.getElementById('roleLegend');
+const totalUsersCount = roleDistribution.reduce((sum, r) => sum + r.total, 0);
+roleDistribution.forEach(r => {
+    const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(1) : 0;
+    legendContainer.innerHTML += `
+        <div class="flex items-center gap-1.5 text-xs">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${r.color}"></span>
+            <span class="text-on-surface-variant font-medium">${r.label}</span>
+            <span class="text-on-surface font-semibold">${pct}%</span>
+        </div>
+    `;
+});
+
+// --- Chart 3: Top Companies (Horizontal Bar) ---
+const companiesCtx = document.getElementById('companiesChart').getContext('2d');
+
+const barGradient = companiesCtx.createLinearGradient(0, 0, 500, 0);
+barGradient.addColorStop(0, '#002741');
+barGradient.addColorStop(1, '#006b60');
+
+new Chart(companiesCtx, {
+    type: 'bar',
+    data: {
+        labels: topCompanies.map(c => c.name),
+        datasets: [{
+            label: 'Ofertas',
+            data: topCompanies.map(c => c.total),
+            backgroundColor: barGradient,
+            borderRadius: 8,
+            borderSkipped: false,
+            barThickness: 28,
+        }],
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: { family: 'Inter', size: 13 },
+                bodyFont: { family: 'Inter', size: 12 },
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: function(context) {
+                        return ` ${context.raw} ofertas publicadas`;
+                    },
+                },
+            },
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: {
+                    font: { family: 'Inter', size: 11 },
+                    stepSize: 1,
+                },
+            },
+            y: {
+                grid: { display: false },
+                ticks: {
+                    font: { family: 'Inter', size: 12, weight: '500' },
+                    color: '#1a1a1a',
+                },
+            },
+        },
+    },
+});
+</script>
+@endpush
+
+@stack('scripts')
 </body>
 
 </html>
