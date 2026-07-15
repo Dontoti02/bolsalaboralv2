@@ -2085,7 +2085,7 @@
                                 class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Categor&iacute;as</button>
                             <button type="button" data-maintainer-type="location"
                                 onclick="selectMaintainerType('location')"
-                                class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Ubicaciones</button>
+                                class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Modalidades de trabajo</button>
                             <button type="button" data-maintainer-type="contract_type"
                                 onclick="selectMaintainerType('contract_type')"
                                 class="maintainer-tab px-4 py-4 text-label-md font-label-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors">Tipos
@@ -5048,7 +5048,7 @@
         const maintainerConfig = {
             work_schedule: { collection: 'work_schedules', singular: 'jornada laboral' },
             category: { collection: 'categories', singular: 'categor\u00eda' },
-            location: { collection: 'locations', singular: 'ubicaci\u00f3n' },
+            location: { collection: 'locations', singular: 'modalidad de trabajo' },
             contract_type: { collection: 'contract_types', singular: 'tipo de contrato' },
             study_program: { collection: 'study_programs', singular: 'programa de estudio' }
         };

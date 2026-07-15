@@ -101,7 +101,7 @@ class CompanyDashboardController extends Controller
 
             // All Offers
             $offers = JobOpportunityOffer::where('company_id', $company->id)
-                ->with(['state', 'location', 'workSchedule', 'contractType', 'category'])
+                ->with(['state', 'modality', 'workSchedule', 'contractType', 'category'])
                 ->withCount(['applications as applicants_count' => function ($q) {
                     $q->whereNull('deleted_at');
                 }])
@@ -111,7 +111,7 @@ class CompanyDashboardController extends Controller
 
             // Load options for publishing modal
             $categories = DB::table('job_opportunity_offer_category')->get();
-            $locations = DB::table('job_opportunity_location')->get();
+            $locations = DB::table('job_opportunity_modalities')->get();
             $schedules = DB::table('job_opportunity_work_schedules')->get();
             $contracts = DB::table('job_opportunity_contract_types')->get();
 
@@ -332,6 +332,11 @@ class CompanyDashboardController extends Controller
             ], 403);
         }
 
+        // Mapeo para retrocompatibilidad
+        if ($request->has('location_id') && !$request->has('modality_id')) {
+            $request->merge(['modality_id' => $request->location_id]);
+        }
+
         $validator = Validator::make($request->all(), [
             'title'            => 'required|string|max:255',
             'description'      => 'required|string',
@@ -344,7 +349,7 @@ class CompanyDashboardController extends Controller
             'address'          => 'required|string|max:255',
             'department'       => 'required|string|max:255',
             'province'         => 'required|string|max:255',
-            'location_id'      => 'required|integer',
+            'modality_id'      => 'required|integer',
             'category_id'      => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
@@ -397,7 +402,7 @@ class CompanyDashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => '¡Oferta laboral creada exitosamente!',
-                'offer'   => $offer->load(['company', 'location', 'state', 'category', 'workSchedule', 'contractType']),
+                'offer'   => $offer->load(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType']),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -413,7 +418,7 @@ class CompanyDashboardController extends Controller
         $user    = Auth::user();
         $company = $user->company;
 
-        $offer = JobOpportunityOffer::with(['company', 'location', 'state', 'category', 'workSchedule', 'contractType'])
+        $offer = JobOpportunityOffer::with(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])
             ->where('id', $id)
             ->where('company_id', $company->id)
             ->first();
@@ -450,6 +455,11 @@ class CompanyDashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Oferta no encontrada.'], 404);
         }
 
+        // Mapeo para retrocompatibilidad
+        if ($request->has('location_id') && !$request->has('modality_id')) {
+            $request->merge(['modality_id' => $request->location_id]);
+        }
+
         $validator = Validator::make($request->all(), [
             'title'            => 'required|string|max:255',
             'description'      => 'required|string',
@@ -462,7 +472,7 @@ class CompanyDashboardController extends Controller
             'address'          => 'required|string|max:255',
             'department'       => 'required|string|max:255',
             'province'         => 'required|string|max:255',
-            'location_id'      => 'required|integer',
+            'modality_id'      => 'required|integer',
             'category_id'      => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
@@ -492,7 +502,7 @@ class CompanyDashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => '¡Oferta actualizada exitosamente!',
-                'offer'   => $offer->load(['company', 'location', 'state', 'category', 'workSchedule', 'contractType']),
+                'offer'   => $offer->load(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType']),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -675,7 +685,7 @@ class CompanyDashboardController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'type' => 'required|string|in:contract_type,work_schedule,location,category',
+            'type' => 'required|string|in:contract_type,work_schedule,location,modality,category',
             'name' => 'required|string|max:255',
         ]);
 
@@ -699,7 +709,8 @@ class CompanyDashboardController extends Controller
                     $item = \App\Models\JobOpportunityWorkSchedule::create(['name' => $name]);
                     break;
                 case 'location':
-                    $item = \App\Models\JobOpportunityLocation::create(['name' => $name]);
+                case 'modality':
+                    $item = \App\Models\JobOpportunityModality::create(['name' => $name]);
                     break;
                 case 'category':
                     $item = \App\Models\JobOpportunityOfferCategory::create(['name' => $name]);

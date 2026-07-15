@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class JobOpportunityLocation extends Model
+class JobOpportunityModality extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -15,7 +15,7 @@ class JobOpportunityLocation extends Model
      *
      * @var string
      */
-    protected $table = 'job_opportunity_location';
+    protected $table = 'job_opportunity_modalities';
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +28,6 @@ class JobOpportunityLocation extends Model
 
     public function offers()
     {
-        return $this->hasMany(JobOpportunityOffer::class, 'location_id');
+        return $this->hasMany(JobOpportunityOffer::class, 'modality_id');
     }
 }

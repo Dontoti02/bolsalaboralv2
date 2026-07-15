@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\JobOpportunityOffer;
 use App\Models\JobOpportunityOfferCategory;
-use App\Models\JobOpportunityLocation;
+use App\Models\JobOpportunityModality;
 use App\Models\JobOpportunityWorkSchedule;
 use App\Models\JobOpportunityContractType;
 use Illuminate\Http\Request;
@@ -44,7 +44,7 @@ class LandingController extends Controller
             $totalCompanies    = Company::where('is_verified', true)->where(function($q){ $q->whereNull('deleted_at'); })->count();
 
             // Ofertas destacadas (últimas activas)
-            $featuredOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'location', 'workSchedule', 'contractType'])
+            $featuredOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'))
                 ->orderBy('publication_date', 'desc')
                 ->take(9)
@@ -53,7 +53,7 @@ class LandingController extends Controller
             // Buscar oferta compartida por URL
             $sharedOffer = null;
             if (request()->has('offer')) {
-                $sharedOffer = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'location', 'workSchedule', 'contractType'])
+                $sharedOffer = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                     ->where('id', request()->offer)
                     ->first();
             }
@@ -73,7 +73,7 @@ class LandingController extends Controller
 
             // Metadata para filtros
             $categories     = JobOpportunityOfferCategory::all();
-            $locations      = JobOpportunityLocation::all();
+            $locations      = JobOpportunityModality::all();
             $workSchedules  = JobOpportunityWorkSchedule::all();
             $contractTypes  = JobOpportunityContractType::all();
 
@@ -202,7 +202,7 @@ class LandingController extends Controller
     public function searchOffers(Request $request)
     {
         try {
-            $query = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'location', 'workSchedule', 'contractType'])
+            $query = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'));
 
             if ($request->filled('search')) {
@@ -226,8 +226,8 @@ class LandingController extends Controller
             if ($request->filled('category_id')) {
                 $query->where('category_id', $request->category_id);
             }
-            if ($request->filled('location_id')) {
-                $query->where('location_id', $request->location_id);
+            if ($request->filled('modality_id')) {
+                $query->where('modality_id', $request->modality_id);
             }
             if ($request->filled('work_schedule_id')) {
                 $query->where('work_schedule_id', $request->work_schedule_id);

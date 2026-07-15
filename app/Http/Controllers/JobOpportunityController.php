@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobOpportunityOffer;
 use App\Models\JobOpportunityContractType;
 use App\Models\JobOpportunityWorkSchedule;
-use App\Models\JobOpportunityLocation;
+use App\Models\JobOpportunityModality;
 use App\Models\JobOpportunityOfferCategory;
 use App\Models\JobOpportunityOfferState;
 use App\Models\Company;
@@ -429,7 +429,7 @@ class JobOpportunityController extends Controller
                 'success' => true,
                 'companies' => Company::all(),
                 'categories' => JobOpportunityOfferCategory::all(),
-                'locations' => JobOpportunityLocation::all(),
+                'locations' => JobOpportunityModality::all(),
                 'work_schedules' => JobOpportunityWorkSchedule::all(),
                 'contract_types' => JobOpportunityContractType::all(),
                 'states' => JobOpportunityOfferState::all(),
@@ -449,7 +449,7 @@ class JobOpportunityController extends Controller
     public function addMetadataItem(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'type' => 'required|string|in:contract_type,work_schedule,location,category,study_program',
+            'type' => 'required|string|in:contract_type,work_schedule,location,modality,category,study_program',
             'name' => 'required|string|max:255',
         ]);
 
@@ -473,7 +473,8 @@ class JobOpportunityController extends Controller
                     $item = JobOpportunityWorkSchedule::create(['name' => $name]);
                     break;
                 case 'location':
-                    $item = JobOpportunityLocation::create(['name' => $name]);
+                case 'modality':
+                    $item = JobOpportunityModality::create(['name' => $name]);
                     break;
                 case 'category':
                     $item = JobOpportunityOfferCategory::create(['name' => $name]);
@@ -501,7 +502,7 @@ class JobOpportunityController extends Controller
         $validator = Validator::make(
             ['type' => $type, 'name' => $request->input('name')],
             [
-                'type' => 'required|string|in:contract_type,work_schedule,location,category,study_program',
+                'type' => 'required|string|in:contract_type,work_schedule,location,modality,category,study_program',
                 'name' => 'required|string|max:255',
             ]
         );
@@ -551,7 +552,7 @@ class JobOpportunityController extends Controller
 
     public function deleteMetadataItem(string $type, int $id)
     {
-        if (!in_array($type, ['contract_type', 'work_schedule', 'location', 'category', 'study_program'], true)) {
+        if (!in_array($type, ['contract_type', 'work_schedule', 'location', 'modality', 'category', 'study_program'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => "El tipo de mantenedor no es v\u{00E1}lido."
@@ -601,7 +602,7 @@ class JobOpportunityController extends Controller
         return match ($type) {
             'contract_type' => JobOpportunityContractType::class,
             'work_schedule' => JobOpportunityWorkSchedule::class,
-            'location' => JobOpportunityLocation::class,
+            'location', 'modality' => JobOpportunityModality::class,
             'category' => JobOpportunityOfferCategory::class,
             'study_program' => StudyProgram::class,
         };

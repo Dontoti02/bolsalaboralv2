@@ -38,7 +38,7 @@ class JobOpportunityOffer extends Model
         'province',
         'country',
         'company_id',
-        'location_id',
+        'modality_id',
         'state_id',
         'category_id',
         'work_schedule_id',
@@ -61,9 +61,9 @@ class JobOpportunityOffer extends Model
         return $this->belongsTo(Company::class, 'company_id');
     }
 
-    public function location()
+    public function modality()
     {
-        return $this->belongsTo(JobOpportunityLocation::class, 'location_id');
+        return $this->belongsTo(JobOpportunityModality::class, 'modality_id');
     }
 
     public function state()
