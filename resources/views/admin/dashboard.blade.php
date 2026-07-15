@@ -358,7 +358,7 @@
         <h3 class="text-headline-sm font-headline-sm text-on-background">Top Empresas con Más Ofertas</h3>
         <span class="text-label-sm text-on-surface-variant">Top 5</span>
     </div>
-    <div class="p-lg" style="height: 280px;">
+    <div class="p-lg" style="height: 320px;">
         <canvas id="companiesChart"></canvas>
     </div>
 </div>
@@ -7709,39 +7709,82 @@ roleDistribution.forEach(r => {
     `;
 });
 
-// --- Chart 3: Top Companies (Horizontal Bar) ---
+// --- Chart 3: Top Companies (Vertical Bar - Premium) ---
 const companiesCtx = document.getElementById('companiesChart').getContext('2d');
 
-const barGradient = companiesCtx.createLinearGradient(0, 0, 500, 0);
-barGradient.addColorStop(0, '#002741');
-barGradient.addColorStop(1, '#006b60');
+// Individual gradient per bar
+const barColors = topCompanies.map((_, i) => {
+    const gradient = companiesCtx.createLinearGradient(0, 0, 0, 320);
+    const stops = [
+        ['#002741', '#0f3d5e'],
+        ['#006b60', '#18A999'],
+        ['#ff9f43', '#fbbf24'],
+        ['#18A999', '#006b60'],
+        ['#0f3d5e', '#002741'],
+    ];
+    const [top, bottom] = stops[i % stops.length];
+    gradient.addColorStop(0, top);
+    gradient.addColorStop(1, bottom);
+    return gradient;
+});
+
+// Data labels plugin (inline)
+const dataLabelsPlugin = {
+    id: 'barDataLabels',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.getDatasetMeta(0).data.forEach((bar, i) => {
+            const value = chart.data.datasets[0].data[i];
+            ctx.save();
+            ctx.font = 'bold 13px Inter';
+            ctx.fillStyle = '#1a1a1a';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(value, bar.x, bar.y - 6);
+            ctx.restore();
+        });
+    },
+};
 
 new Chart(companiesCtx, {
     type: 'bar',
+    plugins: [dataLabelsPlugin],
     data: {
-        labels: topCompanies.map(c => c.name),
+        labels: topCompanies.map(c => {
+            const name = c.name;
+            return name.length > 18 ? name.substring(0, 16) + '...' : name;
+        }),
         datasets: [{
             label: 'Ofertas',
             data: topCompanies.map(c => c.total),
-            backgroundColor: barGradient,
-            borderRadius: 8,
+            backgroundColor: barColors,
+            borderRadius: { topLeft: 8, topRight: 8 },
             borderSkipped: false,
-            barThickness: 28,
+            barPercentage: 0.6,
+            categoryPercentage: 0.7,
         }],
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y',
+        layout: {
+            padding: { top: 25 },
+        },
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleFont: { family: 'Inter', size: 13 },
+                backgroundColor: 'rgba(0, 39, 65, 0.95)',
+                titleFont: { family: 'Inter', size: 13, weight: '600' },
                 bodyFont: { family: 'Inter', size: 12 },
-                padding: 12,
-                cornerRadius: 8,
+                padding: 14,
+                cornerRadius: 10,
+                displayColors: true,
+                boxPadding: 4,
                 callbacks: {
+                    title: function(items) {
+                        const idx = items[0].dataIndex;
+                        return topCompanies[idx].name;
+                    },
                     label: function(context) {
                         return ` ${context.raw} ofertas publicadas`;
                     },
@@ -7750,18 +7793,26 @@ new Chart(companiesCtx, {
         },
         scales: {
             x: {
-                beginAtZero: true,
-                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                grid: { display: false },
+                border: { display: false },
                 ticks: {
-                    font: { family: 'Inter', size: 11 },
-                    stepSize: 1,
+                    font: { family: 'Inter', size: 11, weight: '500' },
+                    color: '#64748b',
+                    maxRotation: 0,
                 },
             },
             y: {
-                grid: { display: false },
+                beginAtZero: true,
+                border: { display: false },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.04)',
+                    drawTicks: false,
+                },
                 ticks: {
-                    font: { family: 'Inter', size: 12, weight: '500' },
-                    color: '#1a1a1a',
+                    font: { family: 'Inter', size: 11 },
+                    color: '#94a3b8',
+                    stepSize: 1,
+                    padding: 8,
                 },
             },
         },
