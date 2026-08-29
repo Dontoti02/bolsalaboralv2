@@ -1,6 +1,61 @@
-# 🎯 Bolsa Laboral v2 — Manual de Instalación y Configuración
+# 🎯 Bolsa Laboral v2 — Sistema de Bolsa Laboral para Instituciones Educativas
 
-Sistema de bolsa de empleo para instituciones educativas. Permite a **estudiantes/egresados** postular a ofertas y a **empresas** publicar vacantes y gestionar postulantes.
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9D%A4-red.svg)](https://github.com/Dontoti02/bolsalaboralv2)
+[![Laravel](https://img.shields.io/badge/Laravel-12-red.svg)](https://laravel.com)
+
+Sistema de bolsa de empleo **open source y de uso libre** para instituciones educativas. Permite a **estudiantes/egresados** postular a ofertas y a **empresas** publicar vacantes y gestionar postulantes.
+
+> 🆓 **Este proyecto es completamente gratuito y de código abierto.** Cualquier institución educativa (IEST, universidad, colegio técnico, etc.) puede usarlo, adaptarlo y redistribuirlo libremente.
+
+---
+
+## 🏫 ¿Tu institución necesita una bolsa laboral?
+
+<a name="usa-este-proyecto"></a>
+
+¿Eres docente, coordinador o desarrollador de una institución educativa y necesitas conectar a tus egresados con empleadores? **Este sistema está hecho para ti.**
+
+### ✅ ¿Qué incluye?
+
+- 📋 Publicación y gestión de ofertas laborales
+- 🎓 Registro de estudiantes y egresados
+- 🏢 Panel para empresas empleadoras
+- 👩‍💼 Panel de administración institucional
+- 👩‍🏫 Roles: Administrador, Docente/Tutor, Estudiante, Empresa
+- 📧 Notificaciones por correo electrónico
+- 📊 Dashboard con estadísticas
+- 🔒 Seguridad robusta (CSRF, XSS, rate limiting)
+
+### 🚀 Pasos para adoptarlo en tu institución
+
+```bash
+# 1. Clona el repositorio
+git clone https://github.com/Dontoti02/bolsalaboralv2.git mi-bolsa-laboral
+cd mi-bolsa-laboral
+
+# 2. Instala dependencias
+composer install
+npm install && npm run build
+
+# 3. Configura tu entorno
+cp .env.example .env
+php artisan key:generate
+
+# 4. Configura tu base de datos en .env y ejecuta migraciones
+php artisan migrate --seed
+
+# 5. ¡Listo! Corre el servidor
+php artisan serve
+```
+
+### 💬 ¿Necesitas ayuda para adaptarlo?
+
+- Abre un [Issue en GitHub](https://github.com/Dontoti02/bolsalaboralv2/issues) con tus dudas
+- Haz un **Fork** del proyecto y personalízalo con el nombre de tu institución
+- Contribuye de vuelta con mejoras que puedan ayudar a otras instituciones
+
+> 💡 **¿Quieres que tu institución aparezca aquí?** Abre un PR o Issue diciendo que estás usando el sistema.
 
 ---
 
@@ -550,7 +605,43 @@ routes/web.php                     # Rutas web (auth, dashboards, API notificaci
 
 ## 📝 Licencia
 
-Proyecto privado para **IESTP Colonia del Caco**. Uso interno institucional.
+Este proyecto está publicado bajo la licencia **MIT** — libre para uso personal, educativo y comercial.
+
+```
+MIT License
+
+Copyright (c) 2025 Dontoti02
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## 🏛️ Instituciones que usan este sistema
+
+<a name="instituciones"></a>
+
+| Institución | País | Link |
+|-------------|------|------|
+| IESTP Colonia del Caco | 🇵🇪 Perú | *(proyecto original)* |
+
+> ¿Tu institución usa este sistema? [Abre un Issue](https://github.com/Dontoti02/bolsalaboralv2/issues) para aparecer aquí.
 
 ---
 
@@ -558,4 +649,10 @@ Proyecto privado para **IESTP Colonia del Caco**. Uso interno institucional.
 
 Desarrollado con **Laravel 12**, **Tailwind CSS 4**, **Vite**, **MySQL**.
 
-**Última actualización:** Julio 2025
+**Última actualización:** Agosto 2026
+
+---
+
+<p align="center">
+  Hecho con ❤️ para la comunidad educativa · <a href="#usa-este-proyecto">¿Quieres usarlo en tu institución?</a>
+</p>
