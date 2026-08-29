@@ -137,6 +137,11 @@ class JobOpportunityController extends Controller
      */
     public function store(Request $request)
     {
+        // Mapeo para retrocompatibilidad (debe ir antes de la validación)
+        if ($request->has('location_id') && !$request->has('modality_id')) {
+            $request->merge(['modality_id' => $request->location_id]);
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -162,11 +167,6 @@ class JobOpportunityController extends Controller
                 'success' => false,
                 'message' => $validator->errors()->first()
             ], 422);
-        }
-
-        // Mapeo para retrocompatibilidad
-        if ($request->has('location_id') && !$request->has('modality_id')) {
-            $request->merge(['modality_id' => $request->location_id]);
         }
 
         try {

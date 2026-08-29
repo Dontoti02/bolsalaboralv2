@@ -1215,7 +1215,42 @@ function removeSkillTag(btn) {
 var loadedOffers = [];
 var sharedOffer  = @json($sharedOffer);
 var appliedOffers = new Set(@json($studentApplicationIds));
+var studentCvsData = @json($studentCvsJson);
 
+// ── Refresh postular modal CV selector ──────────────────────────────────────
+function refreshApplyFormCvs(){
+    var formContent = document.getElementById('apply-form-content');
+    if(!formContent) return;
+    if(studentCvsData.length === 0){
+        formContent.innerHTML =
+            '<p class="modal-sub" style="color:#dc2626">Necesitas subir al menos un CV antes de postular.</p>' +
+            '<div class="modal-actions">' +
+            '<button class="modal-btn-pri" onclick="closePostularModal();openModal(\'modal-cvs\')">' +
+            '<span class="material-symbols-outlined" style="font-size:18px">upload_file</span>' +
+            'Subir mi CV</button>' +
+            '<button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>' +
+            '</div>';
+        return;
+    }
+    var options = studentCvsData.map(function(cv){
+        return '<option value="'+cv.id+'">v'+cv.version+' — '+esc(cv.filename)+' ('+cv.uploaded_at+')</option>';
+    }).join('');
+    formContent.innerHTML =
+        '<div style="margin-bottom:12px">' +
+        '<label class="s-form-label" style="display:block;margin-bottom:6px">Selecciona tu CV</label>' +
+        '<select id="select-cv-id" class="s-form-input s-form-select">'+options+'</select>' +
+        '</div>' +
+        '<div style="margin-bottom:12px">' +
+        '<label class="s-form-label" style="display:block;margin-bottom:6px">Mensaje (opcional)</label>' +
+        '<textarea id="apply-message" class="s-form-input" rows="3" placeholder="Cuéntale a la empresa por qué eres el candidato ideal..." style="resize:vertical"></textarea>' +
+        '</div>' +
+        '<div class="modal-actions">' +
+        '<button id="btn-submit-apply" class="modal-btn-pri" onclick="submitApply()">' +
+        '<span class="material-symbols-outlined" style="font-size:18px">send</span>' +
+        'Enviar postulación</button>' +
+        '<button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>' +
+        '</div>';
+}
 
 // ── Init ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -1790,8 +1825,9 @@ function openPostularModal(){
         // Reset alert
         var al = document.getElementById('postular-alert');
         if(al){ al.style.display='none'; al.textContent=''; }
-        var msg = document.getElementById('apply-message');
-        if(msg) msg.value='';
+
+        // Refresh CV selector in case CVs were uploaded after page load
+        refreshApplyFormCvs();
 
         // Reset loading state
         var loadingEl = document.getElementById('apply-loading');
@@ -1970,6 +2006,8 @@ function uploadCv(file){
         if(d.success){
             showAlert('cvs-alert','success',d.message);
             var cv = d.cv;
+            // Track CV in global array for postular modal
+            studentCvsData.unshift({id: cv.id, version: cv.version, filename: cv.filename, uploaded_at: cv.uploaded_at});
             var list = document.getElementById('cvs-list');
             var empty = document.getElementById('cvs-empty');
             if(empty) empty.remove();
@@ -2010,6 +2048,8 @@ function deleteCv(id){
         if(d.success){
             var row = document.getElementById('cv-row-'+id);
             if(row) row.remove();
+            // Remove from global CV array
+            studentCvsData = studentCvsData.filter(function(cv){ return cv.id !== id; });
             showAlert('cvs-alert','success',d.message);
             // Update badge
             var badge = document.querySelector('.cv-badge');

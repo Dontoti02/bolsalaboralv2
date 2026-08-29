@@ -38,6 +38,25 @@ class LandingController extends Controller
             $config = [];
         }
 
+        // Default values for all variables used in compact()
+        $totalActiveOffers = 0;
+        $totalCompanies    = 0;
+        $featuredOffers    = collect();
+        $companies         = collect();
+        $categories        = collect();
+        $locations         = collect();
+        $workSchedules     = collect();
+        $contractTypes     = collect();
+        $availablePlaces   = collect();
+        $availableTitles   = collect();
+        $availableCompanies = collect();
+        $sharedOffer       = null;
+        $authUser          = null;
+        $studentCvs        = collect();
+        $studentCvsJson    = [];
+        $studentApplicationIds = [];
+        $studentApplications = collect();
+
         try {
             // Stats para el hero
             $totalActiveOffers = JobOpportunityOffer::whereHas('state', fn($q) => $q->where('key', 'active'))->count();
@@ -109,6 +128,7 @@ class LandingController extends Controller
         // Datos del estudiante autenticado
             $authUser = null;
             $studentCvs = collect();
+            $studentCvsJson = [];
             $studentApplicationIds = [];
             $studentApplications = collect();
 
@@ -127,6 +147,9 @@ class LandingController extends Controller
                                 ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
                             return $cv;
                         });
+                    $studentCvsJson = $studentCvs->map(function ($cv) {
+                        return ['id' => $cv->id, 'version' => $cv->version, 'filename' => $cv->filename, 'uploaded_at' => $cv->uploaded_at];
+                    })->values();
                     $studentApplicationIds = DB::table('job_opportunity_applications')
                         ->where('user_id', $authUser->id)
                         ->pluck('offer_id')
@@ -168,6 +191,7 @@ class LandingController extends Controller
             $availablePlaces   = collect();
             $authUser          = null;
             $studentCvs        = collect();
+            $studentCvsJson    = [];
             $studentApplicationIds = [];
             $studentApplications = collect();
             $availableTitles   = collect();
@@ -191,6 +215,7 @@ class LandingController extends Controller
             'sharedOffer',
             'authUser',
             'studentCvs',
+            'studentCvsJson',
             'studentApplicationIds',
             'studentApplications'
         ));

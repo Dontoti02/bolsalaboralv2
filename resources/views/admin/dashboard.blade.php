@@ -4627,7 +4627,13 @@
             if (/\d/.test(value)) strength++;
             if (/[^A-Za-z0-9]/.test(value)) strength++;
 
-            const labels = ['Sin evaluar', 'D?bil', 'Aceptable', 'Buena', 'Fuerte'];
+            if (!value) {
+                strength = 0;
+            } else if (strength === 0) {
+                strength = 1;
+            }
+
+            const labels = ['Sin evaluar', 'Débil', 'Aceptable', 'Buena', 'Fuerte'];
             const colors = ['bg-surface-container-highest', 'bg-red-500', 'bg-amber-500', 'bg-primary', 'bg-secondary'];
             document.getElementById('admin-password-strength-label').textContent = labels[strength];
             document.querySelectorAll('.admin-password-strength-bar').forEach((bar, index) => {

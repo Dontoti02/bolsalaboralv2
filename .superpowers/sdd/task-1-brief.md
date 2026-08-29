@@ -1,52 +1,24 @@
-### Task 1: Controller Update
-Retrieve the system configuration inside `CompanyDashboardController` and pass it to the view.
+# Task 1: Install Chart.js dependency
 
 **Files:**
-- Modify: `C:/xampp/htdocs/bolsalaboralv2/app/Http/Controllers/CompanyDashboardController.php`
+- Modify: `package.json`
 
-**Interfaces:**
-- Consumes: `system_configuration` table.
-- Produces: `$config` variable passed to the `company.dashboard` view.
+**Steps:**
 
-- [ ] **Step 1: Retrieve and inject $config into CompanyDashboardController**
-  
-  Replace lines 102-111 of `app/Http/Controllers/CompanyDashboardController.php` to fetch system configurations and pass them to the view.
-  
-  Code to replace:
-  ```php
-          return view('company.dashboard', compact(
-              'company',
-              'offersCount',
-              'activeOffersCount',
-              'applicantsCount',
-              'pendingApplicantsCount',
-              'recentOffers',
-              'recentApplicants'
-          ));
-  ```
-  with:
-  ```php
-          $config = DB::table('system_configuration')->pluck('value', 'key')->all();
-  
-          return view('company.dashboard', compact(
-              'company',
-              'offersCount',
-              'activeOffersCount',
-              'applicantsCount',
-              'pendingApplicantsCount',
-              'recentOffers',
-              'recentApplicants',
-              'config'
-          ));
-  ```
+- [ ] **Step 1: Install chart.js via npm**
 
-- [ ] **Step 2: Commit Task 1**
-  
-  Run command:
-  ```bash
-  git add app/Http/Controllers/CompanyDashboardController.php
-  git commit -m "feat: pass config database settings to company dashboard view"
-  ```
+Run: `npm install chart.js`
 
----
+Expected: `package.json` now includes `"chart.js"` in dependencies.
 
+- [ ] **Step 2: Verify installation**
+
+Run: `npm ls chart.js`
+Expected: `chart.js@4.x.x`
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add package.json package-lock.json
+git commit -m "feat: add chart.js dependency for admin dashboard charts"
+```
