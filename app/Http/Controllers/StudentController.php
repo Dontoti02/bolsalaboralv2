@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobOpportunityApplication;
 use App\Models\JobOpportunityOffer;
+use App\Models\SavedOffer;
 use App\Mail\ApplicationSubmittedMail;
 use App\Mail\NewApplicationMail;
 use Illuminate\Support\Facades\Mail;
@@ -557,6 +558,82 @@ class StudentController extends Controller
             'authUser',
             'studentCvs',
             'studentApplications'
+        ));
+    }
+
+    public function toggleSaveOffer(Request $request, $offer_id)
+    {
+        $user = Auth::user();
+
+        $offer = JobOpportunityOffer::find($offer_id);
+        if (!$offer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Oferta no encontrada.'
+            ], 404);
+        }
+
+        $saved = SavedOffer::where('user_id', $user->id)
+            ->where('offer_id', $offer_id)
+            ->first();
+
+        if ($saved) {
+            $saved->delete();
+            return response()->json([
+                'success' => true,
+                'saved' => false,
+                'message' => 'Oferta quitada de guardadas.'
+            ]);
+        }
+
+        SavedOffer::create([
+            'user_id' => $user->id,
+            'offer_id' => $offer_id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'saved' => true,
+            'message' => 'Oferta guardada exitosamente.'
+        ]);
+    }
+
+    public function savedOffers()
+    {
+        try {
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        } catch (\Exception $e) {
+            $config = [];
+        }
+
+        $authUser = Auth::user()->load('person');
+
+        $savedOffers = SavedOffer::where('user_id', $authUser->id)
+            ->with(['offer' => function ($q) {
+                $q->with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
+                  ->whereNull('job_opportunity_offer.deleted_at');
+            }])
+            ->whereHas('offer', function ($q) {
+                $q->whereNull('job_opportunity_offer.deleted_at');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->filter(function ($s) {
+                return $s->offer !== null;
+            })
+            ->map(function ($s) {
+                $offer = $s->offer;
+                $offer->company_name = $offer->company->name ?? 'Empresa';
+                $offer->location_name = $offer->modality->name ?? 'No especificada';
+                $offer->saved_at = $s->created_at;
+                return $offer;
+            })
+            ->values();
+
+        return view('student.saved-offers', compact(
+            'config',
+            'authUser',
+            'savedOffers'
         ));
     }
 }

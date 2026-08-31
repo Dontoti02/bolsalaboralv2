@@ -601,6 +601,13 @@
                         <span class="cv-badge" style="background:var(--sec)">{{ $studentApplications->count() }}</span>
                         @endif
                     </a>
+                    <a href="{{ route('student.saved.offers') }}" class="profile-dropdown-item">
+                        <span class="material-symbols-outlined">bookmark</span>
+                        Ofertas guardadas
+                        @if(count($studentSavedOfferIds ?? []))
+                        <span class="cv-badge" style="background:var(--acc)">{{ count($studentSavedOfferIds) }}</span>
+                        @endif
+                    </a>
                     @endif
                     <button class="profile-dropdown-item" onclick="openModal('modal-password');closeProfileMenu()">
                         <span class="material-symbols-outlined">lock</span> Cambiar contraseña
@@ -810,8 +817,8 @@
                                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
                                 Postularme
                             </button>
-                            <button class="btn-icon" title="Guardar" onclick="openPostularModal()">
-                                <span class="material-symbols-outlined" style="font-size:18px">bookmark_add</span>
+                            <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
+                                <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
                             </button>
                         @endif
                         <button class="btn-icon" title="Compartir" onclick="shareOffer()">
@@ -1234,6 +1241,7 @@ function removeSkillTag(btn) {
 var loadedOffers = [];
 var sharedOffer  = @json($sharedOffer);
 var appliedOffers = new Set(@json($studentApplicationIds));
+var savedOffers = new Set(@json($studentSavedOfferIds ?? []));
 var studentCvsData = @json($studentCvsJson);
 
 // ── Refresh postular modal CV selector ──────────────────────────────────────
@@ -1576,7 +1584,19 @@ function openDetail(o) {
             btnPostular.disabled = false;
             btnPostular.style.opacity = '1';
             btnPostular.style.cursor = 'pointer';
-            if(btnSave) btnSave.style.display = 'flex';
+            if(btnSave){
+                btnSave.style.display = 'flex';
+                var saveIcon = btnSave.querySelector('.material-symbols-outlined');
+                if(saveIcon){
+                    if(savedOffers.has(o.id)){
+                        saveIcon.textContent = 'bookmark';
+                        saveIcon.classList.add('filled');
+                    } else {
+                        saveIcon.textContent = 'bookmark_add';
+                        saveIcon.classList.remove('filled');
+                    }
+                }
+            }
         }
     }
 
@@ -1849,6 +1869,51 @@ function closeModal(id){
 
 // ── Offer ID for apply ───────────────────────────────────────────────────────
 var currentOfferId = null;
+
+function toggleSaveOffer(event){
+    event.stopPropagation();
+    if(!activeItemId) return;
+    var btn = document.getElementById('btn-save-offer');
+    var icon = document.getElementById('save-icon');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/student/save-offer/'+activeItemId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+        if(data.success){
+            if(data.saved){
+                savedOffers.add(activeItemId);
+                icon.textContent = 'bookmark';
+                icon.classList.add('filled');
+                showToast('Oferta guardada exitosamente.');
+            } else {
+                savedOffers.delete(activeItemId);
+                icon.textContent = 'bookmark_add';
+                icon.classList.remove('filled');
+                showToast('Oferta quitada de guardadas.');
+            }
+        } else {
+            showToast(data.message || 'Error al guardar oferta.', 'error');
+        }
+    })
+    .catch(function(){
+        showToast('Error de red al guardar oferta.', 'error');
+    })
+    .finally(function(){
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    });
+}
 
 function openPostularModal(){
     if(activeItemId) currentOfferId = activeItemId;

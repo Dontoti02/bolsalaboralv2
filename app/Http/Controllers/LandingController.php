@@ -56,6 +56,7 @@ class LandingController extends Controller
         $studentCvsJson    = [];
         $studentApplicationIds = [];
         $studentApplications = collect();
+        $studentSavedOfferIds = [];
 
         try {
             // Stats para el hero
@@ -155,6 +156,12 @@ class LandingController extends Controller
                         ->pluck('offer_id')
                         ->toArray();
 
+                    $studentSavedOfferIds = DB::table('saved_offers')
+                        ->where('user_id', $authUser->id)
+                        ->whereNull('deleted_at')
+                        ->pluck('offer_id')
+                        ->toArray();
+
                     $studentApplications = DB::table('job_opportunity_applications')
                         ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
                         ->join('job_opportunity_company', 'job_opportunity_offer.company_id', '=', 'job_opportunity_company.id')
@@ -197,6 +204,7 @@ class LandingController extends Controller
             $availableTitles   = collect();
             $availableCompanies = collect();
             $sharedOffer       = null;
+            $studentSavedOfferIds = [];
         }
 
         return view('landing', compact(
@@ -217,7 +225,8 @@ class LandingController extends Controller
             'studentCvs',
             'studentCvsJson',
             'studentApplicationIds',
-            'studentApplications'
+            'studentApplications',
+            'studentSavedOfferIds'
         ));
     }
 

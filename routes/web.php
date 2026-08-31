@@ -100,6 +100,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');
         Route::get('/student/cv/download/{id}', [\App\Http\Controllers\StudentController::class, 'downloadCv'])->name('student.cv.download');
         Route::post('/student/apply/{offer_id}', [\App\Http\Controllers\StudentController::class, 'applyToOffer'])->name('student.apply');
+        Route::post('/student/save-offer/{offer_id}', [\App\Http\Controllers\StudentController::class, 'toggleSaveOffer'])->name('student.save.offer');
+        Route::get('/student/saved-offers', [\App\Http\Controllers\StudentController::class, 'savedOffers'])->name('student.saved.offers');
     });
 
 
