@@ -31,7 +31,7 @@ class UserController extends Controller
             'names' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
             'phone' => 'nullable|string|max:20',
-            'role_id' => 'required|integer|in:1,2,3',
+            'role_id' => 'required|integer|in:1,2,3,4',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
         ], [
@@ -143,7 +143,7 @@ class UserController extends Controller
             'names' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email,' . $id,
             'phone' => 'nullable|string|max:20',
-            'role_id' => 'required|integer|in:1,2,3',
+            'role_id' => 'required|integer|in:1,2,3,4',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
         ], [

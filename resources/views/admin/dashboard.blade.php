@@ -2733,10 +2733,11 @@
                             for="form-role">Rol</label>
                         <select
                             class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
-                            id="form-role" required>
+                            id="form-role" required onchange="handleRoleChange(this.value)">
                             <option value="1">ADMINISTRADOR</option>
                             <option value="2">DOCENTE</option>
                             <option value="3">ESTUDIANTE</option>
+                            <option value="4">EMPRESA</option>
                         </select>
                     </div>
 
@@ -3824,6 +3825,27 @@
         }
 
         // Handle Create/Edit user form submit
+        function handleRoleChange(roleId) {
+            const docTypeSelect = document.getElementById('form-doc-type');
+            const docNumberInput = document.getElementById('form-doc-number');
+            
+            if (roleId == 4) {
+                docTypeSelect.value = 'RUC';
+                docNumberInput.placeholder = 'Ej. 20123456789';
+                docNumberInput.setAttribute('maxlength', '11');
+                docNumberInput.setAttribute('pattern', '\\d{11}');
+            } else if (roleId == 2 || roleId == 3) {
+                docTypeSelect.value = 'DNI';
+                docNumberInput.placeholder = 'Ej. 48293041';
+                docNumberInput.setAttribute('maxlength', '8');
+                docNumberInput.setAttribute('pattern', '\\d{8}');
+            } else {
+                docNumberInput.placeholder = 'Ej. 48293041';
+                docNumberInput.removeAttribute('maxlength');
+                docNumberInput.removeAttribute('pattern');
+            }
+        }
+
         function handleCreateUserSubmit(event) {
             event.preventDefault();
 
