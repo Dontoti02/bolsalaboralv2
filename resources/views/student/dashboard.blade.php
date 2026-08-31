@@ -577,6 +577,32 @@
                                     <span id="detail-deadline" class="font-semibold text-body-sm text-on-surface">-</span>
                                 </div>
                             </div>
+
+                            <!-- Sobre la empresa -->
+                            <div id="detail-company-info" class="hidden bg-surface-container-low p-4 rounded-2xl border border-outline-variant/60 space-y-4">
+                                <h4 class="font-bold text-body-md text-on-surface flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary text-[20px]">info</span>
+                                    Sobre la empresa
+                                </h4>
+                                <div id="detail-co-desc-section" class="hidden">
+                                    <span class="text-body-xs text-on-surface-variant block mb-1 font-semibold uppercase tracking-wide">Descripción</span>
+                                    <p id="detail-co-desc" class="text-body-sm text-on-surface-variant whitespace-pre-line leading-relaxed"></p>
+                                </div>
+                                <div id="detail-co-addr-section" class="hidden">
+                                    <span class="text-body-xs text-on-surface-variant block mb-1 font-semibold uppercase tracking-wide">Dirección</span>
+                                    <p id="detail-co-addr" class="text-body-sm text-on-surface flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">location_on</span>
+                                        <span id="detail-co-addr-text"></span>
+                                    </p>
+                                </div>
+                                <div id="detail-co-web-section" class="hidden">
+                                    <span class="text-body-xs text-on-surface-variant block mb-1 font-semibold uppercase tracking-wide">Página web</span>
+                                    <a id="detail-co-web" href="#" target="_blank" rel="noopener" class="text-body-sm text-primary font-semibold inline-flex items-center gap-1.5 hover:underline">
+                                        <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                                        <span id="detail-co-web-text"></span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tab: Relacionados -->
@@ -936,6 +962,37 @@
         document.getElementById('detail-contract').textContent = contractTypeName;
         document.getElementById('detail-category').textContent = categoryName;
         document.getElementById('detail-deadline').textContent = deadlineStr;
+
+        // Company info
+        const co = offer.company || {};
+        const coInfoEl = document.getElementById('detail-company-info');
+        const coDescSection = document.getElementById('detail-co-desc-section');
+        const coAddrSection = document.getElementById('detail-co-addr-section');
+        const coWebSection = document.getElementById('detail-co-web-section');
+        let hasCoInfo = false;
+
+        if (co.description) {
+            document.getElementById('detail-co-desc').textContent = co.description;
+            coDescSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coDescSection.classList.add('hidden'); }
+
+        if (co.address) {
+            document.getElementById('detail-co-addr-text').textContent = co.address;
+            coAddrSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coAddrSection.classList.add('hidden'); }
+
+        if (co.website) {
+            let url = co.website;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            document.getElementById('detail-co-web').href = url;
+            document.getElementById('detail-co-web-text').textContent = co.website.replace(/^https?:\/\//i, '');
+            coWebSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coWebSection.classList.add('hidden'); }
+
+        if (hasCoInfo) { coInfoEl.classList.remove('hidden'); } else { coInfoEl.classList.add('hidden'); }
 
         // Set company logo
         const logoContainer = document.getElementById('detail-company-logo');

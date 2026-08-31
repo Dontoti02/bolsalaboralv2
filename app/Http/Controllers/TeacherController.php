@@ -18,7 +18,7 @@ class TeacherController extends Controller
             $activeStateId = $activeState ? $activeState->id : 2;
 
             $activeOffers = JobOpportunityOffer::with([
-                    'company:id,name,logo',
+                    'company:id,name,logo,address,website,description',
                     'state',
                     'category:id,name',
                     'workSchedule:id,name',
@@ -47,7 +47,7 @@ class TeacherController extends Controller
             $closedStateId = $closedState ? $closedState->id : 3;
 
             $closedOffers = JobOpportunityOffer::with([
-                    'company:id,name,logo',
+                    'company:id,name,logo,address,website,description',
                     'state',
                     'category:id,name',
                     'workSchedule:id,name',

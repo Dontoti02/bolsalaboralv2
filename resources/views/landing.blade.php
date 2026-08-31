@@ -852,6 +852,25 @@
                         </span>
                     </div>
 
+                    <div id="d-company-info" style="display:none;border-top:1px solid var(--bor);padding-top:20px;margin-top:8px">
+                        <p class="d-section-title" style="display:flex;align-items:center;gap:8px">
+                            <span class="material-symbols-outlined" style="font-size:20px;color:var(--pri)">info</span>
+                            Sobre la empresa
+                        </p>
+                        <div id="d-company-description" style="display:none;margin-bottom:12px">
+                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Descripción</p>
+                            <p class="d-text" id="d-co-desc"></p>
+                        </div>
+                        <div id="d-company-address" style="display:none;margin-bottom:12px">
+                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Dirección</p>
+                            <p class="d-text" style="display:flex;align-items:center;gap:6px"><span class="material-symbols-outlined" style="font-size:16px;color:var(--tm)">location_on</span><span id="d-co-addr"></span></p>
+                        </div>
+                        <div id="d-company-website" style="display:none;margin-bottom:12px">
+                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Página web</p>
+                            <a id="d-co-web" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:var(--pri);font-weight:600;font-size:14px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:16px">open_in_new</span><span id="d-co-web-text"></span></a>
+                        </div>
+                    </div>
+
                     {{-- ── Empleos similares ── --}}
                     <div id="d-similar-section" style="margin-top:24px;border-top:1px solid var(--bor);padding-top:20px">
                         <p class="d-section-title">Empleos similares</p>
@@ -1525,6 +1544,21 @@ function openDetail(o) {
         try{ document.getElementById('d-deadline-text').textContent = 'Postulaciones hasta: '+new Date(o.deadline).toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}); } catch(e){}
         dlRow.style.display='block';
     } else { dlRow.style.display='none'; }
+
+    var coInfo = document.getElementById('d-company-info');
+    var coDesc = document.getElementById('d-company-description');
+    var coAddr = document.getElementById('d-company-address');
+    var coWeb  = document.getElementById('d-company-website');
+    var hasCoInfo = false;
+    if(co.description){ document.getElementById('d-co-desc').textContent=co.description; coDesc.style.display='block'; hasCoInfo=true; } else { coDesc.style.display='none'; }
+    if(co.address){ document.getElementById('d-co-addr').textContent=co.address; coAddr.style.display='block'; hasCoInfo=true; } else { coAddr.style.display='none'; }
+    if(co.website){
+        var url=co.website; if(!/^https?:\/\//i.test(url)) url='https://'+url;
+        document.getElementById('d-co-web').href=url;
+        document.getElementById('d-co-web-text').textContent=co.website.replace(/^https?:\/\//i,'');
+        coWeb.style.display='block'; hasCoInfo=true;
+    } else { coWeb.style.display='none'; }
+    coInfo.style.display=hasCoInfo?'block':'none';
 
     // Update apply button based on applied status
     var btnPostular = document.querySelector('.btn-postular');

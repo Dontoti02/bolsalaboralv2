@@ -43,7 +43,7 @@ class StudentController extends Controller
                 ->get();
 
             // All active offers (recommended jobs)
-            $activeOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'workSchedule', 'modality', 'contractType'])
+            $activeOffers = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'workSchedule', 'modality', 'contractType'])
                 ->whereHas('state', function ($q) {
                     $q->where('key', 'active');
                 })

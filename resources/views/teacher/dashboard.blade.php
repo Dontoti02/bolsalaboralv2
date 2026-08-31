@@ -274,6 +274,32 @@
                             Compartir Empleo
                         </button>
                     </div>
+
+                    <!-- Sobre la empresa -->
+                    <div id="detail-company-info" class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm space-y-md hidden">
+                        <h2 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[22px]">info</span>
+                            Sobre la empresa
+                        </h2>
+                        <div id="detail-co-desc-section" class="hidden">
+                            <span class="block text-[11px] text-on-surface-variant uppercase font-semibold mb-1">Descripción</span>
+                            <p id="detail-co-desc" class="text-body-sm text-on-surface leading-relaxed whitespace-pre-line"></p>
+                        </div>
+                        <div id="detail-co-addr-section" class="hidden">
+                            <span class="block text-[11px] text-on-surface-variant uppercase font-semibold mb-1">Dirección</span>
+                            <p id="detail-co-addr" class="text-body-sm text-on-surface flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">location_on</span>
+                                <span id="detail-co-addr-text"></span>
+                            </p>
+                        </div>
+                        <div id="detail-co-web-section" class="hidden">
+                            <span class="block text-[11px] text-on-surface-variant uppercase font-semibold mb-1">Página web</span>
+                            <a id="detail-co-web" href="#" target="_blank" rel="noopener" class="text-body-sm text-primary font-semibold inline-flex items-center gap-1.5 hover:underline">
+                                <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                                <span id="detail-co-web-text"></span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -340,6 +366,37 @@
         } else {
             logoContainer.innerHTML = `<span class="material-symbols-outlined text-4xl text-on-surface-variant">corporate_fare</span>`;
         }
+
+        // Company info
+        const co = offer.company || {};
+        const coInfoEl = document.getElementById('detail-company-info');
+        const coDescSection = document.getElementById('detail-co-desc-section');
+        const coAddrSection = document.getElementById('detail-co-addr-section');
+        const coWebSection = document.getElementById('detail-co-web-section');
+        let hasCoInfo = false;
+
+        if (co.description) {
+            document.getElementById('detail-co-desc').textContent = co.description;
+            coDescSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coDescSection.classList.add('hidden'); }
+
+        if (co.address) {
+            document.getElementById('detail-co-addr-text').textContent = co.address;
+            coAddrSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coAddrSection.classList.add('hidden'); }
+
+        if (co.website) {
+            let url = co.website;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            document.getElementById('detail-co-web').href = url;
+            document.getElementById('detail-co-web-text').textContent = co.website.replace(/^https?:\/\//i, '');
+            coWebSection.classList.remove('hidden');
+            hasCoInfo = true;
+        } else { coWebSection.classList.add('hidden'); }
+
+        if (hasCoInfo) { coInfoEl.classList.remove('hidden'); } else { coInfoEl.classList.add('hidden'); }
 
         // Configure share button
         const shareBtn = document.getElementById('btn-share-job');

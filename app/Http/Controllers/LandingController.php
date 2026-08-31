@@ -63,7 +63,7 @@ class LandingController extends Controller
             $totalCompanies    = Company::where('is_verified', true)->where(function($q){ $q->whereNull('deleted_at'); })->count();
 
             // Ofertas destacadas (últimas activas)
-            $featuredOffers = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
+            $featuredOffers = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'))
                 ->orderBy('publication_date', 'desc')
                 ->take(9)
@@ -72,7 +72,7 @@ class LandingController extends Controller
             // Buscar oferta compartida por URL
             $sharedOffer = null;
             if (request()->has('offer')) {
-                $sharedOffer = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
+                $sharedOffer = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                     ->where('id', request()->offer)
                     ->first();
             }
@@ -227,7 +227,7 @@ class LandingController extends Controller
     public function searchOffers(Request $request)
     {
         try {
-            $query = JobOpportunityOffer::with(['company:id,name,logo', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
+            $query = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'));
 
             if ($request->filled('search')) {
