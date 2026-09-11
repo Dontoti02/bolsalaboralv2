@@ -321,9 +321,9 @@ class AdminController extends Controller
                 'id' => $user->id,
                 'name' => $name,
                 'email' => $user->email ?? '',
-                'phone' => $user->person->phone ?? '',
-                'doc_type' => $user->person->document_type ?? 'Cédula',
-                'doc_number' => $user->person->document_number ?? '',
+                'phone' => $user->person ? ($user->person->phone ?? '') : ($user->company->phone ?? ''),
+                'doc_type' => $user->person ? ($user->person->document_type ?? 'DNI') : ($user->company ? 'RUC' : 'DNI'),
+                'doc_number' => $user->person ? ($user->person->document_number ?? '') : ($user->company->ruc ?? ''),
                 'rol_id' => $user->rol_id,
                 'is_active' => (bool) $user->is_active,
             ];

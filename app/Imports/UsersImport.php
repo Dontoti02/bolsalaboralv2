@@ -17,7 +17,6 @@ class UsersImport implements ToCollection, WithChunkReading
     public $importedUserIds = [];
     protected $existingEmails;
     protected $existingRucs;
-    protected $existingPeopleDnis;
     protected $isFirstChunk = true;
     protected $hashedPasswordCache = [];
 
@@ -39,14 +38,9 @@ class UsersImport implements ToCollection, WithChunkReading
             $this->existingEmails = User::pluck('email')->flip()->toArray();
         }
 
-        // Eager load existing RUCs once across all chunks
+        // Eager load existing RUCs once across all chunks (ruc => id)
         if ($this->existingRucs === null) {
             $this->existingRucs = Company::pluck('id', 'ruc')->toArray();
-        }
-
-        // Eager load existing DNI/document numbers once across all chunks
-        if ($this->existingPeopleDnis === null) {
-            $this->existingPeopleDnis = Person::pluck('id', 'document_number')->toArray();
         }
 
         $companiesToInsert = [];
@@ -54,7 +48,7 @@ class UsersImport implements ToCollection, WithChunkReading
         $usersToPrepare = [];
         
         $chunkNewRucs = [];
-        $chunkNewDnis = [];
+        $chunkPersonEmails = [];
 
         $isHeader = $this->isFirstChunk;
         $this->isFirstChunk = false;
@@ -66,12 +60,12 @@ class UsersImport implements ToCollection, WithChunkReading
             }
 
             // Access columns by numeric indexes
-            $names = trim($row[0] ?? '');
-            $docType = strtoupper(trim($row[1] ?? 'DNI'));
-            $docNumber = trim($row[2] ?? '');
-            $phone = trim($row[3] ?? '');
-            $email = trim($row[4] ?? '');
-            $roleStr = strtoupper(trim($row[5] ?? 'ESTUDIANTE'));
+            $names = trim((string)($row[0] ?? ''));
+            $docType = strtoupper(trim((string)($row[1] ?? 'DNI')));
+            $docNumber = trim((string)($row[2] ?? ''));
+            $phone = trim((string)($row[3] ?? ''));
+            $email = strtolower(trim((string)($row[4] ?? '')));
+            $roleStr = strtoupper(trim((string)($row[5] ?? 'ESTUDIANTE')));
 
             if (empty($names) && empty($email)) {
                 continue;
@@ -84,18 +78,28 @@ class UsersImport implements ToCollection, WithChunkReading
                 continue;
             }
 
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->errors[] = "Fila $lineNum: El formato del correo $email no es válido.";
+                continue;
+            }
+
             if (isset($this->existingEmails[$email])) {
                 $this->errors[] = "Fila $lineNum: El correo $email ya está registrado en el sistema.";
                 continue;
             }
 
-            // Mark as taken in-memory
-            $this->existingEmails[$email] = true;
-
             $roleId = $rolesMap[$roleStr] ?? 3;
 
             if (!in_array($docType, ['DNI', 'RUC', 'CE'])) {
                 $docType = ($roleId == 4) ? 'RUC' : 'DNI';
+            }
+
+            // Defensive padding for numeric document numbers stripped of leading zeros by Excel
+            if ($docType === 'DNI' && is_numeric($docNumber) && strlen($docNumber) < 8) {
+                $docNumber = str_pad($docNumber, 8, '0', STR_PAD_LEFT);
+            }
+            if ($roleId == 4 && is_numeric($docNumber) && strlen($docNumber) < 11) {
+                $docNumber = str_pad($docNumber, 11, '0', STR_PAD_LEFT);
             }
 
             if (in_array($roleId, [2, 3], true) && ($docType !== 'DNI' || !preg_match('/^\d{8}$/', $docNumber))) {
@@ -108,16 +112,24 @@ class UsersImport implements ToCollection, WithChunkReading
                 continue;
             }
 
+            if (empty($docNumber)) {
+                $this->errors[] = "Fila $lineNum: El número de documento es obligatorio.";
+                continue;
+            }
+
+            // Mark as taken in-memory
+            $this->existingEmails[$email] = true;
+
             $phoneFormatted = substr($phone, 0, 9);
             
-            $passKey = $docNumber ?: '00000000';
+            $passKey = $docNumber;
             if (!isset($this->hashedPasswordCache[$passKey])) {
                 $this->hashedPasswordCache[$passKey] = Hash::make($passKey);
             }
             $hashedPassword = $this->hashedPasswordCache[$passKey];
 
             if ($roleId == 4) {
-                $ruc = $docNumber ?: '00000000000';
+                $ruc = $docNumber;
                 // Only insert company if it doesn't already exist and is not queued in this chunk
                 if (!isset($this->existingRucs[$ruc]) && !isset($chunkNewRucs[$ruc])) {
                     $companiesToInsert[] = [
@@ -133,20 +145,17 @@ class UsersImport implements ToCollection, WithChunkReading
                     $chunkNewRucs[$ruc] = true;
                 }
             } else {
-                $dni = $docNumber ?: '00000000';
-                // Only insert person if they don't already exist and are not queued in this chunk
-                if (!isset($this->existingPeopleDnis[$dni]) && !isset($chunkNewDnis[$dni])) {
-                    $peopleToInsert[] = [
-                        'document_type' => $docType,
-                        'document_number' => $dni,
-                        'names' => $names,
-                        'phone' => $phoneFormatted,
-                        'email' => $email,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                    $chunkNewDnis[$dni] = true;
-                }
+                $dni = $docNumber;
+                $peopleToInsert[] = [
+                    'document_type' => $docType,
+                    'document_number' => $dni,
+                    'names' => $names,
+                    'phone' => $phoneFormatted,
+                    'email' => $email,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $chunkPersonEmails[] = $email;
             }
 
             $usersToPrepare[] = [
@@ -156,7 +165,9 @@ class UsersImport implements ToCollection, WithChunkReading
                 'is_active' => true,
                 'attempts' => 0,
                 'role_id_flag' => $roleId,
-                'doc_number' => ($roleId == 4) ? ($docNumber ?: '00000000000') : ($docNumber ?: '00000000'),
+                'doc_number' => $docNumber,
+                'names' => $names,
+                'phone' => $phoneFormatted,
             ];
         }
 
@@ -164,8 +175,9 @@ class UsersImport implements ToCollection, WithChunkReading
             return;
         }
 
-        DB::transaction(function () use ($companiesToInsert, $peopleToInsert, $usersToPrepare) {
-            // 1. Bulk insert companies
+        DB::transaction(function () use ($companiesToInsert, $peopleToInsert, $usersToPrepare, $chunkPersonEmails) {
+            // 1. Process companies
+            $companyIdMapByEmail = [];
             if (!empty($companiesToInsert)) {
                 DB::table('job_opportunity_company')->insert($companiesToInsert);
                 
@@ -175,20 +187,72 @@ class UsersImport implements ToCollection, WithChunkReading
                     ->pluck('id', 'ruc')
                     ->toArray();
                 
-                $this->existingRucs = array_merge($this->existingRucs, $newCompanyMap);
+                // Merge without array_merge to preserve keys
+                foreach ($newCompanyMap as $r => $cid) {
+                    $this->existingRucs[(string)$r] = $cid;
+                }
             }
 
-            // 2. Bulk insert people
-            if (!empty($peopleToInsert)) {
-                DB::table('person')->insert($peopleToInsert);
-                
-                $personDnis = array_column($peopleToInsert, 'document_number');
-                $newPersonMap = DB::table('person')
-                    ->whereIn('document_number', $personDnis)
-                    ->pluck('id', 'document_number')
+            // Map companies by email for users in this chunk
+            foreach ($usersToPrepare as $up) {
+                if ($up['role_id_flag'] == 4) {
+                    $doc = $up['doc_number'];
+                    if (isset($this->existingRucs[$doc])) {
+                        $companyId = $this->existingRucs[$doc];
+                        $companyIdMapByEmail[$up['email']] = $companyId;
+                        
+                        // Update company name/phone if already existing
+                        DB::table('job_opportunity_company')
+                            ->where('id', $companyId)
+                            ->update([
+                                'name' => $up['names'],
+                                'phone' => $up['phone'],
+                                'mailbox' => $up['email'],
+                                'updated_at' => now(),
+                            ]);
+                    }
+                }
+            }
+
+            // 2. Process people (roles 1, 2, 3)
+            $personIdMapByEmail = [];
+            if (!empty($chunkPersonEmails)) {
+                $existingPersonMap = DB::table('person')
+                    ->whereIn('email', $chunkPersonEmails)
+                    ->pluck('id', 'email')
                     ->toArray();
-                
-                $this->existingPeopleDnis = array_merge($this->existingPeopleDnis, $newPersonMap);
+
+                $toInsert = [];
+                foreach ($peopleToInsert as $p) {
+                    $pEmail = $p['email'];
+                    if (isset($existingPersonMap[$pEmail])) {
+                        $pId = $existingPersonMap[$pEmail];
+                        DB::table('person')->where('id', $pId)->update([
+                            'document_type' => $p['document_type'],
+                            'document_number' => $p['document_number'],
+                            'names' => $p['names'],
+                            'phone' => $p['phone'],
+                            'updated_at' => now(),
+                        ]);
+                        $personIdMapByEmail[$pEmail] = $pId;
+                    } else {
+                        $toInsert[] = $p;
+                    }
+                }
+
+                if (!empty($toInsert)) {
+                    DB::table('person')->insert($toInsert);
+
+                    $insertedEmails = array_column($toInsert, 'email');
+                    $newPersonMap = DB::table('person')
+                        ->whereIn('email', $insertedEmails)
+                        ->pluck('id', 'email')
+                        ->toArray();
+
+                    foreach ($newPersonMap as $em => $pid) {
+                        $personIdMapByEmail[$em] = $pid;
+                    }
+                }
             }
 
             // 3. Finalize user records
@@ -196,7 +260,6 @@ class UsersImport implements ToCollection, WithChunkReading
             foreach ($usersToPrepare as $up) {
                 $email = $up['email'];
                 $roleId = $up['role_id_flag'];
-                $doc = $up['doc_number'];
                 
                 $usersToInsert[] = [
                     'email' => $email,
@@ -204,8 +267,8 @@ class UsersImport implements ToCollection, WithChunkReading
                     'rol_id' => $up['rol_id'],
                     'is_active' => $up['is_active'],
                     'attempts' => $up['attempts'],
-                    'company_id' => ($roleId == 4) ? ($this->existingRucs[$doc] ?? null) : null,
-                    'person_id' => ($roleId == 4) ? null : ($this->existingPeopleDnis[$doc] ?? null),
+                    'company_id' => ($roleId == 4) ? ($companyIdMapByEmail[$email] ?? null) : null,
+                    'person_id' => ($roleId == 4) ? null : ($personIdMapByEmail[$email] ?? null),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
