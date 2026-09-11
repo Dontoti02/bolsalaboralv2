@@ -586,7 +586,10 @@
                     <button class="profile-dropdown-item" onclick="openModal('modal-perfil');closeProfileMenu()">
                         <span class="material-symbols-outlined">manage_accounts</span> Editar perfil
                     </button>
-                    @if($authUser->rol_id == 3)
+                    @php
+                        $canAccessCandidateMenu = ($authUser->rol_id == 3) || ($authUser->rol_id == 2 && ($config['allow_teacher_applications'] ?? '0') === '1');
+                    @endphp
+                    @if($canAccessCandidateMenu)
                     <button class="profile-dropdown-item" onclick="openModal('modal-cvs');closeProfileMenu()">
                         <span class="material-symbols-outlined">description</span>
                         Mis CVs
@@ -798,10 +801,20 @@
                     </div>
                     <div class="d-actions">
                         @if($authUser && $authUser->rol_id == 2)
-                            <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
-                                <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
-                                Vista Docente
-                            </div>
+                            @if(($config['allow_teacher_applications'] ?? '0') === '1')
+                                <button class="btn-postular" onclick="openPostularModal()">
+                                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                                    Postularme
+                                </button>
+                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
+                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
+                                </button>
+                            @else
+                                <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
+                                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
+                                    Vista Docente
+                                </div>
+                            @endif
                         @elseif($authUser && $authUser->rol_id == 4)
                             <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
                                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--sec)">visibility</span>
@@ -813,13 +826,28 @@
                                 Vista Admin
                             </div>
                         @elseif($authUser && $authUser->rol_id == 3)
-                            <button class="btn-postular" onclick="openPostularModal()">
+                            @if(($config['allow_student_applications'] ?? '1') === '1')
+                                <button class="btn-postular" onclick="openPostularModal()">
+                                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                                    Postularme
+                                </button>
+                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
+                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
+                                </button>
+                            @else
+                                <div style="font-size:12px;color:#dc2626;font-weight:700;background:rgba(220,38,38,0.08);padding:10px 16px;border-radius:50px;border:1.5px solid rgba(220,38,38,0.2);display:flex;align-items:center;gap:6px">
+                                    <span class="material-symbols-outlined" style="font-size:16px;color:#dc2626">block</span>
+                                    Postulaciones no disponibles
+                                </div>
+                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
+                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
+                                </button>
+                            @endif
+                        @elseif(!$authUser)
+                            <a href="{{ route('login') }}" class="btn-postular" style="text-decoration:none;">
                                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
                                 Postularme
-                            </button>
-                            <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
-                                <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
-                            </button>
+                            </a>
                         @endif
                         <button class="btn-icon" title="Compartir" onclick="shareOffer()">
                             <span class="material-symbols-outlined" style="font-size:18px">share</span>

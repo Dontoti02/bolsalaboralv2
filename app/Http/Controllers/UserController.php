@@ -561,6 +561,8 @@ class UserController extends Controller
                 'logo' => ['name' => 'Logo', 'type' => 'image'],
                 'favicon' => ['name' => 'Favicon', 'type' => 'image'],
                 'banner' => ['name' => 'Banner de login', 'type' => 'image'],
+                'allow_student_applications' => ['name' => 'Permitir postulaciones a estudiantes', 'type' => 'boolean'],
+                'allow_teacher_applications' => ['name' => 'Permitir postulaciones a docentes', 'type' => 'boolean'],
             ];
 
             $updateConfig = function($key, $value) use ($hasCreatedAt, $hasUpdatedAt, $hasName, $hasType, $configMetadata) {
@@ -607,6 +609,14 @@ class UserController extends Controller
             $updateConfig('theme_mode', $request->theme_mode ?: 'light');
             $updateConfig('interface_density', $request->interface_density ?: 'comfortable');
             $updateConfig('sidebar_style', $request->sidebar_style ?: 'expanded');
+
+            // Save role application permissions
+            if ($request->has('has_application_settings') || $request->has('allow_student_applications') || $request->has('allow_teacher_applications')) {
+                $allowStudents = $request->boolean('allow_student_applications') ? '1' : '0';
+                $allowTeachers = $request->boolean('allow_teacher_applications') ? '1' : '0';
+                $updateConfig('allow_student_applications', $allowStudents);
+                $updateConfig('allow_teacher_applications', $allowTeachers);
+            }
 
             // Handle allowed extensions checkbox status
             if ($request->has('application_name')) {

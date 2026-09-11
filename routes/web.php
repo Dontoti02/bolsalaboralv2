@@ -84,16 +84,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/study-programs/assign', [App\Http\Controllers\AdminController::class, 'assignStudyProgram'])->name('admin.study-programs.assign');
     });
     
-    // Rutas comunes de perfil para Estudiantes y Docentes (rol_id = 3 y 2)
+    // Rutas comunes de perfil, postulación y CVs para Estudiantes y Docentes (rol_id = 3 y 2)
     Route::middleware(['role:2,3'])->group(function () {
         Route::post('/student/profile', [\App\Http\Controllers\StudentController::class, 'updateProfile'])->name('student.profile.update');
         Route::post('/student/avatar', [\App\Http\Controllers\StudentController::class, 'updateAvatar'])->name('student.avatar.update');
         Route::post('/student/password', [\App\Http\Controllers\StudentController::class, 'changePassword'])->name('student.password.change');
-    });
 
-    // Student Routes (rol_id = 3)
-    Route::middleware(['role:3'])->group(function () {
-        // El dashboard del estudiante es la landing (/)
+        // Dashboard y postulaciones
         Route::get('/student/dashboard', fn() => redirect('/'))->name('student.dashboard');
         Route::get('/student/applications', [\App\Http\Controllers\StudentController::class, 'myApplications'])->name('student.applications');
         Route::post('/student/cv/upload', [\App\Http\Controllers\StudentController::class, 'uploadCv'])->name('student.cv.upload');

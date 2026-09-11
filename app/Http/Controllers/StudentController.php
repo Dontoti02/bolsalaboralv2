@@ -243,6 +243,32 @@ class StudentController extends Controller
 
         try {
             $user = auth()->user();
+
+            // Check system configuration permissions by role
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+            if ($user->rol_id == 3) {
+                $allowStudent = ($config['allow_student_applications'] ?? '1') === '1';
+                if (!$allowStudent) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Las postulaciones para estudiantes están deshabilitadas temporalmente por la administración.'
+                    ], 403);
+                }
+            } elseif ($user->rol_id == 2) {
+                $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
+                if (!$allowTeacher) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Las postulaciones para docentes no están habilitadas por la administración.'
+                    ], 403);
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Su rol no tiene permisos para postular a ofertas laborales.'
+                ], 403);
+            }
+
             $person = $user->person;
 
             if (!$person) {
@@ -293,13 +319,14 @@ class StudentController extends Controller
             // Create in-app notifications
             try {
                 $offer = $application->offer;
+                $roleLabel = ($user->rol_id == 2) ? 'El docente' : 'El estudiante';
                 if ($offer && $offer->company_id) {
                     $companyUser = \App\Models\User::where('company_id', $offer->company_id)->first();
                     if ($companyUser) {
                         \App\Models\UserNotification::create([
                             'user_id' => $companyUser->id,
                             'title' => 'Nueva postulación',
-                            'message' => "El estudiante {$person->names} ha postulado a tu oferta: {$offer->title}",
+                            'message' => "{$roleLabel} {$person->names} ha postulado a tu oferta: {$offer->title}",
                             'link' => '/company/dashboard?tab=applicants',
                         ]);
                     }
@@ -310,7 +337,7 @@ class StudentController extends Controller
                     \App\Models\UserNotification::create([
                         'user_id' => $admin->id,
                         'title' => 'Nueva postulación',
-                        'message' => "El estudiante {$person->names} ha postulado a la oferta: " . ($offer ? $offer->title : ''),
+                        'message' => "{$roleLabel} {$person->names} ha postulado a la oferta: " . ($offer ? $offer->title : ''),
                         'link' => '/admin/dashboard?tab=applications',
                     ]);
                 }

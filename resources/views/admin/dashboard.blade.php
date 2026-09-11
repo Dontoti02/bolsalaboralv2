@@ -1040,6 +1040,70 @@
                                 required />
                         </div>
 
+                        <!-- Control de Postulaciones por Rol -->
+                        <input type="hidden" name="has_application_settings" value="1">
+                        @php
+                            $allowStudentApps = ($config['allow_student_applications'] ?? '1') === '1';
+                            $allowTeacherApps = ($config['allow_teacher_applications'] ?? '0') === '1';
+                        @endphp
+                        <div class="space-y-sm rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+                            <div>
+                                <h4 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">how_to_reg</span>
+                                    Control de Postulaciones por Rol
+                                </h4>
+                                <p class="text-body-sm text-on-surface-variant mt-1">
+                                    Define qué roles tienen permitido postular a las ofertas laborales publicadas en la plataforma.
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-md pt-2">
+                                <!-- Card Estudiantes -->
+                                <div class="p-4 rounded-xl border border-outline-variant bg-surface flex items-center justify-between gap-4 transition-all hover:border-primary/40">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[22px]">school</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold text-body-md text-on-surface block">Estudiantes</span>
+                                            <span class="text-xs text-on-surface-variant block">Permite a usuarios con rol Estudiante postularse y gestionar CVs</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <span id="badge-student-apps" class="text-xs font-semibold px-2 py-0.5 rounded-full {{ $allowStudentApps ? 'bg-green-100 text-green-700' : 'bg-surface-variant text-on-surface-variant' }}">
+                                            {{ $allowStudentApps ? 'Habilitado' : 'Deshabilitado' }}
+                                        </span>
+                                        <label class="switch">
+                                            <input type="checkbox" name="allow_student_applications" value="1" {{ $allowStudentApps ? 'checked' : '' }} onchange="updateRoleAppBadge('student', this.checked)">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Card Docentes -->
+                                <div class="p-4 rounded-xl border border-outline-variant bg-surface flex items-center justify-between gap-4 transition-all hover:border-primary/40">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[22px]">co_present</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold text-body-md text-on-surface block">Docentes</span>
+                                            <span class="text-xs text-on-surface-variant block">Permite a docentes postular a ofertas y registrar sus CVs</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <span id="badge-teacher-apps" class="text-xs font-semibold px-2 py-0.5 rounded-full {{ $allowTeacherApps ? 'bg-green-100 text-green-700' : 'bg-surface-variant text-on-surface-variant' }}">
+                                            {{ $allowTeacherApps ? 'Habilitado' : 'Deshabilitado' }}
+                                        </span>
+                                        <label class="switch">
+                                            <input type="checkbox" name="allow_teacher_applications" value="1" {{ $allowTeacherApps ? 'checked' : '' }} onchange="updateRoleAppBadge('teacher', this.checked)">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Identidad visual -->
                         @php
                             $currentPrimary = $config['primary_color'] ?? '#ff9f43';
@@ -4860,6 +4924,19 @@
                     }
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+
+        // Update role applications status badge in settings
+        function updateRoleAppBadge(role, isChecked) {
+            const badge = document.getElementById(role === 'student' ? 'badge-student-apps' : 'badge-teacher-apps');
+            if (badge) {
+                badge.textContent = isChecked ? 'Habilitado' : 'Deshabilitado';
+                if (isChecked) {
+                    badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700';
+                } else {
+                    badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant';
+                }
             }
         }
 
