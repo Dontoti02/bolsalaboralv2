@@ -10,9 +10,11 @@ use App\Mail\ApplicationApprovedMail;
 use App\Mail\NewApplicationMail;
 use App\Models\UserNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Services\MailConfigService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -681,6 +683,219 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al guardar configuraciones: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save outgoing mail (SMTP) settings to system_configuration table.
+     */
+    public function saveMailSettings(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mail_enabled' => 'nullable|in:0,1,true,false',
+            'mail_host' => 'nullable|string|max:255',
+            'mail_port' => 'nullable|integer|min:1|max:65535',
+            'mail_encryption' => 'nullable|string|in:tls,ssl,none',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_from_address' => 'nullable|email|max:255',
+            'mail_from_name' => 'nullable|string|max:255',
+        ], [
+            'mail_port.integer' => 'El puerto debe ser un número entero.',
+            'mail_port.min' => 'El puerto debe ser mayor a 0.',
+            'mail_port.max' => 'El puerto no puede ser mayor a 65535.',
+            'mail_from_address.email' => 'El correo remitente debe ser una dirección de correo válida.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $configColumns = \Illuminate\Support\Facades\Schema::getColumnListing('system_configuration');
+            $hasCreatedAt = in_array('created_at', $configColumns, true);
+            $hasUpdatedAt = in_array('updated_at', $configColumns, true);
+            $hasName = in_array('name', $configColumns, true);
+            $hasType = in_array('type', $configColumns, true);
+
+            $mailMetadata = [
+                'mail_enabled' => ['name' => 'Habilitar envio de correos', 'type' => 'boolean'],
+                'mail_host' => ['name' => 'Servidor SMTP', 'type' => 'text'],
+                'mail_port' => ['name' => 'Puerto SMTP', 'type' => 'number'],
+                'mail_encryption' => ['name' => 'Seguridad SMTP', 'type' => 'text'],
+                'mail_username' => ['name' => 'Usuario SMTP', 'type' => 'text'],
+                'mail_password' => ['name' => 'Contrasena SMTP', 'type' => 'password'],
+                'mail_from_address' => ['name' => 'Correo remitente', 'type' => 'text'],
+                'mail_from_name' => ['name' => 'Nombre del remitente', 'type' => 'text'],
+            ];
+
+            $updateConfig = function($key, $value) use ($hasCreatedAt, $hasUpdatedAt, $hasName, $hasType, $mailMetadata) {
+                $payload = ['value' => $value];
+                $exists = DB::table('system_configuration')->where('key', $key)->exists();
+
+                if ($hasUpdatedAt) {
+                    $payload['updated_at'] = now();
+                }
+
+                if ($exists) {
+                    DB::table('system_configuration')
+                        ->where('key', $key)
+                        ->update($payload);
+                    return;
+                }
+
+                $meta = $mailMetadata[$key] ?? [
+                    'name' => ucfirst(str_replace('_', ' ', $key)),
+                    'type' => 'text',
+                ];
+
+                $payload['key'] = $key;
+                if ($hasName) {
+                    $payload['name'] = $meta['name'];
+                }
+                if ($hasType) {
+                    $payload['type'] = $meta['type'];
+                }
+                if ($hasCreatedAt) {
+                    $payload['created_at'] = now();
+                }
+
+                DB::table('system_configuration')->insert($payload);
+            };
+
+            $isEnabled = $request->boolean('mail_enabled') ? '1' : '0';
+            $updateConfig('mail_enabled', $isEnabled);
+            $updateConfig('mail_host', $request->input('mail_host', 'smtp.gmail.com'));
+            $updateConfig('mail_port', $request->input('mail_port', 587));
+            $updateConfig('mail_encryption', $request->input('mail_encryption', 'tls'));
+            $updateConfig('mail_username', $request->input('mail_username', ''));
+            $updateConfig('mail_from_address', $request->input('mail_from_address', ''));
+            $updateConfig('mail_from_name', $request->input('mail_from_name', ''));
+
+            // Encrypt and save password only if a non-empty value was passed
+            if ($request->filled('mail_password')) {
+                $encryptedPassword = Crypt::encryptString($request->mail_password);
+                $updateConfig('mail_password', $encryptedPassword);
+            }
+
+            DB::commit();
+
+            // Re-apply dynamically
+            MailConfigService::apply();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Configuración de correo saliente guardada exitosamente.',
+                'mail_enabled' => $isEnabled === '1',
+                'has_password' => DB::table('system_configuration')->where('key', 'mail_password')->whereNotNull('value')->where('value', '!=', '')->exists()
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar configuración de correo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Send a test email using current outgoing mail configuration.
+     */
+    public function sendTestMail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_email' => 'required|email|max:255',
+        ], [
+            'test_email.required' => 'Por favor, ingresa el correo de destino para la prueba.',
+            'test_email.email' => 'El correo de destino ingresado no es válido.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        // Apply settings
+        MailConfigService::apply();
+
+        $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        $isEnabled = (string) ($config['mail_enabled'] ?? '0') === '1';
+
+        if (!$isEnabled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El envío de correos está desactivado. Actívalo con el interruptor y guarda los cambios antes de probar.'
+            ], 422);
+        }
+
+        if (empty($config['mail_host']) || empty($config['mail_username'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Faltan parámetros de configuración (Servidor SMTP o Usuario). Completa los campos y guárdalos antes de probar.'
+            ], 422);
+        }
+
+        try {
+            Mail::purge('smtp');
+            $destination = $request->test_email;
+            $institutionName = $config['application_name'] ?? 'Bolsa Laboral';
+            $fromName = !empty($config['mail_from_name']) ? $config['mail_from_name'] : $institutionName;
+            $fromAddress = !empty($config['mail_from_address']) ? $config['mail_from_address'] : $config['mail_username'];
+
+            Mail::send([], [], function ($message) use ($destination, $institutionName, $fromName, $fromAddress) {
+                $message->to($destination)
+                    ->from($fromAddress, $fromName)
+                    ->subject("Prueba de Correo Saliente - {$institutionName}")
+                    ->html("
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;'>
+                            <div style='text-align: center; margin-bottom: 20px;'>
+                                <h2 style='color: #4f46e5; margin: 0;'>¡Conexión SMTP Exitosa!</h2>
+                                <p style='color: #64748b; font-size: 14px; margin-top: 5px;'>Plataforma {$institutionName}</p>
+                            </div>
+                            <div style='background-color: #f8fafc; border-left: 4px solid #10b981; padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
+                                <p style='margin: 0; font-size: 14px; color: #0f172a;'>
+                                    Este es un mensaje de prueba para verificar que el servicio de correo saliente está configurado correctamente en el sistema.
+                                </p>
+                            </div>
+                            <table style='width: 100%; font-size: 13px; color: #475569; border-collapse: collapse; margin-bottom: 20px;'>
+                                <tr>
+                                    <td style='padding: 6px 0; font-weight: bold;'>Remitente:</td>
+                                    <td style='padding: 6px 0;'>{$fromName} &lt;{$fromAddress}&gt;</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 6px 0; font-weight: bold;'>Destinatario:</td>
+                                    <td style='padding: 6px 0;'>{$destination}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 6px 0; font-weight: bold;'>Fecha y hora:</td>
+                                    <td style='padding: 6px 0;'>" . now()->format('d/m/Y H:i:s') . "</td>
+                                </tr>
+                            </table>
+                            <p style='font-size: 12px; color: #94a3b8; text-align: center; margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 15px;'>
+                                Si recibiste este mensaje, la configuración SMTP es correcta y los usuarios podrán recibir notificaciones y restablecimiento de contraseña.
+                            </p>
+                        </div>
+                    ");
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => "¡Correo de prueba enviado con éxito a {$destination}!"
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al conectar con el servidor SMTP: ' . $e->getMessage()
             ], 500);
         }
     }

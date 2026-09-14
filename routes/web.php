@@ -47,6 +47,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/users/import', [UserController::class, 'import']);
         Route::post('/admin/settings', [UserController::class, 'saveSettings']);
         Route::post('/admin/settings/delete-image', [UserController::class, 'deleteSettingsImage']);
+        Route::post('/admin/settings/mail', [UserController::class, 'saveMailSettings']);
+        Route::post('/admin/settings/mail/test', [UserController::class, 'sendTestMail']);
         Route::post('/admin/profile', [UserController::class, 'updateOwnProfile']);
         Route::post('/admin/profile/password', [UserController::class, 'updateOwnPassword']);
 

@@ -1356,8 +1356,146 @@
                                 Guardar Imágenes
                             </button>
                         </div>
-                    </div>
                 </form>
+
+                <!-- Sección 3: Correo Saliente (SMTP) -->
+                @php
+                    $mailEnabled = (string)($config['mail_enabled'] ?? '0') === '1';
+                    $hasSavedPassword = !empty($config['mail_password']);
+                @endphp
+                <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col p-lg space-y-lg mt-6">
+                    <div>
+                        <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Correo saliente</h3>
+                        <p class="text-body-sm text-on-surface-variant mt-1">Cuenta con la que la plataforma envía credenciales, recuperación de contraseña y notificaciones.</p>
+                    </div>
+
+                    <!-- Banner de estado dinámico -->
+                    <div id="mail-status-alert" class="p-3.5 rounded-xl flex items-center gap-3 transition-all {{ $mailEnabled ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300' : 'bg-cyan-500/15 border border-cyan-500/30 text-cyan-950 dark:text-cyan-200' }}">
+                        <span id="mail-status-icon" class="material-symbols-outlined text-[20px] flex-shrink-0">{{ $mailEnabled ? 'check_circle' : 'info' }}</span>
+                        <span id="mail-status-text" class="text-xs sm:text-sm font-medium">
+                            {{ $mailEnabled ? 'El envío está activado: los correos se enviarán usando la cuenta configurada.' : 'El envío está desactivado: la plataforma no envía correos. Actívalo cuando la cuenta esté lista.' }}
+                        </span>
+                    </div>
+
+                    <!-- Formulario de Configuración de Correo -->
+                    <form id="mail-settings-form" onsubmit="handleMailSettingsSubmit(event)" class="space-y-lg">
+                        @csrf
+
+                        <!-- Switch Enviar correos -->
+                        <div class="flex items-center gap-3">
+                            <label class="switch">
+                                <input type="checkbox" id="mail_enabled_switch" name="mail_enabled" value="1" {{ $mailEnabled ? 'checked' : '' }} onchange="toggleMailStatusAlert(this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-body-sm font-medium text-on-surface">Enviar correos</span>
+                        </div>
+
+                        <!-- Fila 1: Servidor SMTP, Seguridad, Puerto -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_host">Servidor SMTP</label>
+                                <input type="text" id="mail_host" name="mail_host"
+                                    value="{{ $config['mail_host'] ?? 'smtp.gmail.com' }}"
+                                    placeholder="smtp.gmail.com"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            </div>
+
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_encryption">Seguridad</label>
+                                <select id="mail_encryption" name="mail_encryption" onchange="handleMailEncryptionChange(this.value)"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm">
+                                    <option value="tls" {{ ($config['mail_encryption'] ?? 'tls') === 'tls' ? 'selected' : '' }}>TLS (puerto 587)</option>
+                                    <option value="ssl" {{ ($config['mail_encryption'] ?? '') === 'ssl' ? 'selected' : '' }}>SSL (puerto 465)</option>
+                                    <option value="none" {{ ($config['mail_encryption'] ?? '') === 'none' ? 'selected' : '' }}>Ninguna (sin cifrado)</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_port">Puerto</label>
+                                <input type="number" id="mail_port" name="mail_port"
+                                    value="{{ $config['mail_port'] ?? '587' }}"
+                                    placeholder="587"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Usuario, Contraseña -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_username">Usuario</label>
+                                <input type="text" id="mail_username" name="mail_username"
+                                    value="{{ $config['mail_username'] ?? '' }}"
+                                    placeholder="notificaciones@instituto.edu.pe"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            </div>
+
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_password">Contraseña</label>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="mail_password" name="mail_password"
+                                        placeholder="{{ $hasSavedPassword ? '•••••••• (Guardada - dejar vacío para mantener)' : 'Contraseña de aplicación' }}"
+                                        class="w-full px-4 py-2.5 pr-11 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                                    <button type="button" onclick="toggleMailPasswordVisibility()"
+                                        title="Mostrar/Ocultar contraseña"
+                                        class="absolute right-3 text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition-colors">
+                                        <span class="material-symbols-outlined text-[20px] align-middle" id="mail-eye-icon">visibility</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila 3: Correo remitente, Nombre del remitente -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_from_address">Correo remitente</label>
+                                <input type="email" id="mail_from_address" name="mail_from_address"
+                                    value="{{ $config['mail_from_address'] ?? '' }}"
+                                    placeholder="notificaciones@instituto.edu.pe"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            </div>
+
+                            <div class="space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block" for="mail_from_name">Nombre del remitente</label>
+                                <input type="text" id="mail_from_name" name="mail_from_name"
+                                    value="{{ $config['mail_from_name'] ?? '' }}"
+                                    placeholder="Vacío: el nombre de la institución"
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            </div>
+                        </div>
+
+                        <!-- Texto explicativo de orientación -->
+                        <p class="text-xs text-on-surface-variant leading-relaxed">
+                            Con Gmail o Google Workspace usa <strong class="text-on-surface font-semibold">smtp.gmail.com</strong>, puerto <strong class="text-on-surface font-semibold">587</strong> con TLS y una <strong class="text-on-surface font-semibold">contraseña de aplicación</strong> (requiere la verificación en dos pasos), no la contraseña normal de la cuenta. El remitente debe ser la misma cuenta del usuario.
+                        </p>
+
+                        <!-- Botón Guardar -->
+                        <div class="pt-2">
+                            <button type="submit" id="btn-save-mail"
+                                style="background-color: #6366f1 !important; color: #ffffff !important;"
+                                class="px-7 py-2.5 font-label-md text-label-md rounded-xl font-semibold shadow-md hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]" style="color: #ffffff !important;">save</span>
+                                <span id="btn-save-mail-text" style="color: #ffffff !important;">Guardar</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Sección de Envío de Prueba -->
+                    <div class="pt-6 border-t border-outline-variant/60 space-y-2">
+                        <label for="test_email" class="font-label-sm text-label-sm text-on-surface-variant block">Enviar un correo de prueba a</label>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <input type="email" id="test_email" placeholder="tu@correo.com"
+                                class="w-full sm:w-80 px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm" />
+                            <button type="button" id="btn-send-test" onclick="sendTestMail()"
+                                style="background-color: #313753 !important; color: #ffffff !important;"
+                                class="px-5 py-2.5 hover:opacity-90 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]" style="color: #ffffff !important;">send</span>
+                                <span id="btn-send-test-text" style="color: #ffffff !important;">Enviar Prueba</span>
+                            </button>
+                            <span class="text-xs text-on-surface-variant">Activa y guarda antes de probar</span>
+                        </div>
+                        <div id="test-mail-feedback" class="hidden text-xs rounded-xl p-3 mt-2 transition-all"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- ================= PANEL: OFERTAS LABORALES ================= -->
@@ -4967,6 +5105,154 @@
                 .catch(err => {
                     showToast('Error de red al intentar guardar ajustes.', 'error');
                 });
+        }
+
+        // Alternar visual del banner de estado de correo
+        function toggleMailStatusAlert(isChecked) {
+            const alertBox = document.getElementById('mail-status-alert');
+            const icon = document.getElementById('mail-status-icon');
+            const text = document.getElementById('mail-status-text');
+            if (!alertBox || !icon || !text) return;
+
+            if (isChecked) {
+                alertBox.className = 'p-3.5 rounded-xl flex items-center gap-3 transition-all bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
+                icon.textContent = 'check_circle';
+                text.textContent = 'El envío está activado: los correos se enviarán usando la cuenta configurada.';
+            } else {
+                alertBox.className = 'p-3.5 rounded-xl flex items-center gap-3 transition-all bg-cyan-500/15 border border-cyan-500/30 text-cyan-950 dark:text-cyan-200';
+                icon.textContent = 'info';
+                text.textContent = 'El envío está desactivado: la plataforma no envía correos. Actívalo cuando la cuenta esté lista.';
+            }
+        }
+
+        // Alternar visibilidad de la contraseña
+        function toggleMailPasswordVisibility() {
+            const input = document.getElementById('mail_password');
+            const icon = document.getElementById('mail-eye-icon');
+            if (!input || !icon) return;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+
+        // Cambiar puerto automáticamente según tipo de seguridad
+        function handleMailEncryptionChange(encryption) {
+            const portInput = document.getElementById('mail_port');
+            if (!portInput) return;
+
+            if (encryption === 'ssl') {
+                portInput.value = '465';
+            } else if (encryption === 'tls') {
+                portInput.value = '587';
+            } else if (encryption === 'none' && (portInput.value === '587' || portInput.value === '465')) {
+                portInput.value = '25';
+            }
+        }
+
+        // Guardar configuración de correo saliente
+        function handleMailSettingsSubmit(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('mail-settings-form');
+            const btn = document.getElementById('btn-save-mail');
+            const btnText = document.getElementById('btn-save-mail-text');
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const formData = new FormData(form);
+            const isChecked = document.getElementById('mail_enabled_switch').checked;
+            formData.set('mail_enabled', isChecked ? '1' : '0');
+
+            btn.disabled = true;
+            btnText.textContent = 'Guardando...';
+
+            fetch('/admin/settings/mail', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btnText.textContent = 'Guardar';
+
+                if (data.success) {
+                    showToast('¡Configuración de correo guardada con éxito!');
+                    if (data.has_password) {
+                        const passInput = document.getElementById('mail_password');
+                        if (passInput) {
+                            passInput.value = '';
+                            passInput.placeholder = '•••••••• (Guardada - dejar vacío para mantener)';
+                        }
+                    }
+                } else {
+                    showToast(data.message || 'Error al guardar la configuración de correo.', 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btnText.textContent = 'Guardar';
+                showToast('Error de red al guardar la configuración de correo.', 'error');
+            });
+        }
+
+        // Enviar correo de prueba
+        function sendTestMail() {
+            const testEmailInput = document.getElementById('test_email');
+            const btn = document.getElementById('btn-send-test');
+            const btnText = document.getElementById('btn-send-test-text');
+            const feedback = document.getElementById('test-mail-feedback');
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const email = testEmailInput.value.trim();
+            if (!email) {
+                showToast('Ingresa un correo electrónico para realizar la prueba.', 'warning');
+                testEmailInput.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.textContent = 'Enviando...';
+            feedback.className = 'hidden';
+
+            fetch('/admin/settings/mail/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ test_email: email })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data })))
+            .then(({ status, data }) => {
+                btn.disabled = false;
+                btnText.textContent = 'Enviar Prueba';
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    feedback.className = 'block p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs mt-2 font-medium';
+                    feedback.textContent = '✓ ' + data.message;
+                } else {
+                    showToast(data.message || 'Error al enviar correo de prueba.', 'error');
+                    feedback.className = 'block p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs mt-2 font-medium';
+                    feedback.textContent = '✕ ' + (data.message || 'Error desconocido al enviar.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btnText.textContent = 'Enviar Prueba';
+                showToast('Error de red al intentar enviar el correo.', 'error');
+                feedback.className = 'block p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs mt-2 font-medium';
+                feedback.textContent = '✕ Error de conexión o tiempo de espera agotado.';
+            });
         }
 
         // Delete a settings image (logo, favicon, banner) - stores params and opens custom modal
