@@ -86,6 +86,10 @@ Route::middleware(['auth'])->group(function () {
         // Study Program Routes
         Route::get('/admin/users/search-persons', [App\Http\Controllers\AdminController::class, 'searchPersonUsers'])->name('admin.users.search-persons');
         Route::post('/admin/study-programs/assign', [App\Http\Controllers\AdminController::class, 'assignStudyProgram'])->name('admin.study-programs.assign');
+
+        // Reports Routes (Estudiantes y Egresados)
+        Route::get('/admin/reports/data', [\App\Http\Controllers\ReportController::class, 'getReportsData'])->name('admin.reports.data');
+        Route::get('/admin/reports/export-excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('admin.reports.export-excel');
     });
     
     // Rutas comunes de perfil, postulación y CVs para Estudiantes, Docentes y Egresados (rol_id = 2, 3 y 5)

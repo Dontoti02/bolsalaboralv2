@@ -131,6 +131,7 @@
                         ['key' => 'offers', 'icon' => 'list_alt', 'label' => 'Ofertas'],
                         ['key' => 'companies-manage', 'icon' => 'corporate_fare', 'label' => 'Empresas · Gestionar'],
                         ['key' => 'applications', 'icon' => 'person_search', 'label' => 'Postulaciones'],
+                        ['key' => 'reports', 'icon' => 'query_stats', 'label' => 'Reportes'],
                         ['key' => 'assign-study-program', 'icon' => 'school', 'label' => 'Asignar Programa'],
                         ['key' => 'maintainers', 'icon' => 'settings', 'label' => 'Mantenedores'],
                     ],
@@ -2310,6 +2311,177 @@
                 </div>
             </div>
 
+            <!-- ================= PANEL: REPORTES ================= -->
+            <div id="panel-reports" class="tab-panel space-y-lg hidden">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-2">
+                            <span class="material-symbols-outlined text-[16px]">assessment</span>
+                            Módulo de Reportes Institucionales
+                        </div>
+                        <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Reportes de Bolsa Laboral</h1>
+                        <p class="text-body-md text-on-surface-variant">Monitoreo, trazabilidad de postulaciones y exportación a Excel para estudiantes y egresados.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="btn-export-reports-excel" onclick="exportReportsExcel()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-[20px]" id="icon-export-excel">table_view</span>
+                            <span id="text-export-excel">Exportar a Excel (.xlsx)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+                    <!-- Estudiantes -->
+                    <div class="bg-surface rounded-2xl p-lg border border-outline-variant/60 shadow-xs flex items-center gap-md">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                            <span class="material-symbols-outlined text-2xl">school</span>
+                        </div>
+                        <div>
+                            <p class="text-label-sm font-label-sm text-on-surface-variant font-medium">Estudiantes</p>
+                            <h3 id="kpi-total-students" class="text-headline-md font-bold text-on-surface">0</h3>
+                            <p class="text-[11px] text-on-surface-variant"><span id="kpi-students-with-apps" class="font-bold text-blue-700">0</span> con postulaciones</p>
+                        </div>
+                    </div>
+
+                    <!-- Egresados -->
+                    <div class="bg-surface rounded-2xl p-lg border border-outline-variant/60 shadow-xs flex items-center gap-md">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                            <span class="material-symbols-outlined text-2xl">workspace_premium</span>
+                        </div>
+                        <div>
+                            <p class="text-label-sm font-label-sm text-on-surface-variant font-medium">Egresados</p>
+                            <h3 id="kpi-total-graduates" class="text-headline-md font-bold text-on-surface">0</h3>
+                            <p class="text-[11px] text-on-surface-variant"><span id="kpi-graduates-with-apps" class="font-bold text-purple-700">0</span> con postulaciones</p>
+                        </div>
+                    </div>
+
+                    <!-- Postulaciones Totales -->
+                    <div class="bg-surface rounded-2xl p-lg border border-outline-variant/60 shadow-xs flex items-center gap-md">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 text-teal-700 border border-teal-200 shrink-0">
+                            <span class="material-symbols-outlined text-2xl">send</span>
+                        </div>
+                        <div>
+                            <p class="text-label-sm font-label-sm text-on-surface-variant font-medium">Total Postulaciones</p>
+                            <h3 id="kpi-total-apps" class="text-headline-md font-bold text-on-surface">0</h3>
+                            <p class="text-[11px] text-on-surface-variant">En todas las ofertas</p>
+                        </div>
+                    </div>
+
+                    <!-- Postulaciones Aceptadas -->
+                    <div class="bg-surface rounded-2xl p-lg border border-outline-variant/60 shadow-xs flex items-center gap-md">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                            <span class="material-symbols-outlined text-2xl">check_circle</span>
+                        </div>
+                        <div>
+                            <p class="text-label-sm font-label-sm text-on-surface-variant font-medium">Aceptados en Oferta</p>
+                            <h3 id="kpi-accepted-apps" class="text-headline-md font-bold text-emerald-700">0</h3>
+                            <p class="text-[11px] text-on-surface-variant"><span id="kpi-under-review-apps" class="font-bold text-amber-600">0</span> en revisión</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subtabs: Estudiantes / Egresados -->
+                <div class="flex items-center gap-2 border-b border-outline-variant/60">
+                    <button type="button" id="tab-btn-report-student" onclick="switchReportTab('student')"
+                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-[20px]">school</span>
+                        <span>Estudiantes</span>
+                        <span id="badge-count-students" class="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary font-semibold">0</span>
+                    </button>
+                    <button type="button" id="tab-btn-report-graduate" onclick="switchReportTab('graduate')"
+                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+                        <span>Egresados</span>
+                        <span id="badge-count-graduates" class="px-2 py-0.5 rounded-full text-xs bg-surface-container-high text-on-surface-variant font-semibold">0</span>
+                    </button>
+                </div>
+
+                <!-- Filters Toolbar -->
+                <div class="bg-surface rounded-2xl border border-outline-variant shadow-xs p-4 sm:p-5 bg-surface-container-low space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <!-- Search Box -->
+                        <div class="md:col-span-5 relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                            <input id="report-search-input" oninput="debounceReportSearch()"
+                                class="w-full pl-9 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-body-sm"
+                                placeholder="Buscar por nombres, DNI, correo o teléfono..." type="text">
+                        </div>
+
+                        <!-- Program Filter -->
+                        <div class="md:col-span-4 relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">school</span>
+                            <select id="report-filter-program" onchange="filterReports()"
+                                class="w-full pl-9 pr-8 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-body-sm text-on-surface appearance-none cursor-pointer">
+                                <option value="">Todos los programas de estudio</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="md:col-span-3 relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">filter_list</span>
+                            <select id="report-filter-status" onchange="filterReports()"
+                                class="w-full pl-9 pr-8 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-body-sm text-on-surface appearance-none cursor-pointer">
+                                <option value="all">Todos los registros</option>
+                                <option value="has_applications">Con postulaciones</option>
+                                <option value="no_applications">Sin postulaciones</option>
+                                <option value="accepted">Aceptados en oferta</option>
+                                <option value="under_review">En revisión</option>
+                                <option value="postulated">Postulados (en espera)</option>
+                                <option value="rejected">Rechazados</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-outline-variant/40 text-xs text-on-surface-variant">
+                        <span id="report-results-count-text">Cargando registros...</span>
+                        <button type="button" onclick="resetReportFilters()" class="text-primary hover:underline font-semibold cursor-pointer">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Table Card -->
+                <div class="bg-surface rounded-2xl border border-outline-variant shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-high/60 border-b border-outline-variant text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">
+                                    <th class="py-3.5 px-4 font-semibold">Postulante / Identificación</th>
+                                    <th class="py-3.5 px-4 font-semibold">Contacto</th>
+                                    <th class="py-3.5 px-4 font-semibold">Programa de Estudio</th>
+                                    <th class="py-3.5 px-4 font-semibold text-center">N° Postulaciones</th>
+                                    <th class="py-3.5 px-4 font-semibold">Ofertas & Estado</th>
+                                    <th class="py-3.5 px-4 font-semibold text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body" class="text-body-sm divide-y divide-outline-variant/50">
+                                <tr>
+                                    <td colspan="6" class="p-12 text-center text-on-surface-variant">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined animate-spin text-primary text-3xl">autorenew</span>
+                                            <p class="font-medium">Cargando datos del reporte...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Footer -->
+                    <div id="report-pagination-container" class="p-4 bg-surface-container-low border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
+                        <div id="report-pagination-info">Mostrando 0 registros</div>
+                        <div id="report-pagination-buttons" class="flex items-center gap-1.5">
+                            <!-- Buttons rendered via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ================= PANEL: MANTENEDORES ================= -->
             <div id="panel-maintainers" class="tab-panel space-y-lg hidden">
                 <div>
@@ -2576,6 +2748,77 @@
 
         </div>
     </main>
+
+    <!-- Modal: Detalle de Reporte / Postulaciones de Estudiante o Egresado -->
+    <div id="report-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 p-4 backdrop-blur-xs transition-opacity">
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+                <div class="flex items-center gap-3">
+                    <div id="modal-report-avatar" class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                        AL
+                    </div>
+                    <div>
+                        <h2 id="modal-report-name" class="text-lg font-bold text-on-surface leading-snug">Candidato</h2>
+                        <p id="modal-report-subtitle" class="text-xs text-on-surface-variant">DNI: - | Estudiante</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeReportDetailModal()"
+                    class="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer"
+                    aria-label="Cerrar modal">
+                    <span class="material-symbols-outlined text-[22px]">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 overflow-y-auto space-y-5 flex-1">
+                <!-- Info Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/60">
+                        <span class="text-[11px] text-on-surface-variant font-medium block mb-1">Programa de Estudio</span>
+                        <div id="modal-report-program" class="font-semibold text-xs sm:text-sm text-primary flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">school</span>
+                            <span>-</span>
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/60">
+                        <span class="text-[11px] text-on-surface-variant font-medium block mb-1">Correo Electrónico</span>
+                        <div id="modal-report-email" class="font-semibold text-xs sm:text-sm text-on-surface truncate">
+                            -
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/60">
+                        <span class="text-[11px] text-on-surface-variant font-medium block mb-1">Teléfono / Celular</span>
+                        <div id="modal-report-phone" class="font-semibold text-xs sm:text-sm text-on-surface">
+                            -
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Applications List Section -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-primary">work</span>
+                            Historial de Postulaciones a Ofertas (<span id="modal-report-apps-count">0</span>)
+                        </h3>
+                    </div>
+
+                    <div id="modal-report-apps-list" class="space-y-3">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-outline-variant bg-surface-container-low flex justify-end">
+                <button type="button" onclick="closeReportDetailModal()"
+                    class="px-5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold text-xs cursor-pointer transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ================= MODAL: DETALLES DE POSTULACIÓN ================= -->
     <div id="view-app-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/40 p-4">
@@ -3634,6 +3877,9 @@
             } else if (tabId === 'applications') {
                 targetPanelId = 'panel-applications';
                 loadApplications();
+            } else if (tabId === 'reports') {
+                targetPanelId = 'panel-reports';
+                initReportsModule();
             }
             else if (tabId === 'maintainers') {
                 targetPanelId = 'panel-maintainers';
@@ -3671,6 +3917,7 @@
                 'companies-manage': 'Gestionar Empresas',
                 'companies-register': 'Registrar Empresa',
                 'applications': 'Postulaciones Recibidas',
+                'reports': 'Reportes de Bolsa Laboral',
                 'maintainers': 'Mantenimiento del Sistema',
                 'support': 'Soporte',
                 'assign-study-program': 'Asignar Programa de Estudio'
@@ -8284,6 +8531,436 @@ new Chart(companiesCtx, {
         },
     },
 });
+
+// ==========================================
+// MODULE: REPORTES DE BOLSA LABORAL
+// ==========================================
+let currentReportType = 'student';
+let currentReportPage = 1;
+let reportSearchTimer = null;
+let cachedReportUsers = [];
+
+function initReportsModule() {
+    loadReportsData(1);
+}
+
+function switchReportTab(type) {
+    if (currentReportType === type) return;
+    currentReportType = type;
+    currentReportPage = 1;
+
+    const btnStudent = document.getElementById('tab-btn-report-student');
+    const btnGraduate = document.getElementById('tab-btn-report-graduate');
+
+    if (type === 'graduate') {
+        if (btnGraduate) btnGraduate.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-purple-600 text-purple-700 font-bold text-sm transition-all cursor-pointer";
+        if (btnStudent) btnStudent.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer";
+    } else {
+        if (btnStudent) btnStudent.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer";
+        if (btnGraduate) btnGraduate.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer";
+    }
+
+    loadReportsData(1);
+}
+
+function debounceReportSearch() {
+    clearTimeout(reportSearchTimer);
+    reportSearchTimer = setTimeout(() => {
+        currentReportPage = 1;
+        loadReportsData(1);
+    }, 300);
+}
+
+function filterReports() {
+    currentReportPage = 1;
+    loadReportsData(1);
+}
+
+function resetReportFilters() {
+    const sInput = document.getElementById('report-search-input');
+    const pSelect = document.getElementById('report-filter-program');
+    const stSelect = document.getElementById('report-filter-status');
+    if (sInput) sInput.value = '';
+    if (pSelect) pSelect.value = '';
+    if (stSelect) stSelect.value = 'all';
+    currentReportPage = 1;
+    loadReportsData(1);
+}
+
+function loadReportsData(page = 1) {
+    currentReportPage = page;
+    const search = document.getElementById('report-search-input')?.value || '';
+    const programId = document.getElementById('report-filter-program')?.value || '';
+    const status = document.getElementById('report-filter-status')?.value || 'all';
+
+    const tbody = document.getElementById('report-table-body');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="p-10 text-center text-on-surface-variant">
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined animate-spin text-primary text-2xl">autorenew</span>
+                        <span class="font-medium text-sm">Cargando registros...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    const url = `/admin/reports/data?type=${currentReportType}&page=${page}&search=${encodeURIComponent(search)}&program_id=${encodeURIComponent(programId)}&status=${encodeURIComponent(status)}`;
+
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600 font-medium">${data.message || 'Error al cargar datos.'}</td></tr>`;
+            return;
+        }
+
+        // Update KPIs
+        if (data.summary) {
+            const s = data.summary;
+            const elTotalStud = document.getElementById('kpi-total-students');
+            const elStudWithApps = document.getElementById('kpi-students-with-apps');
+            const elTotalGrad = document.getElementById('kpi-total-graduates');
+            const elGradWithApps = document.getElementById('kpi-graduates-with-apps');
+            const elTotalApps = document.getElementById('kpi-total-apps');
+            const elAcceptedApps = document.getElementById('kpi-accepted-apps');
+            const elUnderReviewApps = document.getElementById('kpi-under-review-apps');
+
+            if (elTotalStud) elTotalStud.textContent = s.total_students ?? 0;
+            if (elStudWithApps) elStudWithApps.textContent = s.students_with_apps ?? 0;
+            if (elTotalGrad) elTotalGrad.textContent = s.total_graduates ?? 0;
+            if (elGradWithApps) elGradWithApps.textContent = s.graduates_with_apps ?? 0;
+            if (elTotalApps) elTotalApps.textContent = s.total_applications ?? 0;
+            if (elAcceptedApps) elAcceptedApps.textContent = s.accepted_applications ?? 0;
+            if (elUnderReviewApps) elUnderReviewApps.textContent = s.under_review_applications ?? 0;
+
+            // Badges on tabs
+            const badgeStud = document.getElementById('badge-count-students');
+            const badgeGrad = document.getElementById('badge-count-graduates');
+            if (badgeStud) badgeStud.textContent = s.total_students ?? 0;
+            if (badgeGrad) badgeGrad.textContent = s.total_graduates ?? 0;
+        }
+
+        // Populate Study Programs dropdown if needed
+        const progSelect = document.getElementById('report-filter-program');
+        if (progSelect && progSelect.options.length <= 1 && data.study_programs) {
+            data.study_programs.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                progSelect.appendChild(opt);
+            });
+        }
+
+        // Cache current users
+        cachedReportUsers = data.items || [];
+
+        // Render table
+        renderReportsTable(cachedReportUsers, data.pagination);
+    })
+    .catch(err => {
+        console.error('Error fetching report data:', err);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600 font-medium">Error de conexión al cargar el reporte.</td></tr>`;
+    });
+}
+
+function renderReportsTable(items, pagination) {
+    const tbody = document.getElementById('report-table-body');
+    const countText = document.getElementById('report-results-count-text');
+    if (!tbody) return;
+
+    if (countText && pagination) {
+        countText.textContent = `Mostrando ${items.length} de ${pagination.total} ${currentReportType === 'graduate' ? 'egresados' : 'estudiantes'}`;
+    }
+
+    if (items.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="p-12 text-center text-on-surface-variant">
+                    <div class="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                        <span class="material-symbols-outlined text-4xl text-outline">search_off</span>
+                        <p class="font-bold text-sm text-on-surface">No se encontraron registros</p>
+                        <p class="text-xs text-on-surface-variant">Prueba ajustando los términos de búsqueda o los filtros de programa y estado.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        renderReportPagination(pagination);
+        return;
+    }
+
+    let html = '';
+    items.forEach(u => {
+        const p = u.person || {};
+        const initials = (p.names || 'U').split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase() || 'U';
+        const avatarBg = currentReportType === 'graduate' ? 'bg-purple-100 text-purple-800' : 'bg-primary/10 text-primary';
+
+        // Postulaciones chips
+        let appsHtml = '';
+        if (u.applications && u.applications.length > 0) {
+            appsHtml = '<div class="space-y-1.5 max-w-xs">';
+            u.applications.slice(0, 2).forEach(app => {
+                const statusClass = getReportStatusBadge(app.status);
+                appsHtml += `
+                    <div class="text-xs p-1.5 rounded-lg bg-surface-container-high/60 border border-outline-variant/40 flex items-center justify-between gap-1.5">
+                        <span class="font-medium truncate max-w-[140px]" title="${app.offer_title}">${app.offer_title}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold shrink-0 ${statusClass}">
+                            ${app.status_label}
+                        </span>
+                    </div>
+                `;
+            });
+            if (u.applications.length > 2) {
+                appsHtml += `<span class="text-[11px] text-primary font-semibold block">+${u.applications.length - 2} postulación(es) más</span>`;
+            }
+            appsHtml += '</div>';
+        } else {
+            appsHtml = '<span class="inline-flex items-center gap-1 text-xs text-on-surface-variant bg-surface-container-high px-2.5 py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Sin postulaciones</span>';
+        }
+
+        // Status indicator badge
+        let mainStatusBadge = '';
+        if (u.applications && u.applications.length > 0) {
+            const hasAccepted = u.applications.some(a => a.status === 'accepted');
+            const hasReview = u.applications.some(a => a.status === 'under_review');
+            const hasRejected = u.applications.some(a => a.status === 'rejected');
+
+            if (hasAccepted) {
+                mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="material-symbols-outlined text-[14px]">check_circle</span> Aceptado</span>';
+            } else if (hasReview) {
+                mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="material-symbols-outlined text-[14px]">timelapse</span> En revisión</span>';
+            } else if (hasRejected) {
+                mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200"><span class="material-symbols-outlined text-[14px]">cancel</span> Rechazado</span>';
+            } else {
+                mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200"><span class="material-symbols-outlined text-[14px]">send</span> Postulado</span>';
+            }
+        } else {
+            mainStatusBadge = '<span class="text-xs text-outline font-medium">Inactivo en bolsa</span>';
+        }
+
+        html += `
+            <tr class="hover:bg-surface-container-high/30 transition-colors">
+                <!-- Postulante -->
+                <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl ${avatarBg} flex items-center justify-center font-bold text-xs shrink-0">
+                            ${initials}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-on-surface truncate text-xs sm:text-sm" title="${p.names}">${p.names}</p>
+                            <p class="text-[11px] text-on-surface-variant">DNI: <span class="font-mono font-medium">${p.document_number}</span></p>
+                        </div>
+                    </div>
+                </td>
+
+                <!-- Contacto -->
+                <td class="py-3.5 px-4 text-xs">
+                    <p class="text-on-surface truncate max-w-[180px]" title="${u.email}">${u.email}</p>
+                    <p class="text-on-surface-variant">${p.phone || 'Sin teléfono'}</p>
+                </td>
+
+                <!-- Programa de Estudio -->
+                <td class="py-3.5 px-4">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-container-high text-on-surface max-w-[220px] truncate" title="${p.study_program}">
+                        <span class="material-symbols-outlined text-[14px] text-primary shrink-0">school</span>
+                        <span class="truncate">${p.study_program}</span>
+                    </span>
+                </td>
+
+                <!-- Total Postulaciones -->
+                <td class="py-3.5 px-4 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${u.applications_count > 0 ? 'bg-primary/10 text-primary font-bold' : 'bg-surface-container-high text-on-surface-variant'} text-xs">
+                        ${u.applications_count}
+                    </span>
+                </td>
+
+                <!-- Ofertas & Estado -->
+                <td class="py-3.5 px-4">
+                    <div class="space-y-1">
+                        <div>${mainStatusBadge}</div>
+                        ${appsHtml}
+                    </div>
+                </td>
+
+                <!-- Acciones -->
+                <td class="py-3.5 px-4 text-center">
+                    <button type="button" onclick="openReportDetailModal(${u.id})"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-primary hover:text-on-primary text-on-surface font-semibold text-xs transition-all cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                        <span>Detalle</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+    renderReportPagination(pagination);
+}
+
+function getReportStatusBadge(status) {
+    switch (status) {
+        case 'accepted':
+            return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+        case 'under_review':
+            return 'bg-amber-100 text-amber-800 border border-amber-200';
+        case 'rejected':
+            return 'bg-red-100 text-red-800 border border-red-200';
+        default:
+            return 'bg-blue-100 text-blue-800 border border-blue-200';
+    }
+}
+
+function renderReportPagination(p) {
+    const container = document.getElementById('report-pagination-buttons');
+    const info = document.getElementById('report-pagination-info');
+    if (!container || !p) return;
+
+    if (info) {
+        info.textContent = `Página ${p.current_page} de ${p.last_page} | Total: ${p.total} registros`;
+    }
+
+    let btnsHtml = '';
+
+    // Previous
+    btnsHtml += `
+        <button type="button" ${p.current_page <= 1 ? 'disabled' : ''} onclick="loadReportsData(${p.current_page - 1})"
+            class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface text-xs font-semibold hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+            Anterior
+        </button>
+    `;
+
+    // Next
+    btnsHtml += `
+        <button type="button" ${p.current_page >= p.last_page ? 'disabled' : ''} onclick="loadReportsData(${p.current_page + 1})"
+            class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface text-xs font-semibold hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+            Siguiente
+        </button>
+    `;
+
+    container.innerHTML = btnsHtml;
+}
+
+function openReportDetailModal(userId) {
+    const user = cachedReportUsers.find(u => u.id === userId);
+    if (!user) return;
+
+    const p = user.person || {};
+    const modal = document.getElementById('report-detail-modal');
+    const avatar = document.getElementById('modal-report-avatar');
+    const name = document.getElementById('modal-report-name');
+    const subtitle = document.getElementById('modal-report-subtitle');
+    const prog = document.getElementById('modal-report-program');
+    const email = document.getElementById('modal-report-email');
+    const phone = document.getElementById('modal-report-phone');
+    const count = document.getElementById('modal-report-apps-count');
+    const appsList = document.getElementById('modal-report-apps-list');
+
+    const initials = (p.names || 'U').split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase() || 'U';
+    if (avatar) avatar.textContent = initials;
+    if (name) name.textContent = p.names || 'Sin nombre';
+    if (subtitle) subtitle.textContent = `DNI: ${p.document_number || '-'} | ${currentReportType === 'graduate' ? 'Egresado' : 'Estudiante'} (Registrado el ${user.created_at || '-'})`;
+    if (prog) prog.innerHTML = `<span class="material-symbols-outlined text-[16px]">school</span><span>${p.study_program || 'Sin asignar'}</span>`;
+    if (email) email.textContent = user.email || '-';
+    if (phone) phone.textContent = p.phone || 'Sin teléfono';
+    if (count) count.textContent = (user.applications || []).length;
+
+    if (appsList) {
+        if (!user.applications || user.applications.length === 0) {
+            appsList.innerHTML = `
+                <div class="p-8 text-center rounded-xl bg-surface-container-low border border-outline-variant text-on-surface-variant">
+                    <span class="material-symbols-outlined text-3xl text-outline mb-1">info</span>
+                    <p class="font-medium text-xs">Este usuario no ha postulado a ninguna oferta laboral aún.</p>
+                </div>
+            `;
+        } else {
+            let html = '';
+            user.applications.forEach(app => {
+                const badgeClass = getReportStatusBadge(app.status);
+                html += `
+                    <div class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/60 shadow-2xs space-y-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h4 class="font-bold text-sm text-on-surface">${app.offer_title}</h4>
+                                <p class="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5">
+                                    <span class="material-symbols-outlined text-[14px]">apartment</span>
+                                    <span>${app.company_name}</span>
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">
+                                    ${app.status_label}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-outline-variant/40 text-[11px] text-on-surface-variant">
+                            <span>Postulado el: <strong class="text-on-surface">${app.created_at}</strong></span>
+                            ${app.cv_url ? `
+                                <a href="${app.cv_url}" target="_blank" class="inline-flex items-center gap-1 text-primary hover:underline font-semibold">
+                                    <span class="material-symbols-outlined text-[14px]">description</span>
+                                    Descargar CV presentado
+                                </a>
+                            ` : ''}
+                        </div>
+
+                        ${app.feedback ? `
+                            <div class="p-2.5 rounded-lg bg-surface-container-high/60 border border-outline-variant/40 text-xs mt-2">
+                                <strong class="text-on-surface block text-[11px] mb-0.5">Observación / Feedback:</strong>
+                                <p class="text-on-surface-variant">${app.feedback}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            appsList.innerHTML = html;
+        }
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeReportDetailModal() {
+    const modal = document.getElementById('report-detail-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function exportReportsExcel() {
+    const btn = document.getElementById('btn-export-reports-excel');
+    const icon = document.getElementById('icon-export-excel');
+    const text = document.getElementById('text-export-excel');
+
+    const search = document.getElementById('report-search-input')?.value || '';
+    const programId = document.getElementById('report-filter-program')?.value || '';
+    const status = document.getElementById('report-filter-status')?.value || 'all';
+
+    if (btn && icon && text) {
+        btn.setAttribute('disabled', 'true');
+        icon.textContent = 'autorenew';
+        icon.classList.add('animate-spin');
+        text.textContent = 'Generando Excel...';
+    }
+
+    const url = `/admin/reports/export-excel?type=${currentReportType}&search=${encodeURIComponent(search)}&program_id=${encodeURIComponent(programId)}&status=${encodeURIComponent(status)}`;
+    
+    window.location.href = url;
+
+    setTimeout(() => {
+        if (btn && icon && text) {
+            btn.removeAttribute('disabled');
+            icon.textContent = 'table_view';
+            icon.classList.remove('animate-spin');
+            text.textContent = 'Exportar a Excel (.xlsx)';
+        }
+    }, 2500);
+}
 </script>
 </body>
 

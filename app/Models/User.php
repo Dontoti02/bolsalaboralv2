@@ -78,4 +78,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Person::class, 'person_id');
     }
+
+    /**
+     * Get the job opportunity applications submitted by the user.
+     */
+    public function applications()
+    {
+        return $this->hasMany(JobOpportunityApplication::class, 'user_id');
+    }
 }
