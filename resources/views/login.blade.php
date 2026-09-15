@@ -86,10 +86,15 @@
             border-color: #34d399 !important;
             box-shadow: 0 4px 12px rgba(5, 150, 105, 0.14) !important;
         }
+        @media screen and (max-width: 640px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-background text-on-background min-h-screen font-body-md text-body-md antialiased overflow-y-auto lg:overflow-hidden">
-<div class="flex min-h-screen w-full">
+<body class="bg-background text-on-background min-h-[100dvh] font-body-md text-body-md antialiased overflow-y-auto lg:overflow-hidden">
+<div class="flex min-h-[100dvh] w-full">
     <!-- Left Side: Banner -->
     <div class="hidden lg:flex w-1/2 relative bg-surface-container-highest">
         <div class="absolute inset-0 z-0">
@@ -105,26 +110,28 @@
         </div>
     </div>
     <!-- Right Side: Login Form -->
-    <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-lg sm:p-2xl bg-surface-container-lowest overflow-y-auto max-h-screen py-8">
-        <div class="w-full max-w-[400px]">
+    <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col justify-start lg:justify-center items-center px-4 py-6 sm:px-8 sm:py-10 lg:px-12 bg-surface-container-lowest overflow-y-auto min-h-[100dvh] lg:h-screen">
+        <div class="w-full max-w-[420px] sm:max-w-[480px] my-auto py-2 sm:py-4 transition-all duration-300">
             <!-- Logo -->
-            <div class="mb-xl flex items-center justify-center lg:justify-start gap-3">
+            <div class="mb-5 sm:mb-7 flex items-center justify-center lg:justify-start gap-3">
                 @if(!empty($config['logo']))
-                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-10 w-auto object-contain">
+                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-9 sm:h-10 w-auto object-contain">
                 @endif
-                <span class="font-display-lg text-display-lg text-primary tracking-tight leading-none">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
-            </div> <!-- Section: Login -->
-            <div id="login-section" class="space-y-md">
-                <div class="mb-xl text-center lg:text-left">
-                    <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Iniciar Sesión</h1>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant">Bolsa Laboral - Accede al portal institucional.</p>
+                <span class="text-2xl sm:text-3xl lg:text-display-lg font-bold text-primary tracking-tight leading-snug">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
+            </div> 
+            
+            <!-- Section: Login -->
+            <div id="login-section" class="space-y-4 sm:space-y-5">
+                <div class="mb-4 sm:mb-6 text-center lg:text-left">
+                    <h1 class="text-xl sm:text-2xl font-bold text-on-surface mb-1">Iniciar Sesión</h1>
+                    <p class="text-xs sm:text-sm text-on-surface-variant">Bolsa Laboral - Accede al portal institucional.</p>
                 </div>
                 <!-- Form -->
-                <form action="{{ route('login') }}" method="POST" class="space-y-md">
+                <form action="{{ route('login') }}" method="POST" class="space-y-3.5 sm:space-y-4">
                     @csrf
                     
                     @if ($errors->any())
-                        <div class="p-4 rounded-lg bg-error-container text-on-error-container text-body-sm font-medium">
+                        <div class="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-medium">
                             <ul class="list-disc list-inside space-y-1">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -133,50 +140,50 @@
                         </div>
                     @endif
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="login">Correo Electrónico</label>
+                    <div class="space-y-1 sm:space-y-1.5">
+                        <label class="font-label-sm text-xs sm:text-sm text-on-surface-variant block font-medium" for="login">Correo Electrónico</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
-                            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="login" name="login" placeholder="Ej. example@gmail.com" type="text" required autocomplete="username" value="{{ old('login', old('email')) }}"/>
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">badge</span>
+                            <input class="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-base sm:text-sm placeholder-outline" id="login" name="login" placeholder="Ej. example@gmail.com" type="text" required autocomplete="username" value="{{ old('login', old('email')) }}"/>
                         </div>
                     </div>
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="password">Contraseña</label>
+                    <div class="space-y-1 sm:space-y-1.5">
+                        <label class="font-label-sm text-xs sm:text-sm text-on-surface-variant block font-medium" for="password">Contraseña</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock</span>
-                            <input class="w-full pl-10 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="current-password"/>
-                            <button id="toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
-                                <span class="material-symbols-outlined text-xl" id="toggle-icon">visibility_off</span>
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
+                            <input class="w-full pl-10 pr-10 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-base sm:text-sm placeholder-outline" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="current-password"/>
+                            <button id="toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer" type="button" aria-label="Mostrar contraseña">
+                                <span class="material-symbols-outlined text-[20px]" id="toggle-icon">visibility_off</span>
                             </button>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between pt-sm">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-lowest" name="remember" type="checkbox"/>
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">Recordarme</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-lowest cursor-pointer" name="remember" type="checkbox"/>
+                            <span class="text-xs sm:text-sm text-on-surface-variant">Recordarme</span>
                         </label>
-                        <button type="button" onclick="toggleAuthMode('forgot')" class="font-label-sm text-label-sm text-primary hover:underline decoration-primary/50 transition-all">Olvidé mi contraseña</button>
+                        <button type="button" onclick="toggleAuthMode('forgot')" class="text-xs sm:text-sm text-primary hover:underline decoration-primary/50 transition-all text-left sm:text-right font-medium cursor-pointer">¿Olvidaste tu contraseña?</button>
                     </div>
-                    <button class="w-full mt-xl bg-primary hover:opacity-90 text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2" type="submit">
+                    <button class="w-full mt-2 bg-primary hover:opacity-90 active:scale-[0.99] text-on-primary font-semibold text-sm sm:text-base py-3 px-4 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer" type="submit">
                         Ingresar
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
                     </button>
                 </form>
                 
-                <div class="pt-md border-t border-outline-variant/60 mt-md space-y-2.5">
+                <div class="pt-4 border-t border-outline-variant/60 mt-4 sm:mt-5 space-y-3">
                     <!-- Callout Egresado -->
-                    <div class="flex items-center justify-between p-3.5 rounded-2xl card-grad-callout transition-all group">
-                        <div class="flex items-center gap-3 text-left">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl card-grad-callout transition-all group">
+                        <div class="flex items-center gap-3 text-left min-w-0">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform" style="background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;">
                                 <span class="material-symbols-outlined text-[22px]" style="color: #6d28d9;">school</span>
                             </div>
-                            <div>
-                                <span class="block font-bold text-body-sm leading-tight" style="color: #4c1d95;">¿Eres un egresado?</span>
-                                <span class="text-[11.5px] font-medium leading-snug block" style="color: #6d28d9;">Crea tu cuenta y postula hoy</span>
+                            <div class="min-w-0">
+                                <span class="block font-bold text-sm sm:text-body-sm leading-tight" style="color: #4c1d95;">¿Eres un egresado?</span>
+                                <span class="text-xs font-medium leading-snug block" style="color: #6d28d9;">Crea tu cuenta y postula hoy</span>
                             </div>
                         </div>
                         <button onclick="toggleAuthMode('register-graduate')" 
-                            class="px-4 py-2 rounded-xl text-white font-bold text-xs btn-grad-cta shrink-0 ml-2 flex items-center gap-1.5 cursor-pointer shadow-md" 
+                            class="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-white font-bold text-xs btn-grad-cta shrink-0 flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all" 
                             type="button">
                             <span style="color: #ffffff !important;">Regístrate aquí</span>
                             <span class="material-symbols-outlined text-[15px]" style="color: #ffffff !important;">arrow_forward</span>
@@ -184,18 +191,18 @@
                     </div>
 
                     <!-- Callout Empresa -->
-                    <div class="flex items-center justify-between p-3.5 rounded-2xl card-company-callout transition-all group">
-                        <div class="flex items-center gap-3 text-left">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl card-company-callout transition-all group">
+                        <div class="flex items-center gap-3 text-left min-w-0">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform" style="background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">
                                 <span class="material-symbols-outlined text-[22px]" style="color: #047857;">apartment</span>
                             </div>
-                            <div>
-                                <span class="block font-bold text-body-sm leading-tight" style="color: #064e3b;">¿Eres una empresa?</span>
-                                <span class="text-[11.5px] font-medium leading-snug block" style="color: #047857;">Publica ofertas y capta talento</span>
+                            <div class="min-w-0">
+                                <span class="block font-bold text-sm sm:text-body-sm leading-tight" style="color: #064e3b;">¿Eres una empresa?</span>
+                                <span class="text-xs font-medium leading-snug block" style="color: #047857;">Publica ofertas y capta talento</span>
                             </div>
                         </div>
                         <button onclick="toggleAuthMode('register')" 
-                            class="px-4 py-2 rounded-xl text-white font-bold text-xs btn-company-cta shrink-0 ml-2 flex items-center gap-1.5 cursor-pointer shadow-md" 
+                            class="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-white font-bold text-xs btn-company-cta shrink-0 flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all" 
                             type="button">
                             <span style="color: #ffffff !important;">Regístrate aquí</span>
                             <span class="material-symbols-outlined text-[15px]" style="color: #ffffff !important;">arrow_forward</span>
@@ -205,134 +212,159 @@
             </div>
 
             <!-- Section: Forgot Password -->
-            <div id="forgot-section" class="space-y-md hidden">
-                <div class="mb-xl text-center lg:text-left">
-                    <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Recuperar Contraseña</h1>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant">Ingresa tu correo registrado para recibir un enlace de recuperación.</p>
+            <div id="forgot-section" class="space-y-4 sm:space-y-5 hidden">
+                <div class="mb-4 sm:mb-5">
+                    <button type="button" onclick="toggleAuthMode('login')" class="inline-flex items-center gap-1 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors mb-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Volver al inicio de sesión
+                    </button>
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-xl sm:text-2xl font-bold text-on-surface mb-1">Recuperar Contraseña</h1>
+                        <p class="text-xs sm:text-sm text-on-surface-variant">Ingresa tu correo registrado para recibir un enlace de recuperación.</p>
+                    </div>
                 </div>
                 <!-- Forgot Form -->
-                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)" class="space-y-md">
+                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)" class="space-y-3.5 sm:space-y-4">
                     @csrf
                     
-                    <div id="forgot-error-container" class="p-4 rounded-lg bg-error-container text-on-error-container text-body-sm font-medium hidden">
+                    <div id="forgot-error-container" class="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-medium hidden">
                         <p id="forgot-error-text"></p>
                     </div>
-                    <div id="forgot-success-container" class="p-4 rounded-lg bg-secondary-container text-on-secondary-container text-body-sm font-medium hidden">
+                    <div id="forgot-success-container" class="p-3.5 rounded-xl bg-secondary-container text-on-secondary-container text-xs sm:text-sm font-medium hidden">
                         <p id="forgot-success-text"></p>
                     </div>
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="forgot-email">Correo Electrónico</label>
+                    <div class="space-y-1 sm:space-y-1.5">
+                        <label class="font-label-sm text-xs sm:text-sm text-on-surface-variant block font-medium" for="forgot-email">Correo Electrónico</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">mail</span>
-                            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="forgot-email" name="email" placeholder="correo@ejemplo.com" type="email" required />
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
+                            <input class="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-base sm:text-sm placeholder-outline" id="forgot-email" name="email" placeholder="correo@ejemplo.com" type="email" required />
                         </div>
                     </div>
 
-                    <button id="btn-forgot-submit" class="w-full mt-xl bg-primary hover:opacity-90 text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 font-semibold" type="submit">
+                    <button id="btn-forgot-submit" class="w-full mt-2 bg-primary hover:opacity-90 active:scale-[0.99] text-on-primary font-semibold text-sm sm:text-base py-3 px-4 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer" type="submit">
                         Enviar Enlace
                         <span class="material-symbols-outlined text-sm">send</span>
                     </button>
                 </form>
                 
-                <div class="text-center pt-md border-t border-outline-variant/60 mt-md">
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">¿Recordaste tu contraseña?</span>
-                    <button onclick="toggleAuthMode('login')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Inicia sesión</button>
+                <div class="text-center pt-4 border-t border-outline-variant/60 mt-4">
+                    <span class="text-xs sm:text-sm text-on-surface-variant">¿Recordaste tu contraseña?</span>
+                    <button onclick="toggleAuthMode('login')" class="text-xs sm:text-sm text-primary hover:underline ml-1 font-semibold cursor-pointer" type="button">Inicia sesión</button>
                 </div>
             </div>
 
             <!-- Section: Register Company -->
-            <div id="register-section" class="space-y-md hidden">
-                <div class="mb-lg text-center lg:text-left">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-semibold text-[11px] mb-2" style="background-color: #d1fae5; color: #064e3b; border: 1px solid #a7f3d0;">
-                        <span class="material-symbols-outlined text-[14px]" style="color: #047857;">apartment</span>
-                        Portal Empresas
+            <div id="register-section" class="space-y-4 sm:space-y-5 hidden">
+                <div class="mb-4 sm:mb-5">
+                    <button type="button" onclick="toggleAuthMode('login')" class="inline-flex items-center gap-1 text-xs font-semibold text-on-surface-variant hover:text-emerald-700 transition-colors mb-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Volver al inicio de sesión
+                    </button>
+                    <div class="text-center sm:text-left">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold mb-2" style="background-color: #d1fae5; color: #064e3b; border: 1px solid #a7f3d0;">
+                            <span class="material-symbols-outlined text-[14px]" style="color: #047857;">apartment</span>
+                            Portal Empresas
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-on-surface mb-1">Registrar Empresa</h1>
+                        <p class="text-xs sm:text-sm text-on-surface-variant">Regístrate con tus datos básicos para comenzar a publicar ofertas.</p>
                     </div>
-                    <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Registrar Empresa</h1>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant">Regístrate con tus datos básicos para comenzar a publicar ofertas.</p>
                 </div>
                 <!-- Register Form -->
-                <form id="register-company-form" onsubmit="handleCompanyRegister(event)" class="space-y-md">
+                <form id="register-company-form" onsubmit="handleCompanyRegister(event)" class="space-y-3 sm:space-y-3.5">
                     @csrf
                     
-                    <div id="register-error-container" class="p-4 rounded-lg bg-error-container text-on-error-container text-body-sm font-medium hidden">
+                    <div id="register-error-container" class="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-medium hidden">
                         <p id="register-error-text"></p>
                     </div>
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-name">Nombre de la Empresa</label>
+                    <!-- Nombre de Empresa -->
+                    <div class="space-y-1">
+                        <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-name">Nombre de la Empresa</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">apartment</span>
-                            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="reg-name" name="name" placeholder="Ej. Innova Tech SAC" type="text" required />
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">apartment</span>
+                            <input class="w-full pl-9 pr-4 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-name" name="name" placeholder="Ej. Innova Tech SAC" type="text" required />
                         </div>
                     </div>
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-email">Correo Electrónico Corporativo</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">mail</span>
-                            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="reg-email" name="email" placeholder="contacto@empresa.com" type="email" required />
+                    <!-- Correo y RUC -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-email">Correo Corporativo</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
+                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-email" name="email" placeholder="contacto@empresa.com" type="email" required />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-ruc">RUC (11 dígitos)</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">fingerprint</span>
+                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-ruc" name="ruc" placeholder="20123456789" type="text" minlength="11" maxlength="11" pattern="\d{11}" required />
+                            </div>
                         </div>
                     </div>
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-ruc">RUC (11 dígitos)</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">fingerprint</span>
-                            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="reg-ruc" name="ruc" placeholder="20123456789" type="text" minlength="11" maxlength="11" pattern="\d{11}" required />
+                    <!-- Contraseñas en Grid Responsivo -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-password">Contraseña</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                                <input class="w-full pl-9 pr-9 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-password" name="password" placeholder="Mín. 8 caracteres" type="password" required />
+                                <button id="toggle-reg-password" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer" type="button" aria-label="Mostrar contraseña">
+                                    <span class="material-symbols-outlined text-[18px]" id="toggle-reg-icon">visibility_off</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-password-confirm">Confirmar Contraseña</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                                <input class="w-full pl-9 pr-9 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-password-confirm" name="password_confirmation" placeholder="••••••••" type="password" required />
+                                <button id="toggle-reg-password-confirm" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer" type="button" aria-label="Mostrar confirmación de contraseña">
+                                    <span class="material-symbols-outlined text-[18px]" id="toggle-reg-icon-confirm">visibility_off</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-password">Contraseña</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock</span>
-                            <input class="w-full pl-10 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="reg-password" name="password" placeholder="Mínimo 8 caracteres" type="password" required />
-                            <button id="toggle-reg-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
-                                <span class="material-symbols-outlined text-xl" id="toggle-reg-icon">visibility_off</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-password-confirm">Confirmar Contraseña</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock</span>
-                            <input class="w-full pl-10 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-sm text-body-sm placeholder-outline" id="reg-password-confirm" name="password_confirmation" placeholder="••••••••" type="password" required />
-                            <button id="toggle-reg-password-confirm" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
-                                <span class="material-symbols-outlined text-xl" id="toggle-reg-icon-confirm">visibility_off</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button id="btn-register-company" class="w-full mt-xl btn-company-cta font-bold font-label-md text-label-md py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md" type="submit">
+                    <button id="btn-register-company" class="w-full mt-3 btn-company-cta font-bold text-sm sm:text-base py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-[0.99] transition-all" type="submit">
                         <span style="color: #ffffff !important;">Registrar Empresa</span>
                         <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>
                     </button>
                 </form>
                 
-                <div class="text-center pt-md border-t border-outline-variant/60 mt-md">
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">¿Ya tienes cuenta?</span>
-                    <button onclick="toggleAuthMode('login')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Inicia sesión</button>
+                <div class="text-center pt-4 border-t border-outline-variant/60 mt-4">
+                    <span class="text-xs sm:text-sm text-on-surface-variant">¿Ya tienes cuenta?</span>
+                    <button onclick="toggleAuthMode('login')" class="text-xs sm:text-sm text-primary hover:underline ml-1 font-semibold cursor-pointer" type="button">Inicia sesión</button>
                 </div>
             </div>
 
             <!-- Section: Register Graduate (Egresado) -->
-            <div id="register-graduate-section" class="space-y-md hidden">
-                <div class="mb-lg text-center lg:text-left">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-label-sm font-semibold text-[11px] mb-2">
-                        <span class="material-symbols-outlined text-[14px]">school</span>
-                        Comunidad de Egresados
+            <div id="register-graduate-section" class="space-y-4 sm:space-y-5 hidden">
+                <div class="mb-4 sm:mb-5">
+                    <button type="button" onclick="toggleAuthMode('login')" class="inline-flex items-center gap-1 text-xs font-semibold text-on-surface-variant hover:text-purple-700 transition-colors mb-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Volver al inicio de sesión
+                    </button>
+                    <div class="text-center sm:text-left">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold mb-2 border border-purple-200">
+                            <span class="material-symbols-outlined text-[14px]">school</span>
+                            Comunidad de Egresados
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-on-surface mb-1">Registro de Egresados</h1>
+                        <p class="text-xs sm:text-sm text-on-surface-variant">Crea tu cuenta profesional para acceder a ofertas laborales exclusivas.</p>
                     </div>
-                    <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Registro de Egresados</h1>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant">Crea tu cuenta profesional para acceder a ofertas laborales exclusivas.</p>
                 </div>
 
                 <!-- Register Graduate Form -->
-                <form id="register-graduate-form" onsubmit="handleGraduateRegister(event)" class="space-y-3">
+                <form id="register-graduate-form" onsubmit="handleGraduateRegister(event)" class="space-y-3 sm:space-y-3.5">
                     @csrf
                     
-                    <div id="register-graduate-error-container" class="p-3 rounded-xl bg-error-container text-on-error-container text-body-sm font-medium hidden">
+                    <div id="register-graduate-error-container" class="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-medium hidden">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-[18px] text-red-600 shrink-0">error</span>
                             <p id="register-graduate-error-text" class="text-xs sm:text-sm"></p>
@@ -341,28 +373,38 @@
 
                     <!-- Nombres y Apellidos -->
                     <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-names">Nombres y Apellidos completos</label>
+                        <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-names">Nombres y Apellidos completos</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">person</span>
-                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-names" name="names" placeholder="Ej. Ana Torres Quispe" type="text" required />
+                            <input class="w-full pl-9 pr-4 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-names" name="names" placeholder="Ej. Ana Torres Quispe" type="text" required />
                         </div>
                     </div>
 
-                    <!-- Documento DNI -->
-                    <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-dni">DNI (8 dígitos)</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
-                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-dni" name="document_number" placeholder="Ej. 45678912" type="text" minlength="8" maxlength="8" pattern="\d{8}" required />
+                    <!-- Documento DNI & Teléfono en Grid Responsivo -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-dni">DNI (8 dígitos)</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
+                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-dni" name="document_number" placeholder="Ej. 45678912" type="text" minlength="8" maxlength="8" pattern="\d{8}" required />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-phone">Teléfono / Celular</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">call</span>
+                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-phone" name="phone" placeholder="Ej. 944556677" type="tel" maxlength="12" />
+                            </div>
                         </div>
                     </div>
 
                     <!-- Programa de Estudio / Carrera -->
                     <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-program">Programa de Estudio / Carrera</label>
+                        <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-program">Programa de Estudio / Carrera</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">school</span>
-                            <select class="w-full pl-9 pr-8 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm text-on-surface appearance-none cursor-pointer" id="reg-grad-program" name="study_program_id">
+                            <select class="w-full pl-9 pr-8 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm text-on-surface appearance-none cursor-pointer" id="reg-grad-program" name="study_program_id">
                                 <option value="">Selecciona tu programa de estudio</option>
                                 @if(isset($studyPrograms))
                                     @foreach($studyPrograms as $sp)
@@ -374,65 +416,57 @@
                         </div>
                     </div>
 
-                    <!-- Teléfono / Celular -->
-                    <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-phone">Teléfono / Celular</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">call</span>
-                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-phone" name="phone" placeholder="Ej. 944556677" type="tel" maxlength="12" />
-                        </div>
-                    </div>
-
                     <!-- Correo Electrónico -->
                     <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-email">Correo Electrónico</label>
+                        <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-email">Correo Electrónico</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
-                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-email" name="email" placeholder="egresado@ejemplo.com" type="email" required />
+                            <input class="w-full pl-9 pr-4 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-email" name="email" placeholder="egresado@ejemplo.com" type="email" required />
                         </div>
                     </div>
 
-                    <!-- Contraseña -->
-                    <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-password">Contraseña</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
-                            <input class="w-full pl-9 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-password" name="password" placeholder="Mínimo 8 caracteres" type="password" required />
-                            <button id="toggle-reg-grad-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
-                                <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon">visibility_off</span>
-                            </button>
+                    <!-- Contraseñas en Grid Responsivo -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-password">Contraseña</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                                <input class="w-full pl-9 pr-9 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-password" name="password" placeholder="Mín. 8 caracteres" type="password" required />
+                                <button id="toggle-reg-grad-password" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer" type="button" aria-label="Mostrar contraseña">
+                                    <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon">visibility_off</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Confirmar Contraseña -->
-                    <div class="space-y-1">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-password-confirm">Confirmar Contraseña</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
-                            <input class="w-full pl-9 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-password-confirm" name="password_confirmation" placeholder="••••••••" type="password" required />
-                            <button id="toggle-reg-grad-password-confirm" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
-                                <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon-confirm">visibility_off</span>
-                            </button>
+                        <div class="space-y-1">
+                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-password-confirm">Confirmar Contraseña</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                                <input class="w-full pl-9 pr-9 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-password-confirm" name="password_confirmation" placeholder="••••••••" type="password" required />
+                                <button id="toggle-reg-grad-password-confirm" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer" type="button" aria-label="Mostrar confirmación de contraseña">
+                                    <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon-confirm">visibility_off</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Submit Button -->
-                    <button id="btn-register-graduate" class="w-full mt-4 btn-grad-cta font-bold font-label-md text-label-md py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md" type="submit">
+                    <button id="btn-register-graduate" class="w-full mt-3 btn-grad-cta font-bold text-sm sm:text-base py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-[0.99] transition-all" type="submit">
                         <span style="color: #ffffff !important;">Crear Cuenta de Egresado</span>
                         <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>
                     </button>
                 </form>
                 
-                <div class="text-center pt-md border-t border-outline-variant/60 mt-md">
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">¿Ya tienes cuenta?</span>
-                    <button onclick="toggleAuthMode('login')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Inicia sesión</button>
+                <div class="text-center pt-4 border-t border-outline-variant/60 mt-4">
+                    <span class="text-xs sm:text-sm text-on-surface-variant">¿Ya tienes cuenta?</span>
+                    <button onclick="toggleAuthMode('login')" class="text-xs sm:text-sm text-primary hover:underline ml-1 font-semibold cursor-pointer" type="button">Inicia sesión</button>
                 </div>
             </div>
 
             <!-- Carousel of Registered Companies -->
             @if(isset($companies) && $companies->isNotEmpty())
-                <div class="mt-xl border-t border-outline-variant/60 pt-lg overflow-hidden w-full">
-                    <p class="font-label-sm text-label-sm text-on-surface-variant text-center mb-md tracking-wider uppercase font-semibold text-[10px]">Empresas en la plataforma</p>
+                <div class="mt-8 sm:mt-10 border-t border-outline-variant/60 pt-6 overflow-hidden w-full">
+                    <p class="font-label-sm text-label-sm text-on-surface-variant text-center mb-4 tracking-wider uppercase font-semibold text-[10px]">Empresas en la plataforma</p>
                     <div class="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_15%,_black_85%,transparent_100%)]">
                         <div class="flex gap-lg items-center animate-infinite-scroll w-max whitespace-nowrap">
                             <!-- First loop -->
@@ -469,7 +503,7 @@
             @endif
 
             <!-- Footer / Security -->
-            <div class="mt-xl text-center border-t border-outline-variant pt-lg">
+            <div class="mt-8 sm:mt-10 text-center border-t border-outline-variant pt-6">
                 <div class="flex items-center justify-center gap-2 text-on-surface-variant mb-xs">
                     <span class="material-symbols-outlined text-sm filled">verified_user</span>
                     <span class="font-label-sm text-label-sm">Conexión Segura</span>
@@ -515,6 +549,13 @@
             document.getElementById('forgot-success-container').classList.add('hidden');
         } else {
             loginSec.classList.remove('hidden');
+        }
+
+        const scrollContainer = document.getElementById('form-scroll-container');
+        if (scrollContainer) {
+            scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
