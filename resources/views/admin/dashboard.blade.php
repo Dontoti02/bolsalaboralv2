@@ -1356,6 +1356,7 @@
                                 Guardar Imágenes
                             </button>
                         </div>
+                    </div>
                 </form>
 
                 <!-- Sección 3: Correo Saliente (SMTP) -->

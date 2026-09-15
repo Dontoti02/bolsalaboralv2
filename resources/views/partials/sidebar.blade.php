@@ -33,7 +33,7 @@
     </div>
 
     @if($sidebarShowPublish)
-        <button type="button" onclick="switchTab('{{ $sidebarPublishTab }}')"
+        <button type="button" onclick="switchTab('{{ $sidebarPublishTab }}'); if(typeof showCreateOfferForm === 'function') showCreateOfferForm();"
             class="mb-lg w-full bg-primary text-on-primary text-label-md font-label-md py-3 rounded-lg hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">
             <span class="material-symbols-outlined">add</span>
             <span class="sidebar-label">{{ $sidebarPublishLabel }}</span>
