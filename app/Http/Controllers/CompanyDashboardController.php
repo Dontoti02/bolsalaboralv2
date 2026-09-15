@@ -767,8 +767,8 @@ class CompanyDashboardController extends Controller
                     $authorized = true;
                 }
             }
-        } elseif ($user->rol_id == 3) {
-            // Student must own the application
+        } elseif (in_array($user->rol_id, [2, 3, 5])) {
+            // Student, Teacher or Graduate must own the application
             if ($application->user_id == $user->id) {
                 $authorized = true;
             }

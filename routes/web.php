@@ -9,6 +9,8 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/registro-empresa', [AuthController::class, 'showLoginForm'])->name('register.company');
 Route::post('/register/company', [AuthController::class, 'registerCompany']);
+Route::get('/registro-egresado', [AuthController::class, 'showLoginForm'])->name('register.graduate');
+Route::post('/register/graduate', [AuthController::class, 'registerGraduate'])->name('register.graduate.post');
 
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
@@ -86,8 +88,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/study-programs/assign', [App\Http\Controllers\AdminController::class, 'assignStudyProgram'])->name('admin.study-programs.assign');
     });
     
-    // Rutas comunes de perfil, postulación y CVs para Estudiantes y Docentes (rol_id = 3 y 2)
-    Route::middleware(['role:2,3'])->group(function () {
+    // Rutas comunes de perfil, postulación y CVs para Estudiantes, Docentes y Egresados (rol_id = 2, 3 y 5)
+    Route::middleware(['role:2,3,5'])->group(function () {
         Route::post('/student/profile', [\App\Http\Controllers\StudentController::class, 'updateProfile'])->name('student.profile.update');
         Route::post('/student/avatar', [\App\Http\Controllers\StudentController::class, 'updateAvatar'])->name('student.avatar.update');
         Route::post('/student/password', [\App\Http\Controllers\StudentController::class, 'changePassword'])->name('student.password.change');

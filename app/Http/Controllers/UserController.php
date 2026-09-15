@@ -33,7 +33,7 @@ class UserController extends Controller
             'names' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
             'phone' => 'nullable|string|max:20',
-            'role_id' => 'required|integer|in:1,2,3,4',
+            'role_id' => 'required|integer|in:1,2,3,4,5',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
         ], [
@@ -49,10 +49,10 @@ class UserController extends Controller
             ], 422);
         }
 
-        if (in_array((int) $request->role_id, [2, 3], true) && ($request->doc_type !== 'DNI' || !preg_match('/^\d{8}$/', $request->doc_number))) {
+        if (in_array((int) $request->role_id, [2, 3, 5], true) && ($request->doc_type !== 'DNI' || !preg_match('/^\d{8}$/', $request->doc_number))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Docentes y estudiantes deben registrarse con un DNI válido de 8 dígitos.'
+                'message' => 'Docentes, estudiantes y egresados deben registrarse con un DNI válido de 8 dígitos.'
             ], 422);
         }
 
@@ -145,7 +145,7 @@ class UserController extends Controller
             'names' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email,' . $id,
             'phone' => 'nullable|string|max:20',
-            'role_id' => 'required|integer|in:1,2,3,4',
+            'role_id' => 'required|integer|in:1,2,3,4,5',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
         ], [
@@ -159,10 +159,10 @@ class UserController extends Controller
             ], 422);
         }
 
-        if (in_array((int) $request->role_id, [2, 3], true) && ($request->doc_type !== 'DNI' || !preg_match('/^\d{8}$/', $request->doc_number))) {
+        if (in_array((int) $request->role_id, [2, 3, 5], true) && ($request->doc_type !== 'DNI' || !preg_match('/^\d{8}$/', $request->doc_number))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Docentes y estudiantes deben registrarse con un DNI válido de 8 dígitos.'
+                'message' => 'Docentes, estudiantes y egresados deben registrarse con un DNI válido de 8 dígitos.'
             ], 422);
         }
 

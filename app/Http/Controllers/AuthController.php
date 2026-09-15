@@ -23,7 +23,7 @@ class AuthController extends Controller
                 return redirect()->intended('/admin/dashboard');
             } elseif (Auth::user()->rol_id == 2) {
                 return redirect()->intended('/teacher/dashboard');
-            } elseif (Auth::user()->rol_id == 3) {
+            } elseif (Auth::user()->rol_id == 3 || Auth::user()->rol_id == 5) {
                 return redirect()->intended('/');
             } elseif (Auth::user()->rol_id == 4) {
                 return redirect()->intended('/company/dashboard');
@@ -35,11 +35,13 @@ class AuthController extends Controller
                 ->select('name', 'logo', 'website')
                 ->whereNull('deleted_at')
                 ->get();
+            $studyPrograms = \App\Models\StudyProgram::orderBy('name')->get();
         } catch (\Exception $e) {
             $config = [];
             $companies = collect();
+            $studyPrograms = collect();
         }
-        return view('login', compact('config', 'companies'));
+        return view('login', compact('config', 'companies', 'studyPrograms'));
     }
 
     /**
@@ -92,8 +94,8 @@ class AuthController extends Controller
             Auth::login($user, $remember);
             $request->session()->regenerate();
 
-            // Verificar si el usuario es docente (2) o estudiante (3) y su contraseña coincide con su DNI
-            if (in_array($user->rol_id, [2, 3])) {
+            // Verificar si el usuario es docente (2), estudiante (3) o egresado (5) y su contraseña coincide con su DNI
+            if (in_array($user->rol_id, [2, 3, 5])) {
                 $person = $user->person;
                 if ($person && $person->document_type === 'DNI' && !empty($person->document_number)) {
                     if (Hash::check($person->document_number, $user->password)) {
@@ -107,7 +109,7 @@ class AuthController extends Controller
                 return redirect()->intended('/admin/dashboard');
             } elseif ($user->rol_id == 2) {
                 return redirect()->intended('/');
-            } elseif ($user->rol_id == 3) {
+            } elseif ($user->rol_id == 3 || $user->rol_id == 5) {
                 return redirect()->intended('/');
             } elseif ($user->rol_id == 4) {
                 return redirect()->intended('/company/dashboard');
@@ -140,7 +142,7 @@ class AuthController extends Controller
         }
 
         if (preg_match('/^\d{8}$/', $identifier)) {
-            return User::whereIn('rol_id', [2, 3])
+            return User::whereIn('rol_id', [2, 3, 5])
                 ->whereHas('person', function ($query) use ($identifier) {
                     $query->where('document_type', 'DNI')
                         ->where('document_number', $identifier);
@@ -229,6 +231,123 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Empresa registrada y autenticada exitosamente.'
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error durante el registro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle registration for graduates (egresados).
+     */
+    public function registerGraduate(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'names' => 'required|string|max:255',
+            'document_number' => 'required|string|size:8|regex:/^\d{8}$/',
+            'email' => 'required|email|max:255|unique:user,email',
+            'phone' => 'nullable|string|max:20',
+            'study_program_id' => 'nullable|integer|exists:study_programs,id',
+            'password' => ['required', 'string', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)],
+        ], [
+            'names.required' => 'El nombre completo es obligatorio.',
+            'document_number.required' => 'El número de DNI es obligatorio.',
+            'document_number.size' => 'El DNI debe tener exactamente 8 dígitos.',
+            'document_number.regex' => 'El DNI debe contener solo números (8 dígitos).',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingrese un correo electrónico válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'study_program_id.exists' => 'El programa de estudio seleccionado no es válido.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        // Verify if an existing user is already linked with this DNI
+        $dniInUse = \App\Models\User::whereHas('person', function ($q) use ($request) {
+            $q->where('document_number', $request->document_number);
+        })->exists();
+
+        if ($dniInUse) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya existe una cuenta de usuario registrada con este número de DNI.'
+            ], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $phone = !empty($request->phone) ? substr($request->phone, 0, 9) : '';
+            $career = null;
+            if (!empty($request->study_program_id)) {
+                $sp = \App\Models\StudyProgram::find($request->study_program_id);
+                if ($sp) {
+                    $career = $sp->name;
+                }
+            }
+
+            // Find if a person record already exists with this DNI (unclaimed) or create a new one
+            $person = \App\Models\Person::where('document_number', $request->document_number)->first();
+            if ($person) {
+                $person->names = $request->names;
+                $person->email = $request->email;
+                if ($phone) {
+                    $person->phone = $phone;
+                }
+                if ($request->study_program_id) {
+                    $person->study_program_id = $request->study_program_id;
+                    $person->career = $career;
+                }
+                $person->save();
+            } else {
+                $person = \App\Models\Person::create([
+                    'document_type' => 'DNI',
+                    'document_number' => $request->document_number,
+                    'names' => $request->names,
+                    'phone' => $phone,
+                    'email' => $request->email,
+                    'study_program_id' => $request->study_program_id ?: null,
+                    'career' => $career,
+                ]);
+            }
+
+            // Create user for the graduate with rol_id = 5 (EGRESADO)
+            $user = new \App\Models\User();
+            $user->person_id = $person->id;
+            $user->rol_id = 5; // EGRESADO
+            $user->email = $request->email;
+            $user->password = $request->password;
+            $user->is_active = true;
+            $user->attempts = 0;
+            $user->save();
+
+            // Insert into legacy/related role_user table
+            \Illuminate\Support\Facades\DB::table('rol_user')->insert([
+                'rol_id' => 5,
+                'user_id' => $user->id
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            // Log the user in directly
+            \Illuminate\Support\Facades\Auth::login($user);
+
+            return response()->json([
+                'success' => true,
+                'message' => '¡Cuenta de egresado creada exitosamente! Redirigiendo...',
+                'redirect' => '/'
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();

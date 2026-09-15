@@ -137,7 +137,7 @@ class LandingController extends Controller
                 $authUser = Auth::user()->load('person');
                 
                 $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
-                if ($authUser->rol_id == 3 || ($authUser->rol_id == 2 && $allowTeacher)) {
+                if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
                     $studentCvs = DB::table('job_opportunity_user_cv')
                         ->where('user_id', $authUser->id)
                         ->whereNull('deleted_at')

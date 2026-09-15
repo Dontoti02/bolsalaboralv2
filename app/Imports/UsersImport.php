@@ -31,6 +31,7 @@ class UsersImport implements ToCollection, WithChunkReading
             'DOCENTE' => 2,
             'ESTUDIANTE' => 3,
             'EMPRESA' => 4,
+            'EGRESADO' => 5,
         ];
 
         // Eager load existing emails once across all chunks
@@ -102,8 +103,8 @@ class UsersImport implements ToCollection, WithChunkReading
                 $docNumber = str_pad($docNumber, 11, '0', STR_PAD_LEFT);
             }
 
-            if (in_array($roleId, [2, 3], true) && ($docType !== 'DNI' || !preg_match('/^\d{8}$/', $docNumber))) {
-                $this->errors[] = "Fila $lineNum: Docentes y estudiantes deben tener un DNI válido de 8 dígitos.";
+            if (in_array($roleId, [2, 3, 5], true) && ($docType !== 'DNI' || !preg_match('/^\d{8}$/', $docNumber))) {
+                $this->errors[] = "Fila $lineNum: Docentes, estudiantes y egresados deben tener un DNI válido de 8 dígitos.";
                 continue;
             }
 

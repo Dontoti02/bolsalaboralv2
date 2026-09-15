@@ -246,7 +246,7 @@ class StudentController extends Controller
 
             // Check system configuration permissions by role
             $config = DB::table('system_configuration')->pluck('value', 'key')->all();
-            if ($user->rol_id == 3) {
+            if ($user->rol_id == 3 || $user->rol_id == 5) {
                 $allowStudent = ($config['allow_student_applications'] ?? '1') === '1';
                 if (!$allowStudent) {
                     return response()->json([
@@ -319,7 +319,7 @@ class StudentController extends Controller
             // Create in-app notifications
             try {
                 $offer = $application->offer;
-                $roleLabel = ($user->rol_id == 2) ? 'El docente' : 'El estudiante';
+                $roleLabel = ($user->rol_id == 2) ? 'El docente' : (($user->rol_id == 5) ? 'El egresado' : 'El estudiante');
                 if ($offer && $offer->company_id) {
                     $companyUser = \App\Models\User::where('company_id', $offer->company_id)->first();
                     if ($companyUser) {

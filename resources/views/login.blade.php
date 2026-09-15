@@ -38,9 +38,33 @@
         .animate-infinite-scroll:hover {
             animation-play-state: paused;
         }
+        .btn-grad-cta {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 10px rgba(91, 33, 182, 0.35) !important;
+            border: 1px solid #4c1d95 !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .btn-grad-cta:hover {
+            background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%) !important;
+            box-shadow: 0 5px 14px rgba(91, 33, 182, 0.45) !important;
+            transform: translateY(-1px);
+        }
+        .btn-grad-cta:active {
+            transform: scale(0.98);
+        }
+        .card-grad-callout {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%) !important;
+            border: 1.5px solid #c4b5fd !important;
+            box-shadow: 0 2px 8px rgba(109, 40, 217, 0.08) !important;
+        }
+        .card-grad-callout:hover {
+            border-color: #a855f7 !important;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.14) !important;
+        }
     </style>
 </head>
-<body class="bg-background text-on-background min-h-screen font-body-md text-body-md antialiased overflow-hidden">
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md antialiased overflow-y-auto lg:overflow-hidden">
 <div class="flex min-h-screen w-full">
     <!-- Left Side: Banner -->
     <div class="hidden lg:flex w-1/2 relative bg-surface-container-highest">
@@ -57,7 +81,7 @@
         </div>
     </div>
     <!-- Right Side: Login Form -->
-    <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-lg sm:p-2xl bg-surface-container-lowest">
+    <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-lg sm:p-2xl bg-surface-container-lowest overflow-y-auto max-h-screen py-8">
         <div class="w-full max-w-[400px]">
             <!-- Logo -->
             <div class="mb-xl flex items-center justify-center lg:justify-start gap-3">
@@ -115,9 +139,31 @@
                     </button>
                 </form>
                 
-                <div class="text-center pt-md border-t border-outline-variant/60 mt-md">
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">¿Eres una empresa?</span>
-                    <button onclick="toggleAuthMode('register')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Regístrate aquí</button>
+                <div class="pt-md border-t border-outline-variant/60 mt-md space-y-2.5">
+                    <!-- Callout Egresado -->
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl card-grad-callout transition-all group">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform" style="background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;">
+                                <span class="material-symbols-outlined text-[22px]" style="color: #6d28d9;">school</span>
+                            </div>
+                            <div>
+                                <span class="block font-bold text-body-sm leading-tight" style="color: #4c1d95;">¿Eres un egresado?</span>
+                                <span class="text-[11.5px] font-medium leading-snug block" style="color: #6d28d9;">Crea tu cuenta y postula hoy</span>
+                            </div>
+                        </div>
+                        <button onclick="toggleAuthMode('register-graduate')" 
+                            class="px-4 py-2 rounded-xl text-white font-bold text-xs btn-grad-cta shrink-0 ml-2 flex items-center gap-1.5 cursor-pointer shadow-md" 
+                            type="button">
+                            <span style="color: #ffffff !important;">Regístrate aquí</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color: #ffffff !important;">arrow_forward</span>
+                        </button>
+                    </div>
+
+                    <!-- Callout Empresa -->
+                    <div class="text-center pt-1">
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">¿Eres una empresa?</span>
+                        <button onclick="toggleAuthMode('register')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Regístrate aquí</button>
+                    </div>
                 </div>
             </div>
 
@@ -230,6 +276,118 @@
                 </div>
             </div>
 
+            <!-- Section: Register Graduate (Egresado) -->
+            <div id="register-graduate-section" class="space-y-md hidden">
+                <div class="mb-lg text-center lg:text-left">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-label-sm font-semibold text-[11px] mb-2">
+                        <span class="material-symbols-outlined text-[14px]">school</span>
+                        Comunidad de Egresados
+                    </div>
+                    <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Registro de Egresados</h1>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">Crea tu cuenta profesional para acceder a ofertas laborales exclusivas.</p>
+                </div>
+
+                <!-- Register Graduate Form -->
+                <form id="register-graduate-form" onsubmit="handleGraduateRegister(event)" class="space-y-3">
+                    @csrf
+                    
+                    <div id="register-graduate-error-container" class="p-3 rounded-xl bg-error-container text-on-error-container text-body-sm font-medium hidden">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-red-600 shrink-0">error</span>
+                            <p id="register-graduate-error-text" class="text-xs sm:text-sm"></p>
+                        </div>
+                    </div>
+
+                    <!-- Nombres y Apellidos -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-names">Nombres y Apellidos completos</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">person</span>
+                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-names" name="names" placeholder="Ej. Ana Torres Quispe" type="text" required />
+                        </div>
+                    </div>
+
+                    <!-- Documento DNI -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-dni">DNI (8 dígitos)</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
+                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-dni" name="document_number" placeholder="Ej. 45678912" type="text" minlength="8" maxlength="8" pattern="\d{8}" required />
+                        </div>
+                    </div>
+
+                    <!-- Programa de Estudio / Carrera -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-program">Programa de Estudio / Carrera</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">school</span>
+                            <select class="w-full pl-9 pr-8 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm text-on-surface appearance-none cursor-pointer" id="reg-grad-program" name="study_program_id">
+                                <option value="">Selecciona tu programa de estudio</option>
+                                @if(isset($studyPrograms))
+                                    @foreach($studyPrograms as $sp)
+                                        <option value="{{ $sp->id }}">{{ $sp->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+
+                    <!-- Teléfono / Celular -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-phone">Teléfono / Celular</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">call</span>
+                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-phone" name="phone" placeholder="Ej. 944556677" type="tel" maxlength="12" />
+                        </div>
+                    </div>
+
+                    <!-- Correo Electrónico -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-email">Correo Electrónico</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
+                            <input class="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-email" name="email" placeholder="egresado@ejemplo.com" type="email" required />
+                        </div>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-password">Contraseña</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                            <input class="w-full pl-9 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-password" name="password" placeholder="Mínimo 8 caracteres" type="password" required />
+                            <button id="toggle-reg-grad-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
+                                <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirmar Contraseña -->
+                    <div class="space-y-1">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block" for="reg-grad-password-confirm">Confirmar Contraseña</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
+                            <input class="w-full pl-9 pr-10 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all font-body-sm text-body-sm placeholder-outline" id="reg-grad-password-confirm" name="password_confirmation" placeholder="••••••••" type="password" required />
+                            <button id="toggle-reg-grad-password-confirm" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
+                                <span class="material-symbols-outlined text-[18px]" id="toggle-reg-grad-icon-confirm">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="btn-register-graduate" class="w-full mt-4 btn-grad-cta font-bold font-label-md text-label-md py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md" type="submit">
+                        <span style="color: #ffffff !important;">Crear Cuenta de Egresado</span>
+                        <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>
+                    </button>
+                </form>
+                
+                <div class="text-center pt-md border-t border-outline-variant/60 mt-md">
+                    <span class="font-body-sm text-body-sm text-on-surface-variant">¿Ya tienes cuenta?</span>
+                    <button onclick="toggleAuthMode('login')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Inicia sesión</button>
+                </div>
+            </div>
+
             <!-- Carousel of Registered Companies -->
             @if(isset($companies) && $companies->isNotEmpty())
                 <div class="mt-xl border-t border-outline-variant/60 pt-lg overflow-hidden w-full">
@@ -291,16 +449,24 @@
     function toggleAuthMode(mode) {
         const loginSec = document.getElementById('login-section');
         const regSec = document.getElementById('register-section');
+        const regGradSec = document.getElementById('register-graduate-section');
         const forgotSec = document.getElementById('forgot-section');
         
         loginSec.classList.add('hidden');
         regSec.classList.add('hidden');
+        if (regGradSec) regGradSec.classList.add('hidden');
         forgotSec.classList.add('hidden');
         
         if (mode === 'register') {
             regSec.classList.remove('hidden');
             document.getElementById('register-company-form').reset();
             document.getElementById('register-error-container').classList.add('hidden');
+        } else if (mode === 'register-graduate') {
+            if (regGradSec) {
+                regGradSec.classList.remove('hidden');
+                document.getElementById('register-graduate-form').reset();
+                document.getElementById('register-graduate-error-container').classList.add('hidden');
+            }
         } else if (mode === 'forgot') {
             forgotSec.classList.remove('hidden');
             document.getElementById('forgot-password-form').reset();
@@ -437,6 +603,84 @@
         });
     }
 
+    function handleGraduateRegister(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('register-graduate-form');
+        const btn = document.getElementById('btn-register-graduate');
+        const errContainer = document.getElementById('register-graduate-error-container');
+        const errText = document.getElementById('register-graduate-error-text');
+        
+        const names = document.getElementById('reg-grad-names').value.trim();
+        const document_number = document.getElementById('reg-grad-dni').value.trim();
+        const study_program_id = document.getElementById('reg-grad-program').value;
+        const phone = document.getElementById('reg-grad-phone').value.trim();
+        const email = document.getElementById('reg-grad-email').value.trim();
+        const password = document.getElementById('reg-grad-password').value;
+        const password_confirmation = document.getElementById('reg-grad-password-confirm').value;
+        const token = form.querySelector('input[name="_token"]').value;
+        
+        if (!/^\d{8}$/.test(document_number)) {
+            errText.textContent = 'El DNI debe tener exactamente 8 dígitos numéricos.';
+            errContainer.classList.remove('hidden');
+            return;
+        }
+
+        if (password !== password_confirmation) {
+            errText.textContent = 'Las contraseñas no coinciden.';
+            errContainer.classList.remove('hidden');
+            return;
+        }
+
+        if (password.length < 8) {
+            errText.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+            errContainer.classList.remove('hidden');
+            return;
+        }
+        
+        btn.setAttribute('disabled', 'true');
+        btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[16px]">autorenew</span> Creando cuenta...`;
+        errContainer.classList.add('hidden');
+        
+        fetch('/register/graduate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                names,
+                document_number,
+                study_program_id: study_program_id || null,
+                phone,
+                email,
+                password,
+                password_confirmation
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || '¡Registro exitoso! Redirigiendo...');
+                setTimeout(() => {
+                    window.location.href = data.redirect || '/';
+                }, 1200);
+            } else {
+                btn.removeAttribute('disabled');
+                btn.innerHTML = 'Crear Cuenta de Egresado <span class="material-symbols-outlined text-sm">how_to_reg</span>';
+                errText.textContent = data.message || 'Error al registrar egresado.';
+                errContainer.classList.remove('hidden');
+            }
+        })
+        .catch(err => {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = 'Crear Cuenta de Egresado <span class="material-symbols-outlined text-sm">how_to_reg</span>';
+            errText.textContent = 'Error de conexión. Intente nuevamente más tarde.';
+            errContainer.classList.remove('hidden');
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const togglePassword = document.getElementById('toggle-password');
         const passwordInput = document.getElementById('password');
@@ -448,7 +692,7 @@
             toggleIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
         });
 
-        // Register form password toggles
+        // Register company form password toggles
         const toggleRegPass = document.getElementById('toggle-reg-password');
         const regPassInput = document.getElementById('reg-password');
         const toggleRegPassIcon = document.getElementById('toggle-reg-icon');
@@ -469,8 +713,35 @@
             toggleRegPassConfirmIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
         });
 
-        // Activar modo registro de empresa si el hash es #empresa o si estamos en la ruta de registro
-        if (window.location.hash === '#empresa' || window.location.hash === '#register' || window.location.pathname.includes('registro-empresa')) {
+        // Register graduate form password toggles
+        const toggleRegGradPass = document.getElementById('toggle-reg-grad-password');
+        const regGradPassInput = document.getElementById('reg-grad-password');
+        const toggleRegGradPassIcon = document.getElementById('toggle-reg-grad-icon');
+        
+        if (toggleRegGradPass && regGradPassInput && toggleRegGradPassIcon) {
+            toggleRegGradPass.addEventListener('click', function() {
+                const type = regGradPassInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                regGradPassInput.setAttribute('type', type);
+                toggleRegGradPassIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+            });
+        }
+
+        const toggleRegGradPassConfirm = document.getElementById('toggle-reg-grad-password-confirm');
+        const regGradPassConfirmInput = document.getElementById('reg-grad-password-confirm');
+        const toggleRegGradPassConfirmIcon = document.getElementById('toggle-reg-icon-confirm');
+        
+        if (toggleRegGradPassConfirm && regGradPassConfirmInput && toggleRegGradPassConfirmIcon) {
+            toggleRegGradPassConfirm.addEventListener('click', function() {
+                const type = regGradPassConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                regGradPassConfirmInput.setAttribute('type', type);
+                toggleRegGradPassConfirmIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+            });
+        }
+
+        // Activar modo según hash o URL
+        if (window.location.hash === '#egresado' || window.location.hash === '#registro-egresado' || window.location.pathname.includes('registro-egresado')) {
+            toggleAuthMode('register-graduate');
+        } else if (window.location.hash === '#empresa' || window.location.hash === '#register' || window.location.pathname.includes('registro-empresa')) {
             toggleAuthMode('register');
         }
     });

@@ -516,6 +516,7 @@
                                             '2' => ['label' => 'Docentes', 'icon' => 'school', 'color' => 'text-amber-600'],
                                             '3' => ['label' => 'Estudiantes', 'icon' => 'grade', 'color' => 'text-student-accent'],
                                             '4' => ['label' => 'Empresas', 'icon' => 'corporate_fare', 'color' => 'text-emerald-600'],
+                                            '5' => ['label' => 'Egresados', 'icon' => 'workspace_premium', 'color' => 'text-purple-600'],
                                         ];
                                         $selectedRole = $roleOptions[$currentRolId] ?? $roleOptions[''];
                                     @endphp
@@ -738,6 +739,9 @@
                                         } elseif ($user->rol_id == 4) {
                                             $roleBadge = 'bg-secondary-fixed/50 text-on-secondary-container';
                                             $roleName = 'EMPRESA';
+                                        } elseif ($user->rol_id == 5) {
+                                            $roleBadge = 'bg-purple-100 text-purple-700';
+                                            $roleName = 'EGRESADO';
                                         }
                                     @endphp
                                     <tr id="user-row-{{ $user->id }}"
@@ -2941,6 +2945,7 @@
                             <option value="2">DOCENTE</option>
                             <option value="3">ESTUDIANTE</option>
                             <option value="4">EMPRESA</option>
+                            <option value="5">EGRESADO</option>
                         </select>
                     </div>
 
@@ -3720,6 +3725,7 @@
             document.getElementById('form-role').value = roleId;
             document.getElementById('form-doc-type').value = docType;
             document.getElementById('form-doc-number').value = docNumber;
+            handleRoleChange(roleId);
 
             const modal = document.getElementById('create-user-modal');
             modal.querySelector('h2').textContent = 'Modificar usuario';
@@ -3865,6 +3871,7 @@
                                         if (user.rol_id == 1) roleName = 'ADMINISTRADOR';
                                         else if (user.rol_id == 2) roleName = 'DOCENTE';
                                         else if (user.rol_id == 4) roleName = 'EMPRESA';
+                                        else if (user.rol_id == 5) roleName = 'EGRESADO';
 
                                         const phoneNum = user.person ? (user.person.phone || '') : (user.company ? (user.company.phone || '') : '');
 
@@ -3932,6 +3939,8 @@
                 roleBadge = 'bg-student-accent-light text-student-accent';
             } else if (roleId == 4) {
                 roleBadge = 'bg-secondary-fixed/50 text-on-secondary-container';
+            } else if (roleId == 5) {
+                roleBadge = 'bg-purple-100 text-purple-700';
             }
 
             const escName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -4037,7 +4046,7 @@
                 docNumberInput.placeholder = 'Ej. 20123456789';
                 docNumberInput.setAttribute('maxlength', '11');
                 docNumberInput.setAttribute('pattern', '\\d{11}');
-            } else if (roleId == 2 || roleId == 3) {
+            } else if (roleId == 2 || roleId == 3 || roleId == 5) {
                 docTypeSelect.value = 'DNI';
                 docNumberInput.placeholder = 'Ej. 48293041';
                 docNumberInput.setAttribute('maxlength', '8');
@@ -4223,12 +4232,13 @@
                 return;
             }
 
-            const roleNames = { 1: 'ADMINISTRADOR', 2: 'DOCENTE', 3: 'ESTUDIANTE', 4: 'EMPRESA' };
+            const roleNames = { 1: 'ADMINISTRADOR', 2: 'DOCENTE', 3: 'ESTUDIANTE', 4: 'EMPRESA', 5: 'EGRESADO' };
             const roleBadgeClasses = {
                 1: 'bg-primary-fixed text-primary',
                 2: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
                 3: 'bg-student-accent-light text-student-accent',
-                4: 'bg-secondary-fixed/50 text-on-secondary-container'
+                4: 'bg-secondary-fixed/50 text-on-secondary-container',
+                5: 'bg-purple-100 text-purple-700'
             };
 
             tbody.innerHTML = users.map(user => {
@@ -4461,6 +4471,7 @@
                 '2': { label: 'Docentes', icon: 'school', color: 'text-amber-600' },
                 '3': { label: 'Estudiantes', icon: 'grade', color: 'text-student-accent' },
                 '4': { label: 'Empresas', icon: 'corporate_fare', color: 'text-emerald-600' },
+                '5': { label: 'Egresados', icon: 'workspace_premium', color: 'text-purple-600' },
             };
 
             const selected = roleOptions[String(rolId)] || roleOptions[''];

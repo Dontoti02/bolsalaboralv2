@@ -51,8 +51,8 @@ class AdminController extends Controller
                 ->groupBy('rol_id')
                 ->get()
                 ->map(function ($item) {
-                    $labels = [1 => 'Administradores', 2 => 'Docentes', 3 => 'Estudiantes', 4 => 'Empresas'];
-                    $colors = [1 => '#002741', 2 => '#006b60', 3 => '#ff9f43', 4 => '#18A999'];
+                    $labels = [1 => 'Administradores', 2 => 'Docentes', 3 => 'Estudiantes', 4 => 'Empresas', 5 => 'Egresados'];
+                    $colors = [1 => '#002741', 2 => '#006b60', 3 => '#ff9f43', 4 => '#18A999', 5 => '#8b5cf6'];
                     return [
                         'label' => $labels[$item->rol_id] ?? 'Otro',
                         'total' => $item->total,
@@ -356,7 +356,7 @@ class AdminController extends Controller
 
         $users = User::with(['person.studyProgram'])
             ->whereNotNull('person_id')
-            ->where('rol_id', 3)
+            ->whereIn('rol_id', [3, 5])
             ->when($query, function ($q) use ($query) {
                 $q->where(function ($sub) use ($query) {
                     $sub->where('email', 'like', "%{$query}%")
