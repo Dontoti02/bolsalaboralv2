@@ -3803,7 +3803,7 @@
         let editingCompanyMode = false;
         const ADMIN_ACTIVE_TAB_KEY = 'talentum.admin.activeTab';
         const ADMIN_MAINTAINER_TYPE_KEY = 'talentum.admin.maintainerType';
-        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'maintainers', 'support', 'assign-study-program'];
+        const ADMIN_VALID_TABS = ['dashboard', 'users', 'settings', 'offers', 'companies-manage', 'companies-register', 'applications', 'reports', 'maintainers', 'support', 'assign-study-program'];
 
         function getStoredAdminValue(key) {
             try {
