@@ -62,6 +62,30 @@
             border-color: #a855f7 !important;
             box-shadow: 0 4px 12px rgba(109, 40, 217, 0.14) !important;
         }
+        .btn-company-cta {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 10px rgba(4, 120, 87, 0.35) !important;
+            border: 1px solid #065f46 !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .btn-company-cta:hover {
+            background: linear-gradient(135deg, #047857 0%, #064e3b 100%) !important;
+            box-shadow: 0 5px 14px rgba(4, 120, 87, 0.45) !important;
+            transform: translateY(-1px);
+        }
+        .btn-company-cta:active {
+            transform: scale(0.98);
+        }
+        .card-company-callout {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%) !important;
+            border: 1.5px solid #a7f3d0 !important;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08) !important;
+        }
+        .card-company-callout:hover {
+            border-color: #34d399 !important;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.14) !important;
+        }
     </style>
 </head>
 <body class="bg-background text-on-background min-h-screen font-body-md text-body-md antialiased overflow-y-auto lg:overflow-hidden">
@@ -160,9 +184,22 @@
                     </div>
 
                     <!-- Callout Empresa -->
-                    <div class="text-center pt-1">
-                        <span class="font-body-sm text-body-sm text-on-surface-variant">¿Eres una empresa?</span>
-                        <button onclick="toggleAuthMode('register')" class="font-label-sm text-label-sm text-primary hover:underline ml-1 font-semibold" type="button">Regístrate aquí</button>
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl card-company-callout transition-all group">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform" style="background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">
+                                <span class="material-symbols-outlined text-[22px]" style="color: #047857;">apartment</span>
+                            </div>
+                            <div>
+                                <span class="block font-bold text-body-sm leading-tight" style="color: #064e3b;">¿Eres una empresa?</span>
+                                <span class="text-[11.5px] font-medium leading-snug block" style="color: #047857;">Publica ofertas y capta talento</span>
+                            </div>
+                        </div>
+                        <button onclick="toggleAuthMode('register')" 
+                            class="px-4 py-2 rounded-xl text-white font-bold text-xs btn-company-cta shrink-0 ml-2 flex items-center gap-1.5 cursor-pointer shadow-md" 
+                            type="button">
+                            <span style="color: #ffffff !important;">Regístrate aquí</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color: #ffffff !important;">arrow_forward</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -206,7 +243,11 @@
 
             <!-- Section: Register Company -->
             <div id="register-section" class="space-y-md hidden">
-                <div class="mb-xl text-center lg:text-left">
+                <div class="mb-lg text-center lg:text-left">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-semibold text-[11px] mb-2" style="background-color: #d1fae5; color: #064e3b; border: 1px solid #a7f3d0;">
+                        <span class="material-symbols-outlined text-[14px]" style="color: #047857;">apartment</span>
+                        Portal Empresas
+                    </div>
                     <h1 class="font-headline-md text-headline-md text-on-surface mb-xs">Registrar Empresa</h1>
                     <p class="font-body-sm text-body-sm text-on-surface-variant">Regístrate con tus datos básicos para comenzar a publicar ofertas.</p>
                 </div>
@@ -264,9 +305,9 @@
                         </div>
                     </div>
 
-                    <button id="btn-register-company" class="w-full mt-xl bg-primary hover:opacity-90 text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2" type="submit">
-                        Registrar Empresa
-                        <span class="material-symbols-outlined text-sm">how_to_reg</span>
+                    <button id="btn-register-company" class="w-full mt-xl btn-company-cta font-bold font-label-md text-label-md py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md" type="submit">
+                        <span style="color: #ffffff !important;">Registrar Empresa</span>
+                        <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>
                     </button>
                 </form>
                 
@@ -590,14 +631,14 @@
                 }, 1500);
             } else {
                 btn.removeAttribute('disabled');
-                btn.innerHTML = 'Registrar Empresa <span class="material-symbols-outlined text-sm">how_to_reg</span>';
+                btn.innerHTML = '<span style="color: #ffffff !important;">Registrar Empresa</span> <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>';
                 errText.textContent = data.message || 'Error al registrar la empresa.';
                 errContainer.classList.remove('hidden');
             }
         })
         .catch(err => {
             btn.removeAttribute('disabled');
-            btn.innerHTML = 'Registrar Empresa <span class="material-symbols-outlined text-sm">how_to_reg</span>';
+            btn.innerHTML = '<span style="color: #ffffff !important;">Registrar Empresa</span> <span class="material-symbols-outlined text-sm" style="color: #ffffff !important;">how_to_reg</span>';
             errText.textContent = 'Error de red. Intente de nuevo más tarde.';
             errContainer.classList.remove('hidden');
         });
