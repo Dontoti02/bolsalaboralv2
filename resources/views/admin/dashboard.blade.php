@@ -6918,6 +6918,9 @@
                                 <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-1.5 border rounded-lg transition-colors ${verifyColor}">
                                     <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
                                 </button>
+                                <button onclick="sendCompanyVerificationEmail(${company.id})" title="Enviar correo de verificación" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 border border-blue-200 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">mail</span>
+                                </button>
                                 <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error transition-colors">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
@@ -6979,6 +6982,9 @@
                             </button>
                             <button onclick="toggleCompanyVerify(${company.id})" title="${verifyTitle}" class="p-2 border rounded-xl flex items-center justify-center transition-colors ${verifyColor}">
                                 <span class="material-symbols-outlined text-[18px]">${verifyIcon}</span>
+                            </button>
+                            <button onclick="sendCompanyVerificationEmail(${company.id})" title="Enviar correo de verificación" class="p-2 border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">mail</span>
                             </button>
                             <button onclick="deleteCompany(${company.id})" title="Eliminar" class="p-2 border border-outline-variant hover:bg-error-container hover:border-error-container text-error rounded-xl flex items-center justify-center transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -7227,6 +7233,43 @@
                 })
                 .catch(err => {
                     showToast('Error de red al intentar verificar.', 'error');
+                });
+        }
+
+        // Send verification email to company
+        async function sendCompanyVerificationEmail(id) {
+            const company = companiesList.find(c => c.id === id);
+            const name = company ? company.name : 'esta empresa';
+            const email = company ? company.email : '';
+
+            const ok = await showConfirm({
+                title: '¿Enviar correo de verificación?',
+                message: `Se enviará un correo de verificación a "${name}" (${email}). ¿Deseas continuar?`,
+                type: 'info',
+                okText: 'Sí, enviar correo',
+            });
+            if (!ok) return;
+
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch(`/admin/companies/${id}/send-verification-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                    } else {
+                        showToast(data.message || 'Error al enviar correo.', 'error');
+                    }
+                })
+                .catch(err => {
+                    showToast('Error de red al intentar enviar correo.', 'error');
                 });
         }
 

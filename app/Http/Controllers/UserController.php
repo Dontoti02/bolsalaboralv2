@@ -1446,6 +1446,52 @@ class UserController extends Controller
     }
 
     /**
+     * Send verification notification email to a company.
+     */
+    public function sendVerificationEmail($id)
+    {
+        $company = Company::find($id);
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Empresa no encontrada.'
+            ], 404);
+        }
+
+        if (empty($company->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La empresa no tiene un correo electrónico registrado.'
+            ], 422);
+        }
+
+        $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        $isEnabled = (string) ($config['mail_enabled'] ?? '0') === '1';
+
+        if (!$isEnabled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El envío de correos está desactivado. Actívalo en Configuración > Correo saliente.'
+            ], 422);
+        }
+
+        try {
+            MailConfigService::apply();
+            Mail::to($company->email)->send(new \App\Mail\CompanyVerifiedMail($company));
+
+            return response()->json([
+                'success' => true,
+                'message' => "Correo de verificación enviado a {$company->email}."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al enviar correo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Delete a company and its user.
      */
     public function deleteCompany($id)

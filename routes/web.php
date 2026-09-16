@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/companies', [UserController::class, 'storeCompany']);
         Route::post('/admin/companies/{id}', [UserController::class, 'updateCompany']);
         Route::post('/admin/companies/{id}/toggle-verify', [UserController::class, 'toggleVerifyCompany']);
+        Route::post('/admin/companies/{id}/send-verification-email', [UserController::class, 'sendVerificationEmail']);
         Route::delete('/admin/companies/{id}', [UserController::class, 'deleteCompany']);
 
         // Admin Applications (Postulaciones) Routes
