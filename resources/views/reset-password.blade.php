@@ -92,34 +92,9 @@
         </div>
     </div>
 
-    <!-- Toast Notification Element -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
-        <span class="material-symbols-outlined" id="toast-icon">check_circle</span>
-        <span id="toast-message" class="font-label-md text-label-md"></span>
-    </div>
+    <!-- Toast system → ui-alerts.js -->
 
     <script>
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            const toastIcon = document.getElementById('toast-icon');
-            
-            toastMsg.textContent = message;
-            
-            if (type === 'error') {
-                toast.className = "fixed bottom-5 right-5 bg-red-600 text-on-primary px-lg py-md rounded-xl shadow-lg transform transition-all duration-300 z-50 flex items-center gap-sm";
-                toastIcon.textContent = 'error';
-            } else {
-                toast.className = "fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform transition-all duration-300 z-50 flex items-center gap-sm";
-                toastIcon.textContent = 'check_circle';
-            }
-            
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
 
         function handleResetPassword(event) {
             event.preventDefault();
@@ -197,5 +172,6 @@
             });
         });
     </script>
+<script src="/assets/ui-alerts.js"></script>
 </body>
 </html>

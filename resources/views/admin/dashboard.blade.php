@@ -3791,12 +3791,7 @@
         </div>
     </div>
 
-    <!-- Simple Toast Notification -->
-    <div id="toast"
-        class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
-        <span class="material-symbols-outlined" id="toast-icon">check_circle</span>
-        <span id="toast-message" class="text-body-sm font-semibold">¡Operación realizada con éxito!</span>
-    </div>
+    <!-- Toast system → ui-alerts.js (renderizado dinámicamente) -->
 
     <script>
         const currentUserId = {{ auth()->id() }};
@@ -4390,31 +4385,37 @@
         }
 
         // Delete user from the database
-        function deleteUserRow(id, username) {
-            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario "${username}"?`)) {
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        async function deleteUserRow(id, username) {
+            const ok = await showConfirm({
+                title: '¿Eliminar usuario?',
+                message: `Se eliminará permanentemente al usuario "${username}". Esta acción no se puede deshacer.`,
+                type: 'danger',
+                okText: 'Sí, eliminar',
+            });
+            if (!ok) return;
 
-                fetch(`/admin/users/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch(`/admin/users/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = document.getElementById('user-row-' + id);
+                        if (row) row.remove();
+                        showToast(`Usuario "${username}" eliminado.`);
+                    } else {
+                        showToast(data.message || 'Error al eliminar usuario.', 'error');
                     }
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            const row = document.getElementById('user-row-' + id);
-                            if (row) row.remove();
-                            showToast(`Usuario "${username}" eliminado.`);
-                        } else {
-                            showToast(data.message || 'Error al eliminar usuario.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        showToast('Error de red al eliminar usuario.', 'error');
-                    });
-            }
+                .catch(err => {
+                    showToast('Error de red al eliminar usuario.', 'error');
+                });
         }
 
         // ================= FILTRO POR ROL, SELECCIÓN MÚLTIPLE Y PAGINACIÓN =================
@@ -4872,7 +4873,7 @@
         }
 
         // Eliminar usuarios seleccionados
-        function deleteSelectedUsers() {
+        async function deleteSelectedUsers() {
             const checkboxes = document.querySelectorAll('.user-checkbox:checked');
             const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
@@ -4881,9 +4882,13 @@
                 return;
             }
 
-            if (!confirm(`¿Estás seguro de que deseas eliminar ${ids.length} usuario(s) seleccionado(s)?`)) {
-                return;
-            }
+            const ok = await showConfirm({
+                title: `¿Eliminar ${ids.length} usuario(s)?`,
+                message: `Se eliminarán permanentemente ${ids.length} usuario(s) seleccionado(s). Esta acción no se puede deshacer.`,
+                type: 'danger',
+                okText: 'Sí, eliminar todo',
+            });
+            if (!ok) return;
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -5574,30 +5579,8 @@
         }
 
         // Toast show message with support for types
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            const toastIcon = document.getElementById('toast-icon');
-
-            toastMsg.textContent = message;
-
-            if (type === 'error') {
-                toast.className = "fixed bottom-5 right-5 bg-red-600 text-on-primary px-lg py-md rounded-xl shadow-lg transform transition-all duration-300 z-50 flex items-center gap-sm";
-                toastIcon.textContent = 'error';
-            } else if (type === 'warning') {
-                toast.className = "fixed bottom-5 right-5 bg-yellow-600 text-on-primary px-lg py-md rounded-xl shadow-lg transform transition-all duration-300 z-50 flex items-center gap-sm";
-                toastIcon.textContent = 'warning';
-            } else {
-                toast.className = "fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform transition-all duration-300 z-50 flex items-center gap-sm";
-                toastIcon.textContent = 'check_circle';
-            }
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+        // showToast delegado al sistema global ui-alerts.js
+        // La función global window.showToast ya está disponible via ui-alerts.js
 
         // PERU DEPARTMENTS & PROVINCES DATA
         const PERU_DEPARTMENTS = {
@@ -5927,9 +5910,16 @@
                 });
         }
 
-        function deleteMaintainerItem(id) {
+        async function deleteMaintainerItem(id) {
             const item = maintainerItems.find(entry => entry.id === id);
-            if (!item || !confirm(`\u00bfDesea eliminar "${item.name}"?`)) return;
+            if (!item) return;
+            const ok = await showConfirm({
+                title: '¿Eliminar opción?',
+                message: `Se eliminará permanentemente "${item.name}".`,
+                type: 'danger',
+                okText: 'Sí, eliminar',
+            });
+            if (!ok) return;
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             fetch(`/admin/maintainers/${maintainerActiveType}/${id}`, {
@@ -6402,8 +6392,14 @@
         }
 
         // Delete Offer
-        function deleteOffer(id) {
-            if (!confirm('¿Estás seguro de que deseas eliminar esta oferta laboral?')) return;
+        async function deleteOffer(id) {
+            const ok = await showConfirm({
+                title: '¿Eliminar oferta laboral?',
+                message: 'Se eliminará permanentemente esta oferta y todas sus postulaciones asociadas.',
+                type: 'danger',
+                okText: 'Sí, eliminar',
+            });
+            if (!ok) return;
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -7235,11 +7231,17 @@
         }
 
         // Delete Company
-        function deleteCompany(id) {
+        async function deleteCompany(id) {
             const company = companiesList.find(c => c.id === id);
             const name = company ? company.name : 'esta empresa';
 
-            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a "${name}" y todos sus usuarios/ofertas asociados?`)) {
+            const ok = await showConfirm({
+                title: '¿Eliminar empresa?',
+                message: `Se eliminará permanentemente "${name}" junto con todos sus usuarios y ofertas asociadas. Esta acción no se puede deshacer.`,
+                type: 'danger',
+                okText: 'Sí, eliminar todo',
+            });
+            if (ok) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch(`/admin/companies/${id}`, {
@@ -7672,8 +7674,14 @@
         }
 
         // Delete Application
-        function deleteApplication(id) {
-            if (confirm('¿Está seguro de que desea eliminar permanentemente esta postulación? Esta acción no se puede deshacer.')) {
+        async function deleteApplication(id) {
+            const ok = await showConfirm({
+                title: '¿Eliminar postulación?',
+                message: 'Se eliminará permanentemente esta postulación. Esta acción no se puede deshacer.',
+                type: 'danger',
+                okText: 'Sí, eliminar',
+            });
+            if (ok) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch(`/admin/applications/${id}`, {
@@ -7738,13 +7746,19 @@
         }
 
         // Bulk Delete selected applications
-        function bulkDeleteApplications() {
+        async function bulkDeleteApplications() {
             const checkboxes = document.querySelectorAll('.app-checkbox:checked');
             const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
             if (ids.length === 0) return;
 
-            if (confirm(`¿Está seguro de que desea eliminar permanentemente estas ${ids.length} postulaciones? Esta acción no se puede deshacer.`)) {
+            const ok = await showConfirm({
+                title: `¿Eliminar ${ids.length} postulaciones?`,
+                message: `Se eliminarán permanentemente ${ids.length} postulaciones seleccionadas. Esta acción no se puede deshacer.`,
+                type: 'danger',
+                okText: 'Sí, eliminar todo',
+            });
+            if (ok) {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 const bulkBar = document.getElementById('apps-bulk-actions');
 
@@ -8915,12 +8929,10 @@ new Chart(companiesCtx, {
                 },
             },
         },
-    },
-});
-
-// (Reports module moved to global script block above)
-
 </script>
+
+<!-- Sistema de alertas UI premium -->
+<script src="/assets/ui-alerts.js"></script>
 </body>
 
 </html>

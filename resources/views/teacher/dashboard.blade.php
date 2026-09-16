@@ -307,11 +307,7 @@
     </main>
 </div>
 
-<!-- Simple Toast Notification for Sharing -->
-<div id="toast" class="fixed bottom-5 right-5 bg-primary text-on-primary px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm">
-    <span class="material-symbols-outlined">check_circle</span>
-    <span id="toast-message" class="text-body-sm font-semibold">¡Enlace copiado al portapapeles!</span>
-</div>
+<!-- Toast system → ui-alerts.js -->
 
 <script>
     // Serialized offers
@@ -426,17 +422,7 @@
         });
     }
 
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toast-message');
-        toastMsg.textContent = message;
-        
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
-    }
+    // showToast delegado al sistema global ui-alerts.js
 <div id="teacher-pwd-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
@@ -554,6 +540,7 @@
         }
     }
 </script>
+<script src="/assets/ui-alerts.js"></script>
 </body>
 </html>
 

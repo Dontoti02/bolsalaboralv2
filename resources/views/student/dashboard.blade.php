@@ -755,34 +755,8 @@
         switchTab(validTabs.includes(tabToOpen) ? tabToOpen : 'jobs');
     });
 
-    let toastTimeout = null;
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toast-message');
-        const toastIcon = document.getElementById('toast-icon');
-        if (!toast || !toastMsg) return;
-
-        toastMsg.textContent = message;
-
-        // Custom styling based on type
-        if (type === 'error') {
-            toastIcon.textContent = 'error';
-            toastIcon.className = 'material-symbols-outlined text-[20px] text-error';
-        } else if (type === 'info') {
-            toastIcon.textContent = 'info';
-            toastIcon.className = 'material-symbols-outlined text-[20px] text-primary';
-        } else {
-            toastIcon.textContent = 'check_circle';
-            toastIcon.className = 'material-symbols-outlined text-[20px] text-emerald-600';
-        }
-
-        toast.classList.remove('translate-y-20', 'opacity-0');
-
-        if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
-    }
+    // showToast delegado al sistema global ui-alerts.js
+    // (La función global window.showToast ya está disponible)
 
     function showApplyStatusModal(type, title, message, showButton = false, buttonCallback = null) {
         const modal = document.getElementById('apply-status-modal');
@@ -1451,10 +1425,7 @@
     </div>
 </div>
 
-<!-- Toast Container -->
-<div id="toast" class="fixed bottom-5 right-5 bg-surface-container-high border border-outline-variant/60 text-on-surface px-lg py-md rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-sm max-w-sm pointer-events-none">
-    <span id="toast-icon" class="material-symbols-outlined text-[20px] text-primary">info</span>
-    <span id="toast-message" class="text-body-sm font-semibold">Mensaje</span>
-</div>
+<!-- Toast system → ui-alerts.js -->
+<script src="/assets/ui-alerts.js"></script>
 </body>
 </html>

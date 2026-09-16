@@ -365,12 +365,43 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            // We do a hard delete or soft delete depending on whether the user has soft deletes enabled.
-            // Since `user` has deleted_at column in schema, calling ->delete() will soft delete it.
-            $user->delete();
+            $companyId = $user->company_id;
+            if (!$companyId && (int)$user->rol_id === 4) {
+                $comp = Company::where('email', $user->email)->first();
+                if ($comp) {
+                    $companyId = $comp->id;
+                }
+            }
+
+            $personId = $user->person_id;
 
             // Clean rol_user relation
             DB::table('rol_user')->where('user_id', $id)->delete();
+
+            // Delete user
+            $user->delete();
+
+            // If this was a company user, check if any other user uses this company
+            if ($companyId) {
+                $hasOtherUsers = User::where('company_id', $companyId)->exists();
+                if (!$hasOtherUsers) {
+                    $offerIds = DB::table('job_opportunity_offer')->where('company_id', $companyId)->pluck('id');
+                    if ($offerIds->isNotEmpty()) {
+                        DB::table('job_opportunity_applications')->whereIn('offer_id', $offerIds)->delete();
+                        DB::table('job_opportunity_offer_state_detail')->whereIn('offer_id', $offerIds)->delete();
+                        DB::table('job_opportunity_offer')->whereIn('id', $offerIds)->delete();
+                    }
+                    Company::where('id', $companyId)->delete();
+                }
+            }
+
+            // Also clean up person if not used by any other user
+            if ($personId) {
+                $hasOtherPersons = User::where('person_id', $personId)->exists();
+                if (!$hasOtherPersons) {
+                    Person::where('id', $personId)->delete();
+                }
+            }
 
             DB::commit();
 
@@ -428,11 +459,53 @@ class UserController extends Controller
 
             $count = count($filteredIds);
 
+            $usersToDelete = User::whereIn('id', $filteredIds)->get();
+            $companyIds = [];
+            $personIds = [];
+
+            foreach ($usersToDelete as $u) {
+                if ($u->company_id) {
+                    $companyIds[] = $u->company_id;
+                } elseif ((int)$u->rol_id === 4) {
+                    $comp = Company::where('email', $u->email)->first();
+                    if ($comp) {
+                        $companyIds[] = $comp->id;
+                    }
+                }
+                if ($u->person_id) {
+                    $personIds[] = $u->person_id;
+                }
+            }
+
             // Delete rol_user relations
             DB::table('rol_user')->whereIn('user_id', $filteredIds)->delete();
 
-            // Soft delete users
+            // Delete users
             User::whereIn('id', $filteredIds)->delete();
+
+            // Clean up companies if no users remain
+            $companyIds = array_unique(array_filter($companyIds));
+            foreach ($companyIds as $cId) {
+                $hasOtherUsers = User::where('company_id', $cId)->exists();
+                if (!$hasOtherUsers) {
+                    $offerIds = DB::table('job_opportunity_offer')->where('company_id', $cId)->pluck('id');
+                    if ($offerIds->isNotEmpty()) {
+                        DB::table('job_opportunity_applications')->whereIn('offer_id', $offerIds)->delete();
+                        DB::table('job_opportunity_offer_state_detail')->whereIn('offer_id', $offerIds)->delete();
+                        DB::table('job_opportunity_offer')->whereIn('id', $offerIds)->delete();
+                    }
+                    Company::where('id', $cId)->delete();
+                }
+            }
+
+            // Clean up persons if no users remain
+            $personIds = array_unique(array_filter($personIds));
+            foreach ($personIds as $pId) {
+                $hasOtherPersons = User::where('person_id', $pId)->exists();
+                if (!$hasOtherPersons) {
+                    Person::where('id', $pId)->delete();
+                }
+            }
 
             DB::commit();
 
@@ -1390,6 +1463,7 @@ class UserController extends Controller
 
             // 1. Get offer IDs of the company
             $offerIds = DB::table('job_opportunity_offer')->where('company_id', $id)->pluck('id');
+
             if ($offerIds->isNotEmpty()) {
                 // 2. Delete applications for these offers
                 DB::table('job_opportunity_applications')->whereIn('offer_id', $offerIds)->delete();
@@ -1401,6 +1475,7 @@ class UserController extends Controller
 
             // 5. Get user IDs of the company
             $userIds = User::where('company_id', $id)->pluck('id');
+
             if ($userIds->isNotEmpty()) {
                 // 6. Delete rol_user associations
                 DB::table('rol_user')->whereIn('user_id', $userIds)->delete();
@@ -1425,6 +1500,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * List all applications (admin only).

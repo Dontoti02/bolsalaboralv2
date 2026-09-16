@@ -2163,8 +2163,15 @@ function uploadCv(file){
 }
 
 // ── Delete CV ─────────────────────────────────────────────────────────────────
-function deleteCv(id){
-    if(!confirm('¿Eliminar este CV?')) return;
+async function deleteCv(id){
+    const ok = await showConfirm({
+        title: '¿Eliminar este CV?',
+        message: 'Se eliminará permanentemente este currículum.',
+        type: 'danger',
+        icon: 'delete_forever',
+        okText: 'Sí, eliminar',
+    });
+    if (!ok) return;
     fetch('/student/cv/delete/'+id, {
         method:'POST',
         headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
@@ -2429,7 +2436,7 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
-
+<script src="/assets/ui-alerts.js"></script>
 
 </body>
 </html>

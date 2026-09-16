@@ -274,8 +274,15 @@
             if(wrap && dd && !wrap.contains(e.target)) dd.style.display = 'none';
         });
 
-        function removeOffer(offerId, btn){
-            if(!confirm('¿Quitar esta oferta de tus guardadas?')) return;
+        async function removeOffer(offerId, btn){
+            const ok = await showConfirm({
+                title: '¿Quitar oferta guardada?',
+                message: 'Se quitará esta oferta de tu lista de guardadas.',
+                type: 'warning',
+                icon: 'bookmark_remove',
+                okText: 'Sí, quitar',
+            });
+            if (!ok) return;
             btn.disabled = true;
             btn.style.opacity = '0.5';
 
@@ -301,17 +308,18 @@
                         location.reload();
                     }
                 } else {
-                    alert(data.message || 'Error al quitar oferta.');
+                    showToast(data.message || 'Error al quitar oferta.', 'error');
                     btn.disabled = false;
                     btn.style.opacity = '1';
                 }
             })
             .catch(function(){
-                alert('Error de red.');
+                showToast('Error de red.', 'error');
                 btn.disabled = false;
                 btn.style.opacity = '1';
             });
         }
     </script>
+<script src="/assets/ui-alerts.js"></script>
 </body>
 </html>
