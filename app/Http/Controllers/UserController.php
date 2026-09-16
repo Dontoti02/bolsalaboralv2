@@ -391,7 +391,7 @@ class UserController extends Controller
                         DB::table('job_opportunity_offer_state_detail')->whereIn('offer_id', $offerIds)->delete();
                         DB::table('job_opportunity_offer')->whereIn('id', $offerIds)->delete();
                     }
-                    Company::where('id', $companyId)->delete();
+                    Company::where('id', $companyId)->forceDelete();
                 }
             }
 
@@ -494,7 +494,7 @@ class UserController extends Controller
                         DB::table('job_opportunity_offer_state_detail')->whereIn('offer_id', $offerIds)->delete();
                         DB::table('job_opportunity_offer')->whereIn('id', $offerIds)->delete();
                     }
-                    Company::where('id', $cId)->delete();
+                    Company::where('id', $cId)->forceDelete();
                 }
             }
 
@@ -1039,7 +1039,7 @@ class UserController extends Controller
     public function listCompanies()
     {
         try {
-            $query = Company::query();
+            $query = Company::query()->whereNull('deleted_at');
 
             // Server-side search filter
             if (request()->filled('search')) {
@@ -1137,8 +1137,8 @@ class UserController extends Controller
                     User::whereIn('id', $userIds)->delete();
                 }
 
-                // 8. Delete the company (hard delete)
-                $company->delete();
+                // 8. Delete the company permanently
+                $company->forceDelete();
                 $deletedCount++;
             }
 
@@ -1483,8 +1483,8 @@ class UserController extends Controller
                 User::whereIn('id', $userIds)->delete();
             }
 
-            // 8. Delete company
-            $company->delete();
+            // 8. Delete company permanently
+            $company->forceDelete();
 
             DB::commit();
 
