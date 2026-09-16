@@ -792,4 +792,64 @@ class CompanyDashboardController extends Controller
 
         return response()->download($filePath);
     }
+
+    /**
+     * Send approval request email from company to admin.
+     */
+    public function requestApproval()
+    {
+        $user = Auth::user();
+        $company = $user->company;
+
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró una empresa asociada a tu cuenta.'
+            ], 404);
+        }
+
+        if ($company->is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu empresa ya está verificada.'
+            ], 422);
+        }
+
+        $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        $isEnabled = (string) ($config['mail_enabled'] ?? '0') === '1';
+
+        if (!$isEnabled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El servicio de correo no está disponible en este momento. Intenta más tarde.'
+            ], 422);
+        }
+
+        try {
+            $admins = User::where('rol_id', 1)->pluck('email')->filter()->values()->all();
+
+            if (empty($admins)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró un administrador para enviar la solicitud.'
+                ], 422);
+            }
+
+            \App\Mail\MailConfigService::apply();
+
+            foreach ($admins as $adminEmail) {
+                Mail::to($adminEmail)->send(new \App\Mail\CompanyApprovalRequest($company));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Solicitud de aprobación enviada al administrador. Recibirás un correo cuando sea revisada.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al enviar la solicitud: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

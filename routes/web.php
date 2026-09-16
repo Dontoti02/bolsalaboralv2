@@ -114,6 +114,7 @@ Route::middleware(['auth'])->group(function () {
     // Company Routes (rol_id = 4)
     Route::middleware(['role:4'])->group(function () {
         Route::get('/company/dashboard', [\App\Http\Controllers\CompanyDashboardController::class, 'showDashboard'])->name('company.dashboard');
+        Route::post('/company/request-approval', [\App\Http\Controllers\CompanyDashboardController::class, 'requestApproval'])->name('company.request-approval');
         Route::post('/company/profile', [\App\Http\Controllers\CompanyDashboardController::class, 'updateProfile']);
         Route::get('/company/offers', [\App\Http\Controllers\CompanyDashboardController::class, 'listOffers'])->name('company.offers.index');
         Route::post('/company/offers', [\App\Http\Controllers\CompanyDashboardController::class, 'storeOffer'])->name('company.offers.store');

@@ -133,6 +133,10 @@
                         <p class="text-body-sm mt-1">Tu empresa aún no ha sido verificada por el administrador. No podrás publicar ofertas de empleo hasta que sea aprobada.</p>
                     </div>
                 </div>
+                <button onclick="requestApproval()" id="btn-request-approval" class="px-5 py-2.5 bg-red-600 text-white font-label-md text-label-md rounded-xl hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap font-semibold">
+                    <span class="material-symbols-outlined text-[18px] align-middle mr-1">send</span>
+                    Solicitar aprobación
+                </button>
             </div>
             @endif
 
@@ -1007,6 +1011,46 @@
         setTimeout(() => {
             toast.classList.add('translate-y-20', 'opacity-0');
         }, 3000);
+    }
+
+    function requestApproval() {
+        const btn = document.getElementById('btn-request-approval');
+        const originalHTML = btn.innerHTML;
+
+        if (!confirm('¿Enviar solicitud de aprobación al administrador?')) return;
+
+        btn.setAttribute('disabled', 'true');
+        btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[16px] leading-none align-middle mr-1">autorenew</span> Enviando...`;
+
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch('/company/request-approval', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.removeAttribute('disabled');
+            if (data.success) {
+                btn.innerHTML = `<span class="material-symbols-outlined text-[16px] leading-none align-middle mr-1">check</span> Solicitud enviada`;
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                btn.classList.add('bg-green-600');
+                btn.onclick = null;
+                showToast(data.message);
+            } else {
+                btn.innerHTML = originalHTML;
+                showToast(data.message || 'Error al enviar la solicitud.', 'error');
+            }
+        })
+        .catch(err => {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = originalHTML;
+            showToast('Error de red al enviar la solicitud.', 'error');
+        });
     }
 
     function handleProfileSubmit(event) {
