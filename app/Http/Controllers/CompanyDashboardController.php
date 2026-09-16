@@ -835,7 +835,7 @@ class CompanyDashboardController extends Controller
                 ], 422);
             }
 
-            \App\Mail\MailConfigService::apply();
+            \App\Services\MailConfigService::apply();
 
             foreach ($admins as $adminEmail) {
                 Mail::to($adminEmail)->send(new \App\Mail\CompanyApprovalRequest($company));
