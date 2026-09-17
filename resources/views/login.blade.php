@@ -112,12 +112,12 @@
     <!-- Right Side: Login Form -->
     <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col justify-start lg:justify-center items-center px-4 py-6 sm:px-8 sm:py-10 lg:px-12 bg-surface-container-lowest overflow-y-auto min-h-[100dvh] lg:h-screen">
         <div class="w-full max-w-[420px] sm:max-w-[480px] my-auto py-2 sm:py-4 transition-all duration-300">
-            <!-- Logo -->
-            <div class="mb-5 sm:mb-7 flex items-center justify-center lg:justify-start gap-3">
+            <!-- Logo y Nombre Institucional -->
+            <div class="mb-5 sm:mb-6 flex items-center justify-center lg:justify-start gap-3.5 sm:gap-4">
                 @if(!empty($config['logo']))
-                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-9 sm:h-10 w-auto object-contain">
+                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-14 sm:h-16 w-auto max-h-16 object-contain shrink-0" onerror="this.onerror=null;this.src='/assets/logo.png';">
                 @endif
-                <span class="text-2xl sm:text-3xl lg:text-display-lg font-bold text-primary tracking-tight leading-snug">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
+                <span class="font-bold text-primary tracking-tight leading-none" style="font-size: 38px;">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
             </div> 
             
             <!-- Section: Login -->
