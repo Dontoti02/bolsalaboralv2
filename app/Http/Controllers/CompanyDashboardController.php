@@ -68,6 +68,7 @@ class CompanyDashboardController extends Controller
                 $applicants = DB::table('job_opportunity_applications')
                     ->whereIn('offer_id', $offerIds)
                     ->whereNull('job_opportunity_applications.deleted_at')
+                    ->whereNull('job_opportunity_offer.deleted_at')
                     ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
                     ->leftJoin('user', 'job_opportunity_applications.user_id', '=', 'user.id')
                     ->leftJoin('person', 'user.person_id', '=', 'person.id')
@@ -83,8 +84,8 @@ class CompanyDashboardController extends Controller
                     ->orderBy('job_opportunity_applications.created_at', 'desc')
                     ->get()
                     ->map(function ($app) {
-                        // Alias fullname
-                        $app->fullname = $app->person_names ?? null;
+                        // Preservar nombre completo si person_names es nulo
+                        $app->fullname = !empty($app->person_names) ? $app->person_names : ($app->fullname ?? 'Candidato');
                         // Decode skills from JSON string (raw query doesn't apply model casts)
                         $app->person_skills = !empty($app->person_skills)
                             ? (json_decode($app->person_skills, true) ?? [])
@@ -262,12 +263,19 @@ class CompanyDashboardController extends Controller
         $user    = Auth::user();
         $company = $user->company;
 
+        if (!$company && $user->company_id) {
+            $company = Company::find($user->company_id);
+        }
+
         if (!$company) {
             return response()->json(['success' => false, 'message' => 'Empresa no encontrada.'], 404);
         }
 
         try {
             $query = JobOpportunityOffer::with(['company', 'modality', 'state', 'category', 'workSchedule', 'contractType'])
+                ->withCount(['applications as applicants_count' => function ($q) {
+                    $q->whereNull('deleted_at');
+                }])
                 ->where('company_id', $company->id);
 
             if ($request->filled('search')) {

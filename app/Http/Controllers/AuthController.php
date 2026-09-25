@@ -125,6 +125,12 @@ class AuthController extends Controller
             ])->onlyInput('login');
         }
 
+        if ($user && $isPasswordCorrect && !$user->is_active) {
+            return back()->withErrors([
+                'login' => 'Tu cuenta se encuentra deshabilitada o en proceso de verificación por la administración.',
+            ])->onlyInput('login');
+        }
+
         RateLimiter::hit($throttleKey, 60);
 
         return back()->withErrors([
@@ -323,13 +329,13 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Create user for the graduate with rol_id = 5 (EGRESADO)
+            // Create user for the graduate with rol_id = 5 (EGRESADO) - disabled by default for admin verification
             $user = new \App\Models\User();
             $user->person_id = $person->id;
             $user->rol_id = 5; // EGRESADO
             $user->email = $request->email;
             $user->password = $request->password;
-            $user->is_active = true;
+            $user->is_active = false; // Requiere ser verificado/habilitado por el administrador
             $user->attempts = 0;
             $user->save();
 
@@ -341,13 +347,10 @@ class AuthController extends Controller
 
             \Illuminate\Support\Facades\DB::commit();
 
-            // Log the user in directly
-            \Illuminate\Support\Facades\Auth::login($user);
-
             return response()->json([
                 'success' => true,
-                'message' => '¡Cuenta de egresado creada exitosamente! Redirigiendo...',
-                'redirect' => '/'
+                'pending_approval' => true,
+                'message' => '¡Tu cuenta de egresado fue creada exitosamente! Por motivos de verificación institucional, tu cuenta se encuentra pendiente de habilitación por el administrador antes de poder iniciar sesión.'
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();

@@ -80,24 +80,42 @@ class UserController extends Controller
 
             if ($request->role_id == 4) {
                 // For Company role (rol_id = 4)
-                $company = Company::create([
-                    'name' => $request->names,
-                    'ruc' => $request->doc_number,
-                    'email' => $request->email,
-                    'phone' => $phone ?? '',
-                    'mailbox' => $request->email,
-                    'is_verified' => true,
-                ]);
+                $company = Company::where('ruc', $request->doc_number)->first();
+                if ($company) {
+                    $company->name = $request->names;
+                    $company->email = $request->email;
+                    $company->is_verified = true;
+                    if (!empty($phone)) $company->phone = $phone;
+                    $company->save();
+                } else {
+                    $company = Company::create([
+                        'name' => $request->names,
+                        'ruc' => $request->doc_number,
+                        'email' => $request->email,
+                        'phone' => $phone ?? '',
+                        'mailbox' => $request->email,
+                        'is_verified' => true,
+                    ]);
+                }
                 $user->company_id = $company->id;
             } else {
-                // For Admin, Teacher, Student roles
-                $person = Person::create([
-                    'document_type' => $request->doc_type,
-                    'document_number' => $request->doc_number,
-                    'names' => $request->names,
-                    'phone' => $phone ?? '',
-                    'email' => $request->email,
-                ]);
+                // For Admin, Teacher, Student, Graduate roles (always enabled when created by admin)
+                $person = Person::where('document_number', $request->doc_number)->first();
+                if ($person) {
+                    $person->names = $request->names;
+                    $person->document_type = $request->doc_type;
+                    $person->email = $request->email;
+                    if (!empty($phone)) $person->phone = $phone;
+                    $person->save();
+                } else {
+                    $person = Person::create([
+                        'document_type' => $request->doc_type,
+                        'document_number' => $request->doc_number,
+                        'names' => $request->names,
+                        'phone' => $phone ?? '',
+                        'email' => $request->email,
+                    ]);
+                }
                 $user->person_id = $person->id;
             }
 

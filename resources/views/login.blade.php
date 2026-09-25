@@ -130,6 +130,13 @@
                 <form action="{{ route('login') }}" method="POST" class="space-y-3.5 sm:space-y-4">
                     @csrf
                     
+                    <div id="login-info-container" class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs sm:text-sm font-medium hidden">
+                        <div class="flex items-start gap-2.5">
+                            <span class="material-symbols-outlined text-[20px] text-purple-700 shrink-0 mt-0.5">verified_user</span>
+                            <p id="login-info-text" class="text-xs sm:text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+
                     @if ($errors->any())
                         <div class="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-medium">
                             <ul class="list-disc list-inside space-y-1">
@@ -743,14 +750,25 @@
         })
         .then(res => res.json())
         .then(data => {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = 'Crear Cuenta de Egresado <span class="material-symbols-outlined text-sm">how_to_reg</span>';
+
             if (data.success) {
-                showToast(data.message || '¡Registro exitoso! Redirigiendo...');
-                setTimeout(() => {
-                    window.location.href = data.redirect || '/';
-                }, 1200);
+                form.reset();
+                showToast(data.message || '¡Registro exitoso! Cuenta pendiente de verificación.', 'success');
+                toggleAuthMode('login');
+
+                const infoBox = document.getElementById('login-info-container');
+                const infoText = document.getElementById('login-info-text');
+                if (infoBox && infoText) {
+                    infoText.textContent = data.message || '¡Tu cuenta de egresado fue creada exitosamente! Se encuentra pendiente de verificación por el administrador.';
+                    infoBox.classList.remove('hidden');
+                }
+                const loginInput = document.getElementById('login');
+                if (loginInput && email) {
+                    loginInput.value = email;
+                }
             } else {
-                btn.removeAttribute('disabled');
-                btn.innerHTML = 'Crear Cuenta de Egresado <span class="material-symbols-outlined text-sm">how_to_reg</span>';
                 errText.textContent = data.message || 'Error al registrar egresado.';
                 errContainer.classList.remove('hidden');
             }

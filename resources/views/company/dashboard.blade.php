@@ -273,13 +273,13 @@
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title ?? 'Puesto' }}</td>
                                     <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->diffForHumans() : '-' }}</td>
                                     <td class="px-lg py-md text-right">
-                                        <button type="button" data-name="{{ addslashes($app->fullname ?? 'Candidato') }}"
-                                            data-career="{{ addslashes($app->person_career ?? $app->program_study ?? '') }}"
-                                            data-msg="{{ addslashes($app->message ?? '') }}"
-                                            data-cv="{{ $app->cv ?? '' }}"
-                                            data-avatar="{{ $app->user_avatar ?? '' }}"
+                                        <button type="button" data-name="{{ htmlspecialchars($app->fullname ?? 'Candidato', ENT_QUOTES, 'UTF-8') }}"
+                                            data-career="{{ htmlspecialchars($app->person_career ?? $app->program_study ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-msg="{{ htmlspecialchars($app->message ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-cv="{{ htmlspecialchars($app->cv ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-avatar="{{ htmlspecialchars($app->user_avatar ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
-                                            data-about="{{ addslashes($app->person_about_me ?? '') }}"
+                                            data-about="{{ htmlspecialchars($app->person_about_me ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             onclick="openApplicantModal(this)"
                                             style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     </td>
@@ -350,6 +350,7 @@
                                     <th class="px-4 py-3.5 w-12">Acción</th>
                                     <th class="px-4 py-3.5 w-24">Estado</th>
                                     <th class="px-4 py-3.5">Título</th>
+                                    <th class="px-4 py-3.5 text-center">Postulantes</th>
                                     <th class="px-4 py-3.5">Salario</th>
                                     <th class="px-4 py-3.5">Categoría</th>
                                     <th class="px-4 py-3.5">Jornada</th>
@@ -360,7 +361,12 @@
                             <tbody id="company-offers-table-body"
                                 class="divide-y divide-outline-variant/60 font-body-sm text-body-sm text-on-surface">
                                 <tr>
-                                    <td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando ofertas...</td>
+                                    <td colspan="9" class="text-center py-xl text-on-surface-variant">
+                                        <span class="inline-flex items-center gap-2">
+                                            <span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                            Cargando ofertas...
+                                        </span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -578,7 +584,45 @@
 
         <!-- ================= PANEL 3: POSTULANTES ================= -->
         <div id="panel-applicants" class="tab-panel space-y-xl hidden">
-            <h2 class="text-headline-sm font-headline-sm text-on-surface">Candidatos Postulados</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-headline-sm font-headline-sm text-on-surface">Candidatos Postulados</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Revisa, filtra y gestiona las postulaciones recibidas para tus ofertas laborales.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="applicants-count-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-primary-container text-on-primary-container">
+                        {{ count($applicants) }} postulantes
+                    </span>
+                </div>
+            </div>
+
+            {{-- Filtros y buscador de postulantes --}}
+            <div class="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <div class="relative flex-1 min-w-[200px]">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+                    <input type="text" id="search-applicants-input" oninput="filterApplicantsTable()" placeholder="Buscar por postulante o puesto..." class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-xl text-body-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filter-applicants-offer" onchange="filterApplicantsTable()" class="px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-xl text-body-sm font-medium outline-none focus:border-primary">
+                        <option value="">Todas las ofertas</option>
+                        @if(isset($offers))
+                            @foreach($offers as $off)
+                                <option value="{{ $off->id }}">{{ $off->title }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                    <select id="filter-applicants-status" onchange="filterApplicantsTable()" class="px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-xl text-body-sm font-medium outline-none focus:border-primary">
+                        <option value="">Todos los estados</option>
+                        <option value="postulated">Postulados</option>
+                        <option value="under_review">En Revisión</option>
+                        <option value="accepted">Aceptados</option>
+                        <option value="rejected">Rechazados</option>
+                    </select>
+                    <button type="button" onclick="resetApplicantFilters()" class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-xl border border-outline-variant transition-colors" title="Restablecer filtros">
+                        <span class="material-symbols-outlined text-[18px]">filter_alt_off</span>
+                    </button>
+                </div>
+            </div>
 
             {{-- Nota informativa: correos de postulación pueden ir a spam --}}
             <div class="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 shadow-sm" role="alert">
@@ -596,19 +640,23 @@
 
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse" id="applicants-main-table">
                         <thead>
                             <tr class="border-b border-outline-variant bg-surface-container-low">
                                 <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold">Postulante</th>
                                 <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold">Puesto Aplicado</th>
                                 <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold">Fecha</th>
-                                <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold">Contacto</th>
+                                <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold">Estado</th>
                                 <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant font-semibold text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($applicants as $app)
-                            <tr class="border-b border-surface-container-high hover:bg-surface-container-lowest transition-colors">
+                            <tr class="applicant-table-row border-b border-surface-container-high hover:bg-surface-container-lowest transition-colors"
+                                data-applicant-name="{{ strtolower($app->fullname ?? '') }}"
+                                data-offer-id="{{ $app->offer_id ?? '' }}"
+                                data-offer-title="{{ strtolower($app->offer_title ?? '') }}"
+                                data-status="{{ $app->status ?? '' }}">
                                 <td class="px-lg py-md">
                                     <div class="flex items-center gap-sm">
                                         <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-label-sm">{{ strtoupper(substr($app->fullname ?? 'C', 0, 1)) }}</div>
@@ -619,24 +667,24 @@
                                     </div>
                                 </td>
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->offer_title }}</td>
-                                <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ \Carbon\Carbon::parse($app->created_at)->format('d M Y') }}</td>
+                                <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">{{ $app->created_at ? \Carbon\Carbon::parse($app->created_at)->format('d M Y') : '-' }}</td>
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">
-                                    <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @else bg-yellow-100 text-yellow-800 @endif">{{ ['postulated'=>'POSTULADO','accepted'=>'ACEPTADO','rejected'=>'RECHAZADO','selected'=>'SELECCIONADO','finished'=>'FINALIZADO'][$app->status] ?? strtoupper($app->status) }}</span>
+                                    <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @elseif($app->status == 'under_review') bg-blue-100 text-blue-800 @else bg-yellow-100 text-yellow-800 @endif">{{ ['postulated'=>'POSTULADO','under_review'=>'EN REVISIÓN','accepted'=>'ACEPTADO','rejected'=>'RECHAZADO','selected'=>'SELECCIONADO','finished'=>'FINALIZADO'][$app->status] ?? strtoupper($app->status) }}</span>
                                 </td>
                                 <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
-                                    <button type="button" data-name="{{ addslashes($app->fullname ?? 'Candidato') }}"
-                                            data-career="{{ addslashes($app->person_career ?? $app->program_study ?? '') }}"
-                                            data-msg="{{ addslashes($app->message ?? '') }}"
-                                            data-cv="{{ $app->cv ?? '' }}"
-                                            data-avatar="{{ $app->user_avatar ?? '' }}"
+                                    <button type="button" data-name="{{ htmlspecialchars($app->fullname ?? 'Candidato', ENT_QUOTES, 'UTF-8') }}"
+                                            data-career="{{ htmlspecialchars($app->person_career ?? $app->program_study ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-msg="{{ htmlspecialchars($app->message ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-cv="{{ htmlspecialchars($app->cv ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-avatar="{{ htmlspecialchars($app->user_avatar ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
-                                            data-about="{{ addslashes($app->person_about_me ?? '') }}"
+                                            data-about="{{ htmlspecialchars($app->person_about_me ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             onclick="openApplicantModal(this)"
                                             style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     @if($app->cv)
                                     <a href="{{ $app->cv }}" target="_blank" style="color:#002741; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'"><span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span> CV</a>
                                     @endif
-                                    @if($app->status == 'postulated')
+                                    @if(in_array($app->status, ['postulated', 'under_review']))
                                     <button onclick="updateStatus({{ $app->id }}, 'accepted')" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 font-label-sm text-label-sm font-semibold rounded-lg transition-colors flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[14px]">check</span>
                                         Aprobar
@@ -653,6 +701,9 @@
                                 <td colspan="5" class="px-lg py-md text-center text-on-surface-variant">No hay postulantes registrados todavía.</td>
                             </tr>
                             @endforelse
+                            <tr id="applicants-empty-filter-row" class="hidden">
+                                <td colspan="5" class="px-lg py-md text-center text-on-surface-variant">No se encontraron postulantes que coincidan con los filtros seleccionados.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -978,6 +1029,11 @@
             sidebar.classList.add('-translate-x-full');
             backdrop.classList.add('hidden');
         }
+
+        // Cargar ofertas automáticamente cada vez que se active la pestaña de ofertas
+        if (tabId === 'offers') {
+            loadCompanyOffers();
+        }
     }
 
     function previewLogoImage(input) {
@@ -1121,7 +1177,6 @@
             btn.addEventListener('click', function() {
                 const tabId = this.getAttribute('data-tab');
                 switchTab(tabId);
-                if (tabId === 'offers') loadCompanyOffers();
             });
         });
 
@@ -1243,17 +1298,27 @@
 
     function loadCompanyOffers() {
         const tbody = document.getElementById('company-offers-table-body');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">Cargando ofertas...</td></tr>';
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant"><span class="inline-flex items-center gap-2"><span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Cargando ofertas...</span></td></tr>';
         const search  = (document.getElementById('company-search-offers-input')?.value || '').trim();
         const sortBy  = document.getElementById('company-filter-sort')?.value || 'recent';
         const params  = new URLSearchParams({ search, sort_by: sortBy });
 
         fetch(`/company/offers?${params}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('Error al consultar ofertas (' + r.status + ')');
+                return r.json();
+            })
             .then(data => {
-                if (!data.success) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-red-600">Error al cargar ofertas.</td></tr>'; return; }
-                const offers = data.offers;
-                if (!offers.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-on-surface-variant">No hay ofertas publicadas aún.</td></tr>'; return; }
+                if (!data.success) {
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-xl text-red-600">${data.message || 'Error al cargar ofertas.'}</td></tr>`;
+                    return;
+                }
+                const offers = data.offers || [];
+                if (!offers.length) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">No hay ofertas publicadas aún.</td></tr>';
+                    return;
+                }
 
                 const stateLabels = { 1:'Borrador', 2:'Activa', 3:'Finalizada', 4:'Pausada', 5:'Archivada' };
                 const stateColors = { 1:'bg-surface-container text-on-surface-variant', 2:'bg-secondary-container text-on-secondary-container', 3:'bg-surface-container text-on-surface-variant', 4:'bg-tertiary-fixed text-on-tertiary-fixed-variant', 5:'bg-surface-container text-on-surface-variant' };
@@ -1263,6 +1328,16 @@
                     const stateLbl  = o.state?.name || stateLabels[stateId] || 'Borrador';
                     const stateClr  = stateColors[stateId] || stateColors[1];
                     const toggleLbl = stateId === 2 ? 'Finalizar' : 'Activar';
+                    const salaryFormatted = (o.salary != null && !isNaN(Number(o.salary)))
+                        ? ((o.salary_currency === 'DOLARES' ? '$ ' : 'S/ ') + Number(o.salary).toLocaleString())
+                        : '-';
+                    const safeTitle = o.title ? o.title.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '-';
+                    const modalityName = o.modality?.name || '-';
+                    const categoryName = o.category?.name || '-';
+                    const scheduleName = o.work_schedule?.name || '-';
+                    const contractTypeName = o.contract_type?.name || '-';
+                    const appCount = o.applicants_count ?? 0;
+
                     return `
                     <tr class="hover:bg-surface-container-low transition-colors">
                         <td class="px-4 py-3">
@@ -1274,16 +1349,25 @@
                             </div>
                         </td>
                         <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${stateClr}">${stateLbl}</span></td>
-                        <td class="px-4 py-3 font-semibold">${o.title}</td>
-                        <td class="px-4 py-3">${o.salary_currency === 'DOLARES' ? '$' : 'S/'} ${Number(o.salary).toLocaleString()}</td>
-                        <td class="px-4 py-3">${o.category?.name || '-'}</td>
-                        <td class="px-4 py-3">${o.work_schedule?.name || '-'}</td>
-                        <td class="px-4 py-3">${o.location?.name || '-'}</td>
-                        <td class="px-4 py-3">${o.contract_type?.name || '-'}</td>
+                        <td class="px-4 py-3 font-semibold">${safeTitle}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="filterApplicantsByOffer(${o.id}, '${safeTitle.replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-container/40 text-primary hover:bg-primary hover:text-on-primary transition-all cursor-pointer" title="Ver ${appCount} postulante(s)">
+                                <span class="material-symbols-outlined text-[15px]">group</span>
+                                <span>${appCount}</span>
+                            </button>
+                        </td>
+                        <td class="px-4 py-3">${salaryFormatted}</td>
+                        <td class="px-4 py-3">${categoryName}</td>
+                        <td class="px-4 py-3">${scheduleName}</td>
+                        <td class="px-4 py-3">${modalityName}</td>
+                        <td class="px-4 py-3">${contractTypeName}</td>
                     </tr>`;
                 }).join('');
             })
-            .catch(() => { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-xl text-red-600">Error de red al cargar ofertas.</td></tr>'; });
+            .catch(err => {
+                console.error('Error al cargar ofertas:', err);
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-red-600">Error al cargar ofertas. Verifique su conexión e intente nuevamente.</td></tr>';
+            });
     }
 
     function showCreateOfferForm() {
@@ -1755,6 +1839,69 @@
         setTimeout(() => {
             modal.style.display = 'none';
         }, 300);
+    }
+
+    function filterApplicantsTable() {
+        const search = (document.getElementById('search-applicants-input')?.value || '').toLowerCase().trim();
+        const status = document.getElementById('filter-applicants-status')?.value || '';
+        const offerId = document.getElementById('filter-applicants-offer')?.value || '';
+        const rows = document.querySelectorAll('.applicant-table-row');
+        const emptyRow = document.getElementById('applicants-empty-filter-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-applicant-name') || '';
+            const offerTitle = row.getAttribute('data-offer-title') || '';
+            const rowOfferId = row.getAttribute('data-offer-id') || '';
+            const rowStatus = row.getAttribute('data-status') || '';
+
+            const matchesSearch = !search || name.includes(search) || offerTitle.includes(search);
+            const matchesStatus = !status || rowStatus === status;
+            const matchesOffer = !offerId || rowOfferId === String(offerId);
+
+            if (matchesSearch && matchesStatus && matchesOffer) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        if (emptyRow) {
+            if (visibleCount === 0 && rows.length > 0) {
+                emptyRow.classList.remove('hidden');
+            } else {
+                emptyRow.classList.add('hidden');
+            }
+        }
+
+        const countBadge = document.getElementById('applicants-count-badge');
+        if (countBadge) {
+            countBadge.textContent = `${visibleCount} postulante${visibleCount === 1 ? '' : 's'}`;
+        }
+    }
+
+    function filterApplicantsByOffer(offerId, offerTitle) {
+        switchTab('applicants');
+        const offerFilter = document.getElementById('filter-applicants-offer');
+        if (offerFilter) {
+            offerFilter.value = offerId;
+        }
+        const searchInput = document.getElementById('search-applicants-input');
+        if (searchInput) searchInput.value = '';
+        const statusFilter = document.getElementById('filter-applicants-status');
+        if (statusFilter) statusFilter.value = '';
+        filterApplicantsTable();
+    }
+
+    function resetApplicantFilters() {
+        const searchInput = document.getElementById('search-applicants-input');
+        if (searchInput) searchInput.value = '';
+        const offerFilter = document.getElementById('filter-applicants-offer');
+        if (offerFilter) offerFilter.value = '';
+        const statusFilter = document.getElementById('filter-applicants-status');
+        if (statusFilter) statusFilter.value = '';
+        filterApplicantsTable();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
