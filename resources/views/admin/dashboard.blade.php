@@ -1370,9 +1370,18 @@
                     $hasSavedPassword = !empty($config['mail_password']);
                 @endphp
                 <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col p-lg space-y-lg mt-6">
-                    <div>
-                        <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Correo saliente</h3>
-                        <p class="text-body-sm text-on-surface-variant mt-1">Cuenta con la que la plataforma envía credenciales, recuperación de contraseña y notificaciones.</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Correo saliente</h3>
+                            <p class="text-body-sm text-on-surface-variant mt-1">Cuenta con la que la plataforma envía credenciales, recuperación de contraseña y notificaciones.</p>
+                        </div>
+                        <a href="https://youtu.be/x5soeCvnPjs?si=_8fACQ5_PtgwMpvr" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 transition-all shrink-0 self-start sm:self-auto shadow-sm"
+                           title="Ver video tutorial en YouTube de cómo configurar SMTP">
+                            <span class="material-symbols-outlined text-[18px]">smart_display</span>
+                            <span>Ver tutorial en YouTube</span>
+                            <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </a>
                     </div>
 
                     <!-- Banner de estado dinámico -->
@@ -1469,10 +1478,20 @@
                             </div>
                         </div>
 
-                        <!-- Texto explicativo de orientación -->
-                        <p class="text-xs text-on-surface-variant leading-relaxed">
-                            Con Gmail o Google Workspace usa <strong class="text-on-surface font-semibold">smtp.gmail.com</strong>, puerto <strong class="text-on-surface font-semibold">587</strong> con TLS y una <strong class="text-on-surface font-semibold">contraseña de aplicación</strong> (requiere la verificación en dos pasos), no la contraseña normal de la cuenta. El remitente debe ser la misma cuenta del usuario.
-                        </p>
+                        <!-- Texto explicativo de orientación y video tutorial -->
+                        <div class="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">help_outline</span>
+                                <div class="text-xs text-on-surface-variant leading-relaxed">
+                                    Con Gmail o Google Workspace usa <strong class="text-on-surface font-semibold">smtp.gmail.com</strong>, puerto <strong class="text-on-surface font-semibold">587</strong> con TLS y una <strong class="text-on-surface font-semibold">contraseña de aplicación</strong> (requiere la verificación en dos pasos), no la contraseña normal de la cuenta. El remitente debe ser la misma cuenta del usuario.
+                                </div>
+                            </div>
+                            <a href="https://youtu.be/x5soeCvnPjs?si=_8fACQ5_PtgwMpvr" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-xs transition-colors shrink-0 shadow-sm self-start md:self-center">
+                                <span class="material-symbols-outlined text-[16px]">smart_display</span>
+                                <span>Ver video tutorial</span>
+                            </a>
+                        </div>
 
                         <!-- Botón Guardar -->
                         <div class="pt-2">
