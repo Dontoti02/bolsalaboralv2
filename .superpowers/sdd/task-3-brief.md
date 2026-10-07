@@ -1,62 +1,81 @@
-# Task 3: Add chart HTML containers in dashboard blade
+﻿### Task 3: Regenerar la plantilla Excel con la columna PROGRAMA DE ESTUDIO
 
 **Files:**
-- Modify: `resources/views/admin/dashboard.blade.php` (after line 326, before the Details Layout grid at line 329)
+- Create: `scratch/update_import_template.php`
+- Modify: `public/assets/Importacion de usuarios.xlsx` (generado por el script)
 
 **Interfaces:**
-- Consumes: `$monthlyStats`, `$roleDistribution`, `$topCompanies` from controller
+- Consumes: plantilla actual (columnas A-F con encabezados `NOMBRES`, `TIPO DE DOCUMENTO`, `DOCUMENTO`, `TELÃ‰FONO`, `EMAIL`, `ROL`; filas 2-6 con ejemplos: 2=ESTUDIANTE, 3=DOCENTE, 4=ADMINISTRADOR, 5=EMPRESA, 6=EGRESADO).
+- Produces: plantilla con columna G `PROGRAMA DE ESTUDIO`; leÃ­da por `UsersImport` en Ã­ndice 6 (Task 2).
 
-**Steps:**
+- [ ] **Step 1: Crear el script de regeneraciÃ³n**
 
-- [ ] **Step 1: Add charts section HTML**
+Crear `scratch/update_import_template.php`:
 
-In `resources/views/admin/dashboard.blade.php`, after the closing `</div>` of the Bento Grid (the 4 metric cards that end around line 326), BEFORE the Details Layout grid (line 329), insert:
+```php
+<?php
 
-```html
-<!-- Analytics Charts Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
-    <!-- Chart 1: Registration Trends (spans 2 cols) -->
-    <div class="lg:col-span-2 bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-        <div class="p-lg border-b border-outline-variant flex justify-between items-center">
-            <h3 class="text-headline-sm font-headline-sm text-on-background">Tendencia de Registros</h3>
-            <span class="text-label-sm text-on-surface-variant">Últimos 6 meses</span>
-        </div>
-        <div class="p-lg" style="height: 320px;">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
+require __DIR__ . '/../vendor/autoload.php';
 
-    <!-- Chart 2: Role Distribution (spans 1 col) -->
-    <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-        <div class="p-lg border-b border-outline-variant">
-            <h3 class="text-headline-sm font-headline-sm text-on-background">Distribución por Roles</h3>
-        </div>
-        <div class="p-lg flex flex-col items-center" style="height: 320px;">
-            <div class="flex-1 w-full flex items-center justify-center">
-                <canvas id="roleChart"></canvas>
-            </div>
-            <div id="roleLegend" class="flex flex-wrap justify-center gap-3 mt-4"></div>
-        </div>
-    </div>
-</div>
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-<!-- Chart 3: Top Companies -->
-<div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-    <div class="p-lg border-b border-outline-variant flex justify-between items-center">
-        <h3 class="text-headline-sm font-headline-sm text-on-background">Top Empresas con Más Ofertas</h3>
-        <span class="text-label-sm text-on-surface-variant">Top 5</span>
-    </div>
-    <div class="p-lg" style="height: 280px;">
-        <canvas id="companiesChart"></canvas>
-    </div>
-</div>
+$path = __DIR__ . '/../public/assets/Importacion de usuarios.xlsx';
+
+if (!file_exists($path)) {
+    fwrite(STDERR, "No existe la plantilla: {$path}\n");
+    exit(1);
+}
+
+$spreadsheet = IOFactory::load($path);
+$sheet = $spreadsheet->getActiveSheet();
+
+// Encabezado con el mismo estilo que F1
+$sheet->setCellValue('G1', 'PROGRAMA DE ESTUDIO');
+$sheet->getStyle('G1')->applyFromArray($sheet->getStyle('F1')->getArrayCopy());
+
+// Ancho de columna
+$sheet->getColumnDimension('G')->setWidth(30)->setCustomWidth(true);
+
+// Ejemplos: fila 2 = ESTUDIANTE, fila 6 = EGRESADO (otros roles dejan G vacÃ­o)
+$sheet->setCellValue('G2', 'AdministraciÃ³n');
+$sheet->setCellValue('G6', 'IngenierÃ­a de Sistemas');
+$sheet->getStyle('G2')->applyFromArray($sheet->getStyle('F2')->getArrayCopy());
+$sheet->getStyle('G6')->applyFromArray($sheet->getStyle('F6')->getArrayCopy());
+
+// Texto plano en toda la columna para que Excel no transforme valores
+$sheet->getStyle('G2:G1000')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+$spreadsheet->setActiveSheetIndex(0);
+IOFactory::createWriter($spreadsheet, 'Xlsx')->save($path);
+
+echo "Plantilla actualizada: {$path}\n";
 ```
 
-**IMPORTANT:** The insertion point is AFTER the 4 metric cards grid ends and BEFORE the existing Details Layout grid (which has the companies table and activity history). Look for the comment `<!-- Details Layout -->` or the grid that has `lg:grid-cols-3` containing the companies table.
+- [ ] **Step 2: Ejecutar el script**
 
-- [ ] **Step 2: Commit**
+Run: `php scratch/update_import_template.php`
+Expected: `Plantilla actualizada: ...Importacion de usuarios.xlsx`
 
-```bash
-git add resources/views/admin/dashboard.blade.php
-git commit -m "feat: add chart containers to admin dashboard view"
+- [ ] **Step 3: Verificar los encabezados resultantes**
+
+Run:
+```powershell
+php -r "require 'vendor/autoload.php'; $s = PhpOffice\PhpSpreadsheet\IOFactory::load('public/assets/Importacion de usuarios.xlsx')->getActiveSheet(); echo implode(' | ', array_filter($s->rangeToArray('A1:H1')[0], fn($v) => $v !== null)), PHP_EOL; echo 'G2=' . $s->getCell('G2')->getValue() . ' G6=' . $s->getCell('G6')->getValue() . PHP_EOL;"
 ```
+Expected:
+```
+NOMBRES | TIPO DE DOCUMENTO | DOCUMENTO | TELÃ‰FONO | EMAIL | ROL | PROGRAMA DE ESTUDIO
+G2=AdministraciÃ³n G6=IngenierÃ­a de Sistemas
+```
+
+- [ ] **Step 4: Verificar que la descarga pÃºblica sirve el archivo nuevo**
+
+Run:
+```powershell
+(Get-Item "public\assets\Importacion de usuarios.xlsx").LastWriteTime
+```
+Expected: fecha/hora actual.
+
+---
+

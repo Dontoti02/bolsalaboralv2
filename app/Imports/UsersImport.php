@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Person;
+use App\Models\StudyProgram;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,8 @@ class UsersImport implements ToCollection, WithChunkReading
     protected $existingRucs;
     protected $isFirstChunk = true;
     protected $hashedPasswordCache = [];
+    public $warnings = [];
+    protected $studyProgramsByNormalizedName;
 
     public function collection(Collection $rows)
     {
@@ -44,6 +47,15 @@ class UsersImport implements ToCollection, WithChunkReading
             $this->existingRucs = Company::pluck('id', 'ruc')->toArray();
         }
 
+        // Eager load study programs (normalized name => id) once across all chunks
+        if ($this->studyProgramsByNormalizedName === null) {
+            $this->studyProgramsByNormalizedName = StudyProgram::pluck('id', 'name')
+                ->mapWithKeys(function ($id, $name) {
+                    return [mb_strtolower(trim((string) $name)) => $id];
+                })
+                ->toArray();
+        }
+
         $companiesToInsert = [];
         $peopleToInsert = [];
         $usersToPrepare = [];
@@ -67,6 +79,7 @@ class UsersImport implements ToCollection, WithChunkReading
             $phone = trim((string)($row[3] ?? ''));
             $email = strtolower(trim((string)($row[4] ?? '')));
             $roleStr = strtoupper(trim((string)($row[5] ?? 'ESTUDIANTE')));
+            $programRaw = trim((string) ($row[6] ?? ''));
 
             if (empty($names) && empty($email)) {
                 continue;
@@ -118,6 +131,19 @@ class UsersImport implements ToCollection, WithChunkReading
                 continue;
             }
 
+            $studyProgramId = null;
+            if (in_array($roleId, [3, 5], true)) {
+                if ($programRaw === '') {
+                    $this->errors[] = "Fila $lineNum: El programa de estudio es obligatorio para estudiantes y egresados.";
+                    continue;
+                }
+
+                $studyProgramId = $this->studyProgramsByNormalizedName[mb_strtolower($programRaw)] ?? null;
+                if ($studyProgramId === null) {
+                    $this->warnings[] = "Fila $lineNum: el programa \"{$programRaw}\" no existe en Mantenedores; el usuario se importó sin programa.";
+                }
+            }
+
             // Mark as taken in-memory
             $this->existingEmails[$email] = true;
 
@@ -153,6 +179,7 @@ class UsersImport implements ToCollection, WithChunkReading
                     'names' => $names,
                     'phone' => $phoneFormatted,
                     'email' => $email,
+                    'study_program_id' => $studyProgramId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -228,13 +255,17 @@ class UsersImport implements ToCollection, WithChunkReading
                     $pEmail = $p['email'];
                     if (isset($existingPersonMap[$pEmail])) {
                         $pId = $existingPersonMap[$pEmail];
-                        DB::table('person')->where('id', $pId)->update([
+                        $personUpdate = [
                             'document_type' => $p['document_type'],
                             'document_number' => $p['document_number'],
                             'names' => $p['names'],
                             'phone' => $p['phone'],
                             'updated_at' => now(),
-                        ]);
+                        ];
+                        if ($p['study_program_id'] !== null) {
+                            $personUpdate['study_program_id'] = $p['study_program_id'];
+                        }
+                        DB::table('person')->where('id', $pId)->update($personUpdate);
                         $personIdMapByEmail[$pEmail] = $pId;
                     } else {
                         $toInsert[] = $p;

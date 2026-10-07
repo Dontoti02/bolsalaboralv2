@@ -1,0 +1,54 @@
+﻿=== Working tree status (all plan changes, no commits) ===
+ M .superpowers/sdd/progress.md
+ M .superpowers/sdd/task-1-brief.md
+ M .superpowers/sdd/task-1-report.md
+ M .superpowers/sdd/task-2-brief.md
+ M .superpowers/sdd/task-2-report.md
+ M .superpowers/sdd/task-3-brief.md
+ M .superpowers/sdd/task-3-report.md
+ M .superpowers/sdd/task-4-brief.md
+ M .superpowers/sdd/task-4-report.md
+ M app/Http/Controllers/AdminController.php
+ M app/Http/Controllers/UserController.php
+ M app/Imports/UsersImport.php
+ M "public/assets/Importacion de usuarios.xlsx"
+ M resources/views/admin/dashboard.blade.php
+ M routes/web.php
+?? .superpowers/sdd/progress-archive-2026-07-15-chartjs.md
+?? .superpowers/sdd/task-1-diff.txt
+?? .superpowers/sdd/task-2-diff.txt
+?? .superpowers/sdd/task-3-diff.txt
+?? .superpowers/sdd/task-4-diff.txt
+?? docs/superpowers/plans/2026-10-07-eliminar-asignar-programa-columna-excel.md
+?? docs/superpowers/specs/2026-10-07-eliminar-asignar-programa-columna-excel-design.md
+?? scratch/
+?? tests/Feature/UsersImportTest.php
+
+=== Diff stat vs HEAD efd612d ===
+ .superpowers/sdd/progress.md               |  10 +-
+ .superpowers/sdd/task-1-brief.md           | 173 +++++++++-
+ .superpowers/sdd/task-1-report.md          | 108 ++++++-
+ .superpowers/sdd/task-2-brief.md           | 337 +++++++++++++++-----
+ .superpowers/sdd/task-2-report.md          | 130 +++++++-
+ .superpowers/sdd/task-3-brief.md           | 125 ++++----
+ .superpowers/sdd/task-3-report.md          |  80 +++--
+ .superpowers/sdd/task-4-brief.md           | 274 ++--------------
+ .superpowers/sdd/task-4-report.md          | 108 +++++--
+ app/Http/Controllers/AdminController.php   |  72 -----
+ app/Http/Controllers/UserController.php    |  13 +-
+ app/Imports/UsersImport.php                |  27 ++
+ public/assets/Importacion de usuarios.xlsx | Bin 17450 -> 19186 bytes
+ resources/views/admin/dashboard.blade.php  | 489 +----------------------------
+ routes/web.php                             |   4 -
+ 15 files changed, 913 insertions(+), 1037 deletions(-)
+
+=== Untracked new files ===
+?? .superpowers/sdd/progress-archive-2026-07-15-chartjs.md
+?? .superpowers/sdd/task-1-diff.txt
+?? .superpowers/sdd/task-2-diff.txt
+?? .superpowers/sdd/task-3-diff.txt
+?? .superpowers/sdd/task-4-diff.txt
+?? docs/superpowers/plans/2026-10-07-eliminar-asignar-programa-columna-excel.md
+?? docs/superpowers/specs/2026-10-07-eliminar-asignar-programa-columna-excel-design.md
+?? scratch/
+?? tests/Feature/UsersImportTest.php

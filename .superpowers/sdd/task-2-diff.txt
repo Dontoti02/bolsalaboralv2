@@ -1,0 +1,351 @@
+﻿ app/Http/Controllers/UserController.php | 13 +++++++++++--
+ app/Imports/UsersImport.php             | 27 +++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 2 deletions(-)
+
+=== FULL DIFF ===
+diff --git a/app/Http/Controllers/UserController.php b/app/Http/Controllers/UserController.php
+index 9c26485..fb8f36f 100644
+--- a/app/Http/Controllers/UserController.php
++++ b/app/Http/Controllers/UserController.php
+@@ -565,41 +565,50 @@ public function import(Request $request)
+             ], 422);
+         }
+ 
+         $file = $request->file('file');
+ 
+         try {
+             $import = new UsersImport();
+             Excel::import($import, $file);
+ 
+             $errors = $import->errors;
++            $warnings = $import->warnings;
+             $importedUserIds = $import->importedUserIds;
+ 
+             if (count($errors) > 0 && count($importedUserIds) == 0) {
+                 return response()->json([
+                     'success' => false,
+                     'message' => implode("\n", $errors)
+                 ], 422);
+             }
+ 
+             $importedUsers = [];
+             if (!empty($importedUserIds)) {
+                 $importedUsers = User::with(['person', 'company'])
+                     ->whereIn('id', $importedUserIds)
+                     ->get();
+             }
+ 
++            $message = 'Importaci├│n completada. ' . count($importedUsers) . ' usuarios registrados.';
++            if (!empty($warnings)) {
++                $shown = array_slice($warnings, 0, 5);
++                $extra = count($warnings) > 5 ? ' y ' . (count($warnings) - 5) . ' m├ís' : '';
++                $message .= ' ' . count($warnings) . ' advertencia(s): ' . implode(' | ', $shown) . $extra;
++            }
++
+             return response()->json([
+                 'success' => true,
+-                'message' => 'Importaci├│n completada. ' . count($importedUsers) . ' usuarios registrados.',
++                'message' => $message,
+                 'users' => $importedUsers,
+-                'errors' => $errors
++                'errors' => $errors,
++                'warnings' => $warnings
+             ]);
+         } catch (\Exception $e) {
+             return response()->json([
+                 'success' => false,
+                 'message' => 'Error al procesar el archivo Excel: ' . $e->getMessage()
+             ], 500);
+         }
+     }
+ 
+ 
+diff --git a/app/Imports/UsersImport.php b/app/Imports/UsersImport.php
+index 782b681..0ee5921 100644
+--- a/app/Imports/UsersImport.php
++++ b/app/Imports/UsersImport.php
+@@ -1,31 +1,34 @@
+ <?php
+ 
+ namespace App\Imports;
+ 
+ use App\Models\User;
+ use App\Models\Company;
+ use App\Models\Person;
++use App\Models\StudyProgram;
+ use Illuminate\Support\Collection;
+ use Illuminate\Support\Facades\Hash;
+ use Illuminate\Support\Facades\DB;
+ use Maatwebsite\Excel\Concerns\ToCollection;
+ use Maatwebsite\Excel\Concerns\WithChunkReading;
+ 
+ class UsersImport implements ToCollection, WithChunkReading
+ {
+     public $errors = [];
+     public $importedUserIds = [];
+     protected $existingEmails;
+     protected $existingRucs;
+     protected $isFirstChunk = true;
+     protected $hashedPasswordCache = [];
++    public $warnings = [];
++    protected $studyProgramsByNormalizedName;
+ 
+     public function collection(Collection $rows)
+     {
+         // Set dynamic limits for large operations
+         set_time_limit(600);
+         ini_set('memory_limit', '512M');
+ 
+         $rolesMap = [
+             'ADMINISTRADOR' => 1,
+             'DOCENTE' => 2,
+@@ -37,20 +40,29 @@ public function collection(Collection $rows)
+         // Eager load existing emails once across all chunks
+         if ($this->existingEmails === null) {
+             $this->existingEmails = User::pluck('email')->flip()->toArray();
+         }
+ 
+         // Eager load existing RUCs once across all chunks (ruc => id)
+         if ($this->existingRucs === null) {
+             $this->existingRucs = Company::pluck('id', 'ruc')->toArray();
+         }
+ 
++        // Eager load study programs (normalized name => id) once across all chunks
++        if ($this->studyProgramsByNormalizedName === null) {
++            $this->studyProgramsByNormalizedName = StudyProgram::pluck('id', 'name')
++                ->mapWithKeys(function ($id, $name) {
++                    return [mb_strtolower(trim((string) $name)) => $id];
++                })
++                ->toArray();
++        }
++
+         $companiesToInsert = [];
+         $peopleToInsert = [];
+         $usersToPrepare = [];
+         
+         $chunkNewRucs = [];
+         $chunkPersonEmails = [];
+ 
+         $isHeader = $this->isFirstChunk;
+         $this->isFirstChunk = false;
+ 
+@@ -60,20 +72,21 @@ public function collection(Collection $rows)
+                 continue;
+             }
+ 
+             // Access columns by numeric indexes
+             $names = trim((string)($row[0] ?? ''));
+             $docType = strtoupper(trim((string)($row[1] ?? 'DNI')));
+             $docNumber = trim((string)($row[2] ?? ''));
+             $phone = trim((string)($row[3] ?? ''));
+             $email = strtolower(trim((string)($row[4] ?? '')));
+             $roleStr = strtoupper(trim((string)($row[5] ?? 'ESTUDIANTE')));
++            $programRaw = trim((string) ($row[6] ?? ''));
+ 
+             if (empty($names) && empty($email)) {
+                 continue;
+             }
+ 
+             $lineNum = $index + 1;
+ 
+             if (empty($names) || empty($email)) {
+                 $this->errors[] = "Fila $lineNum: Nombres y Email son campos obligatorios.";
+                 continue;
+@@ -111,20 +124,33 @@ public function collection(Collection $rows)
+             if ($roleId == 4 && ($docType !== 'RUC' || !preg_match('/^\d{11}$/', $docNumber))) {
+                 $this->errors[] = "Fila $lineNum: Las empresas deben tener un RUC v├ílido de 11 d├¡gitos.";
+                 continue;
+             }
+ 
+             if (empty($docNumber)) {
+                 $this->errors[] = "Fila $lineNum: El n├║mero de documento es obligatorio.";
+                 continue;
+             }
+ 
++            $studyProgramId = null;
++            if (in_array($roleId, [3, 5], true)) {
++                if ($programRaw === '') {
++                    $this->errors[] = "Fila $lineNum: El programa de estudio es obligatorio para estudiantes y egresados.";
++                    continue;
++                }
++
++                $studyProgramId = $this->studyProgramsByNormalizedName[mb_strtolower($programRaw)] ?? null;
++                if ($studyProgramId === null) {
++                    $this->warnings[] = "Fila $lineNum: el programa \"{$programRaw}\" no existe en Mantenedores; el usuario se import├│ sin programa.";
++                }
++            }
++
+             // Mark as taken in-memory
+             $this->existingEmails[$email] = true;
+ 
+             $phoneFormatted = substr($phone, 0, 9);
+             
+             $passKey = $docNumber;
+             if (!isset($this->hashedPasswordCache[$passKey])) {
+                 $this->hashedPasswordCache[$passKey] = Hash::make($passKey);
+             }
+             $hashedPassword = $this->hashedPasswordCache[$passKey];
+@@ -146,20 +172,21 @@ public function collection(Collection $rows)
+                     $chunkNewRucs[$ruc] = true;
+                 }
+             } else {
+                 $dni = $docNumber;
+                 $peopleToInsert[] = [
+                     'document_type' => $docType,
+                     'document_number' => $dni,
+                     'names' => $names,
+                     'phone' => $phoneFormatted,
+                     'email' => $email,
++                    'study_program_id' => $studyProgramId,
+                     'created_at' => now(),
+                     'updated_at' => now(),
+                 ];
+                 $chunkPersonEmails[] = $email;
+             }
+ 
+             $usersToPrepare[] = [
+                 'email' => $email,
+                 'password' => $hashedPassword,
+                 'rol_id' => $roleId,
+
+=== NEW FILE: tests/Feature/UsersImportTest.php ===
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\StudyProgram;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Tests\TestCase;
+
+class UsersImportTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (!Schema::hasTable('user') || !Schema::hasTable('study_programs')) {
+            $this->markTestSkipped('Las tablas "user" o "study_programs" no existen en este entorno.');
+        }
+    }
+
+    private function makeXlsx(array $rows): string
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        foreach ($rows as $r => $row) {
+            foreach ($row as $c => $value) {
+                $sheet->setCellValueByColumnAndRow($c + 1, $r + 1, $value);
+            }
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'users_import_') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+        $spreadsheet->disconnectWorksheets();
+
+        return $path;
+    }
+
+    private function header(): array
+    {
+        return ['NOMBRES', 'TIPO DE DOCUMENTO', 'DOCUMENTO', 'TELÃ‰FONO', 'EMAIL', 'ROL', 'PROGRAMA DE ESTUDIO'];
+    }
+
+    private function admin(): User
+    {
+        $admin = User::where('rol_id', 1)->first();
+
+        return $admin ?: User::factory()->create(['rol_id' => 1]);
+    }
+
+    private function import(array $rows)
+    {
+        $path = $this->makeXlsx($rows);
+
+        return $this->actingAs($this->admin())->post('/admin/users/import', [
+            'file' => new UploadedFile(
+                $path,
+                'usuarios.xlsx',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                null,
+                true
+            ),
+        ]);
+    }
+
+    public function test_import_assigns_study_program_to_student_case_insensitive()
+    {
+        $program = StudyProgram::firstOrCreate(
+            ['name' => 'IngenierÃ­a de Sistemas'],
+            ['is_active' => true]
+        );
+        $email = 'import.student.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Estudiante Import Test', 'DNI', '76543210', '987654321', $email, 'ESTUDIANTE', '  INGENIERÃA de SISTEMAS '],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user, 'El usuario debiÃ³ importarse.');
+        $this->assertSame($program->id, $user->person->study_program_id);
+    }
+
+    public function test_import_rejects_student_without_program()
+    {
+        $email = 'import.noprog.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Estudiante Sin Programa', 'DNI', '76543211', '987654321', $email, 'ESTUDIANTE', ''],
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertStringContainsString('obligatorio para estudiantes y egresados', $response->json('message'));
+        $this->assertNull(User::where('email', $email)->first(), 'La fila no debiÃ³ importarse.');
+    }
+
+    public function test_import_warns_and_creates_user_when_program_does_not_exist()
+    {
+        $email = 'import.unknownprog.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Egresado Programa Raro', 'DNI', '76543212', '987654322', $email, 'EGRESADO', 'Carrera Inexistente XYZ'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertNotEmpty($response->json('warnings'), 'DebiÃ³ generar advertencia.');
+        $this->assertStringContainsString(
+            'Carrera Inexistente XYZ',
+            implode(' ', $response->json('warnings'))
+        );
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user, 'El usuario debiÃ³ importarse a pesar de la advertencia.');
+        $this->assertNull($user->person->study_program_id);
+    }
+
+    public function test_import_company_ignores_program_column()
+    {
+        $email = 'import.company.' . uniqid() . '@ejemplo.com';
+
+        $response = $this->import([
+            $this->header(),
+            ['Empresa Import SAC', 'RUC', '20551234567', '955111222', $email, 'EMPRESA', 'AdministraciÃ³n'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertEmpty($response->json('warnings'), 'A empresas no debe advertÃ­rsele por programa.');
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+        $this->assertNotNull($user->company_id);
+    }
+}

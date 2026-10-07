@@ -1,0 +1,567 @@
+﻿=== FIX DIFF (on top of already-reviewed working tree) ===
+
+=== app/Imports/UsersImport.php ===
+diff --git a/app/Imports/UsersImport.php b/app/Imports/UsersImport.php
+index 782b681..5a5d600 100644
+--- a/app/Imports/UsersImport.php
++++ b/app/Imports/UsersImport.php
+@@ -1,84 +1,97 @@
+ <?php
+ 
+ namespace App\Imports;
+ 
+ use App\Models\User;
+ use App\Models\Company;
+ use App\Models\Person;
++use App\Models\StudyProgram;
+ use Illuminate\Support\Collection;
+ use Illuminate\Support\Facades\Hash;
+ use Illuminate\Support\Facades\DB;
+ use Maatwebsite\Excel\Concerns\ToCollection;
+ use Maatwebsite\Excel\Concerns\WithChunkReading;
+ 
+ class UsersImport implements ToCollection, WithChunkReading
+ {
+     public $errors = [];
+     public $importedUserIds = [];
+     protected $existingEmails;
+     protected $existingRucs;
+     protected $isFirstChunk = true;
+     protected $hashedPasswordCache = [];
++    public $warnings = [];
++    protected $studyProgramsByNormalizedName;
+ 
+     public function collection(Collection $rows)
+     {
+         // Set dynamic limits for large operations
+         set_time_limit(600);
+         ini_set('memory_limit', '512M');
+ 
+         $rolesMap = [
+             'ADMINISTRADOR' => 1,
+             'DOCENTE' => 2,
+             'ESTUDIANTE' => 3,
+             'EMPRESA' => 4,
+             'EGRESADO' => 5,
+         ];
+ 
+         // Eager load existing emails once across all chunks
+         if ($this->existingEmails === null) {
+             $this->existingEmails = User::pluck('email')->flip()->toArray();
+         }
+ 
+         // Eager load existing RUCs once across all chunks (ruc => id)
+         if ($this->existingRucs === null) {
+             $this->existingRucs = Company::pluck('id', 'ruc')->toArray();
+         }
+ 
++        // Eager load study programs (normalized name => id) once across all chunks
++        if ($this->studyProgramsByNormalizedName === null) {
++            $this->studyProgramsByNormalizedName = StudyProgram::pluck('id', 'name')
++                ->mapWithKeys(function ($id, $name) {
++                    return [mb_strtolower(trim((string) $name)) => $id];
++                })
++                ->toArray();
++        }
++
+         $companiesToInsert = [];
+         $peopleToInsert = [];
+         $usersToPrepare = [];
+         
+         $chunkNewRucs = [];
+         $chunkPersonEmails = [];
+ 
+         $isHeader = $this->isFirstChunk;
+         $this->isFirstChunk = false;
+ 
+         foreach ($rows as $index => $row) {
+             if ($isHeader) {
+                 $isHeader = false;
+                 continue;
+             }
+ 
+             // Access columns by numeric indexes
+             $names = trim((string)($row[0] ?? ''));
+             $docType = strtoupper(trim((string)($row[1] ?? 'DNI')));
+             $docNumber = trim((string)($row[2] ?? ''));
+             $phone = trim((string)($row[3] ?? ''));
+             $email = strtolower(trim((string)($row[4] ?? '')));
+             $roleStr = strtoupper(trim((string)($row[5] ?? 'ESTUDIANTE')));
++            $programRaw = trim((string) ($row[6] ?? ''));
+ 
+             if (empty($names) && empty($email)) {
+                 continue;
+             }
+ 
+             $lineNum = $index + 1;
+ 
+             if (empty($names) || empty($email)) {
+                 $this->errors[] = "Fila $lineNum: Nombres y Email son campos obligatorios.";
+                 continue;
+             }
+ 
+             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                 $this->errors[] = "Fila $lineNum: El formato del correo $email no es v├ílido.";
+                 continue;
+@@ -106,30 +119,43 @@ public function collection(Collection $rows)
+             if (in_array($roleId, [2, 3, 5], true) && ($docType !== 'DNI' || !preg_match('/^\d{8}$/', $docNumber))) {
+                 $this->errors[] = "Fila $lineNum: Docentes, estudiantes y egresados deben tener un DNI v├ílido de 8 d├¡gitos.";
+                 continue;
+             }
+ 
+             if ($roleId == 4 && ($docType !== 'RUC' || !preg_match('/^\d{11}$/', $docNumber))) {
+                 $this->errors[] = "Fila $lineNum: Las empresas deben tener un RUC v├ílido de 11 d├¡gitos.";
+                 continue;
+             }
+ 
+             if (empty($docNumber)) {
+                 $this->errors[] = "Fila $lineNum: El n├║mero de documento es obligatorio.";
+                 continue;
+             }
+ 
++            $studyProgramId = null;
++            if (in_array($roleId, [3, 5], true)) {
++                if ($programRaw === '') {
++                    $this->errors[] = "Fila $lineNum: El programa de estudio es obligatorio para estudiantes y egresados.";
++                    continue;
++                }
++
++                $studyProgramId = $this->studyProgramsByNormalizedName[mb_strtolower($programRaw)] ?? null;
++                if ($studyProgramId === null) {
++                    $this->warnings[] = "Fila $lineNum: el programa \"{$programRaw}\" no existe en Mantenedores; el usuario se import├│ sin programa.";
++                }
++            }
++
+             // Mark as taken in-memory
+             $this->existingEmails[$email] = true;
+ 
+             $phoneFormatted = substr($phone, 0, 9);
+             
+             $passKey = $docNumber;
+             if (!isset($this->hashedPasswordCache[$passKey])) {
+                 $this->hashedPasswordCache[$passKey] = Hash::make($passKey);
+             }
+             $hashedPassword = $this->hashedPasswordCache[$passKey];
+ 
+             if ($roleId == 4) {
+                 $ruc = $docNumber;
+                 // Only insert company if it doesn't already exist and is not queued in this chunk
+                 if (!isset($this->existingRucs[$ruc]) && !isset($chunkNewRucs[$ruc])) {
+@@ -141,30 +167,31 @@ public function collection(Collection $rows)
+                         'mailbox' => $email,
+                         'is_verified' => true,
+                         'created_at' => now(),
+                         'updated_at' => now(),
+                     ];
+                     $chunkNewRucs[$ruc] = true;
+                 }
+             } else {
+                 $dni = $docNumber;
+                 $peopleToInsert[] = [
+                     'document_type' => $docType,
+                     'document_number' => $dni,
+                     'names' => $names,
+                     'phone' => $phoneFormatted,
+                     'email' => $email,
++                    'study_program_id' => $studyProgramId,
+                     'created_at' => now(),
+                     'updated_at' => now(),
+                 ];
+                 $chunkPersonEmails[] = $email;
+             }
+ 
+             $usersToPrepare[] = [
+                 'email' => $email,
+                 'password' => $hashedPassword,
+                 'rol_id' => $roleId,
+                 'is_active' => true,
+                 'attempts' => 0,
+                 'role_id_flag' => $roleId,
+                 'doc_number' => $docNumber,
+                 'names' => $names,
+@@ -216,37 +243,41 @@ public function collection(Collection $rows)
+             }
+ 
+             // 2. Process people (roles 1, 2, 3)
+             $personIdMapByEmail = [];
+             if (!empty($chunkPersonEmails)) {
+                 $existingPersonMap = DB::table('person')
+                     ->whereIn('email', $chunkPersonEmails)
+                     ->pluck('id', 'email')
+                     ->toArray();
+ 
+                 $toInsert = [];
+                 foreach ($peopleToInsert as $p) {
+                     $pEmail = $p['email'];
+                     if (isset($existingPersonMap[$pEmail])) {
+                         $pId = $existingPersonMap[$pEmail];
+-                        DB::table('person')->where('id', $pId)->update([
++                        $personUpdate = [
+                             'document_type' => $p['document_type'],
+                             'document_number' => $p['document_number'],
+                             'names' => $p['names'],
+                             'phone' => $p['phone'],
+                             'updated_at' => now(),
+-                        ]);
++                        ];
++                        if ($p['study_program_id'] !== null) {
++                            $personUpdate['study_program_id'] = $p['study_program_id'];
++                        }
++                        DB::table('person')->where('id', $pId)->update($personUpdate);
+                         $personIdMapByEmail[$pEmail] = $pId;
+                     } else {
+                         $toInsert[] = $p;
+                     }
+                 }
+ 
+                 if (!empty($toInsert)) {
+                     DB::table('person')->insert($toInsert);
+ 
+                     $insertedEmails = array_column($toInsert, 'email');
+                     $newPersonMap = DB::table('person')
+                         ->whereIn('email', $insertedEmails)
+                         ->pluck('id', 'email')
+                         ->toArray();
+ 
+
+=== app/Http/Controllers/AdminController.php ===
+diff --git a/app/Http/Controllers/AdminController.php b/app/Http/Controllers/AdminController.php
+index 02f805b..26648b7 100644
+--- a/app/Http/Controllers/AdminController.php
++++ b/app/Http/Controllers/AdminController.php
+@@ -1,16 +1,13 @@
+ <?php
+ 
+ namespace App\Http\Controllers;
+ 
+ use App\Models\User;
+-use App\Models\Person;
+ use App\Models\Company;
+-use App\Models\StudyProgram;
+ use App\Models\JobOpportunityOffer;
+ use App\Models\JobOpportunityApplication;
+-use Illuminate\Http\Request;
+ use Illuminate\Support\Facades\DB;
+ 
+ class AdminController extends Controller
+ {
+     /**
+@@ -203,13 +200,10 @@ public function dashboard()
+             $userGrowth = $lastMonthUsers > 0 ? round((($totalUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
+ 
+             $lastMonthApplications = JobOpportunityApplication::where('created_at', '<', now()->subMonth())->count();
+             $appGrowth = $lastMonthApplications > 0 ? round((($totalApplications - $lastMonthApplications) / $lastMonthApplications) * 100, 1) : 0;
+ 
+-            // Cargar programas de estudio para el select de asignaci├│n
+-            $studyPrograms = StudyProgram::orderBy('name')->get();
+-
+             return view('admin.dashboard', compact(
+                 'totalUsers',
+                 'pendingCompanies',
+                 'activeOffers',
+                 'totalApplications',
+@@ -220,11 +214,10 @@ public function dashboard()
+                 'userGrowth',
+                 'appGrowth',
+                 'currentSearch',
+                 'currentRolId',
+                 'currentStatus',
+-                'studyPrograms',
+                 'monthlyStats',
+                 'roleDistribution',
+                 'topCompanies'
+             ));
+ 
+@@ -236,11 +229,10 @@ public function dashboard()
+             $totalApplications = 0;
+             $recentCompanies = collect();
+             $recentActivity = collect();
+             $config = [];
+             $users = collect();
+-            $studyPrograms = collect();
+             $userGrowth = 0;
+             $appGrowth = 0;
+             $currentSearch = '';
+             $currentRolId = '';
+             $currentStatus = '';
+@@ -260,11 +252,10 @@ public function dashboard()
+                 'userGrowth',
+                 'appGrowth',
+                 'currentSearch',
+                 'currentRolId',
+                 'currentStatus',
+-                'studyPrograms',
+                 'monthlyStats',
+                 'roleDistribution',
+                 'topCompanies'
+             ));
+         }
+@@ -344,70 +335,6 @@ public function filterUsers()
+                 'rol_id' => $rolId,
+                 'status' => $status,
+             ],
+         ]);
+     }
+-
+-    /**
+-     * Search users that have an associated person (students/teachers) for study program assignment.
+-     */
+-    public function searchPersonUsers(Request $request)
+-    {
+-        $query = $request->input('q', '');
+-
+-        $users = User::with(['person.studyProgram'])
+-            ->whereNotNull('person_id')
+-            ->whereIn('rol_id', [3, 5])
+-            ->when($query, function ($q) use ($query) {
+-                $q->where(function ($sub) use ($query) {
+-                    $sub->where('email', 'like', "%{$query}%")
+-                        ->orWhereHas('person', fn($p) => $p->where('names', 'like', "%{$query}%"));
+-                });
+-            })
+-            ->orderBy('created_at', 'desc')
+-            ->limit(50)
+-            ->get()
+-            ->map(function ($user) {
+-                return [
+-                    'user_id'          => $user->id,
+-                    'person_id'        => $user->person_id,
+-                    'name'             => $user->person->names ?? '-',
+-                    'email'            => $user->email,
+-                    'rol_id'           => $user->rol_id,
+-                    'study_program_id' => $user->person->study_program_id,
+-                    'study_program'    => $user->person->studyProgram->name ?? null,
+-                ];
+-            });
+-
+-        return response()->json(['success' => true, 'users' => $users]);
+-    }
+-
+-    /**
+-     * Assign a study program to a person.
+-     */
+-    public function assignStudyProgram(Request $request)
+-    {
+-        $request->validate([
+-            'person_id'        => 'required|integer|exists:person,id',
+-            'study_program_id' => 'nullable|integer|exists:study_programs,id',
+-        ]);
+-
+-        try {
+-            Person::where('id', $request->person_id)
+-                ->update(['study_program_id' => $request->study_program_id ?: null]);
+-
+-            $program = $request->study_program_id
+-                ? StudyProgram::find($request->study_program_id)->name
+-                : 'Sin asignar';
+-
+-            return response()->json([
+-                'success' => true,
+-                'message' => "Programa de estudio actualizado a: {$program}",
+-            ]);
+-        } catch (\Exception $e) {
+-            return response()->json([
+-                'success' => false,
+-                'message' => 'Error al asignar programa: ' . $e->getMessage(),
+-            ], 500);
+-        }
+-    }
+ }
+
+=== tests/Feature/UsersImportTest.php (new file, full) ===
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Person;
+use App\Models\StudyProgram;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Tests\TestCase;
+
+class UsersImportTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (!Schema::hasTable('user') || !Schema::hasTable('study_programs')) {
+            $this->markTestSkipped('Las tablas "user" o "study_programs" no existen en este entorno.');
+        }
+    }
+
+    private function makeXlsx(array $rows): string
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        foreach ($rows as $r => $row) {
+            foreach ($row as $c => $value) {
+                $sheet->setCellValueByColumnAndRow($c + 1, $r + 1, $value);
+            }
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'users_import_') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+        $spreadsheet->disconnectWorksheets();
+
+        return $path;
+    }
+
+    private function header(): array
+    {
+        return ['NOMBRES', 'TIPO DE DOCUMENTO', 'DOCUMENTO', 'TELÉFONO', 'EMAIL', 'ROL', 'PROGRAMA DE ESTUDIO'];
+    }
+
+    private function admin(): User
+    {
+        $admin = User::where('rol_id', 1)->first();
+
+        return $admin ?: User::factory()->create(['rol_id' => 1]);
+    }
+
+    private function import(array $rows)
+    {
+        $path = $this->makeXlsx($rows);
+
+        return $this->actingAs($this->admin())->post('/admin/users/import', [
+            'file' => new UploadedFile(
+                $path,
+                'usuarios.xlsx',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                null,
+                true
+            ),
+        ]);
+    }
+
+    public function test_import_assigns_study_program_to_student_case_insensitive()
+    {
+        $program = StudyProgram::firstOrCreate(
+            ['name' => 'Ingeniería de Sistemas'],
+            ['is_active' => true]
+        );
+        $email = 'import.student.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Estudiante Import Test', 'DNI', '76543210', '987654321', $email, 'ESTUDIANTE', '  INGENIERÍA de SISTEMAS '],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user, 'El usuario debió importarse.');
+        $this->assertSame($program->id, $user->person->study_program_id);
+    }
+
+    public function test_import_rejects_student_without_program()
+    {
+        $email = 'import.noprog.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Estudiante Sin Programa', 'DNI', '76543211', '987654321', $email, 'ESTUDIANTE', ''],
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertStringContainsString('obligatorio para estudiantes y egresados', $response->json('message'));
+        $this->assertNull(User::where('email', $email)->first(), 'La fila no debió importarse.');
+    }
+
+    public function test_import_warns_and_creates_user_when_program_does_not_exist()
+    {
+        $email = 'import.unknownprog.' . uniqid() . '@talentum.edu.pe';
+
+        $response = $this->import([
+            $this->header(),
+            ['Egresado Programa Raro', 'DNI', '76543212', '987654322', $email, 'EGRESADO', 'Carrera Inexistente XYZ'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertNotEmpty($response->json('warnings'), 'Debió generar advertencia.');
+        $this->assertStringContainsString(
+            'Carrera Inexistente XYZ',
+            implode(' ', $response->json('warnings'))
+        );
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user, 'El usuario debió importarse a pesar de la advertencia.');
+        $this->assertNull($user->person->study_program_id);
+    }
+
+    public function test_import_company_ignores_program_column()
+    {
+        $email = 'import.company.' . uniqid() . '@ejemplo.com';
+
+        $response = $this->import([
+            $this->header(),
+            ['Empresa Import SAC', 'RUC', '20551234567', '955111222', $email, 'EMPRESA', 'Administración'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertEmpty($response->json('warnings'), 'A empresas no debe advertírsele por programa.');
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+        $this->assertNotNull($user->company_id);
+    }
+
+    public function test_import_updates_existing_person_study_program()
+    {
+        $program = StudyProgram::firstOrCreate(
+            ['name' => 'Ingeniería de Sistemas'],
+            ['is_active' => true]
+        );
+        $email = 'import.updateprog.' . uniqid() . '@talentum.edu.pe';
+
+        $person = Person::create([
+            'document_type' => 'DNI',
+            'document_number' => '76543990',
+            'names' => 'Persona Existente Programa',
+            'phone' => '987000111',
+            'email' => $email,
+            'study_program_id' => null,
+        ]);
+
+        $response = $this->import([
+            $this->header(),
+            ['Persona Existente Programa', 'DNI', '76543990', '987000111', $email, 'ESTUDIANTE', 'Ingeniería de Sistemas'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $this->assertSame($program->id, $person->fresh()->study_program_id);
+    }
+
+    public function test_import_preserves_existing_person_study_program_when_program_unknown()
+    {
+        $existingProgram = StudyProgram::firstOrCreate(
+            ['name' => 'Programa Preexistente Uno'],
+            ['is_active' => true]
+        );
+        $email = 'import.keepprog.' . uniqid() . '@talentum.edu.pe';
+
+        $person = Person::create([
+            'document_type' => 'DNI',
+            'document_number' => '76543991',
+            'names' => 'Persona Con Programa',
+            'phone' => '987000222',
+            'email' => $email,
+            'study_program_id' => $existingProgram->id,
+        ]);
+
+        $response = $this->import([
+            $this->header(),
+            ['Persona Con Programa', 'DNI', '76543991', '987000222', $email, 'ESTUDIANTE', 'Carrera Inexistente XYZ'],
+        ]);
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertNotEmpty($response->json('warnings'), 'Debió generar advertencia por programa inexistente.');
+
+        $this->assertSame($existingProgram->id, $person->fresh()->study_program_id);
+    }
+}

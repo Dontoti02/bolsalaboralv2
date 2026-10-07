@@ -572,6 +572,7 @@ class UserController extends Controller
             Excel::import($import, $file);
 
             $errors = $import->errors;
+            $warnings = $import->warnings;
             $importedUserIds = $import->importedUserIds;
 
             if (count($errors) > 0 && count($importedUserIds) == 0) {
@@ -588,11 +589,19 @@ class UserController extends Controller
                     ->get();
             }
 
+            $message = 'Importación completada. ' . count($importedUsers) . ' usuarios registrados.';
+            if (!empty($warnings)) {
+                $shown = array_slice($warnings, 0, 5);
+                $extra = count($warnings) > 5 ? ' y ' . (count($warnings) - 5) . ' más' : '';
+                $message .= ' ' . count($warnings) . ' advertencia(s): ' . implode(' | ', $shown) . $extra;
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Importación completada. ' . count($importedUsers) . ' usuarios registrados.',
+                'message' => $message,
                 'users' => $importedUsers,
-                'errors' => $errors
+                'errors' => $errors,
+                'warnings' => $warnings
             ]);
         } catch (\Exception $e) {
             return response()->json([
