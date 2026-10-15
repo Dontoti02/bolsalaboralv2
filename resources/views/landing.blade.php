@@ -4,2346 +4,1819 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $config['application_name'] ?? 'Bolsa Laboral' }} — Encuentra tu Oportunidad</title>
-    <meta name="description" content="Explora cientos de ofertas laborales verificadas. Postula en un clic.">
+    <title>{{ $config['application_name'] ?? 'Bolsa Laboral' }} — Oportunidades Laborales</title>
+    <meta name="description" content="Prácticas y empleos para estudiantes y egresados. Conecta con empresas y da el siguiente paso en tu carrera.">
     <link rel="icon" href="{{ $config['favicon'] ?? '/assets/favicon.png' }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL@20..48,100..700,0..1&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --pri:   {{ $config['primary_color']            ?? '#002741' }};
-            --sec:   {{ $config['secondary_color']          ?? '#006b60' }};
-            --secc:  {{ $config['secondary_container_color']?? '#7df7e4' }};
-            --acc:   {{ $config['accent_color']             ?? '#f97316' }};
-            --bg:    #f3f4f6;
-            --sur:   #ffffff;
-            --bor:   #e5e7eb;
-            --txt:   #111827;
-            --tv:    #4b5563;
-            --tm:    #9ca3af;
-            --rad:   12px;
+            --pri: {{ $config['primary_color'] ?? '#4f46e5' }};
+            --pri-hover: color-mix(in srgb, var(--pri) 85%, #000000);
+            --pri-tint: color-mix(in srgb, var(--pri) 6%, #ffffff);
+            --pri-tint-border: color-mix(in srgb, var(--pri) 16%, transparent);
+            --pri-pill-bg: color-mix(in srgb, var(--pri) 12%, #ffffff);
+            --sec: {{ $config['secondary_color'] ?? '#006b60' }};
+            --secc: {{ $config['secondary_container_color'] ?? '#7df7e4' }};
+            --acc: {{ $config['accent_color'] ?? '#f97316' }};
+            --bg: #fafbfc;
+            --sur: #ffffff;
+            --bor: #e5e7eb;
+            --txt: #111827;
+            --tv: #4b5563;
+            --tm: #9ca3af;
+            --rad: 16px;
         }
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
-        a{text-decoration:none;color:inherit}
-        button{font-family:inherit;cursor:pointer}
-        img{display:block;max-width:100%}
-        .material-symbols-outlined{font-variation-settings:'FILL'0,'wght'400,'GRAD'0,'opsz'24;vertical-align:middle;line-height:1}
-        .filled{font-variation-settings:'FILL'1,'wght'400,'GRAD'0,'opsz'24}
-        .hidden{display:none!important}
 
-        /* ── TOPBAR ── */
-        .topbar{background:var(--pri);color:#fff;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.1)}
-        .topbar-inner{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:flex-end;gap:16px}
-        .topbar-link{color:rgba(255,255,255,.8);font-size:12px;display:flex;align-items:center;gap:4px;transition:color .15s}
-        .topbar-link:hover{color:#fff}
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        a { text-decoration: none; color: inherit; }
+        button { font-family: inherit; cursor: pointer; }
+        img { display: block; max-width: 100%; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hidden { display: none !important; }
+
+        /* Container */
+        .page-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
         /* ── NAVBAR ── */
-        .navbar{background:var(--sur);border-bottom:1px solid var(--bor);position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-        .navbar-inner{max-width:1400px;margin:0 auto;padding:0 20px;height:66px;display:flex;align-items:center;gap:16px}
-        .brand{display:flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--pri);flex-shrink:0;margin-right:8px}
-        .brand img{height:34px;width:auto}
-
-        /* Hero search bar (inline in navbar) */
-        .nav-search{flex:1;max-width:680px;display:flex;border:2px solid var(--bor);border-radius:50px;overflow:hidden;background:#fff;transition:border-color .2s}
-        .nav-search:focus-within{border-color:var(--pri)}
-        .nav-search-field{flex:1;display:flex;align-items:center;border-right:1px solid var(--bor)}
-        .nav-search-field:last-of-type{border-right:none}
-        .nav-search-ico{padding:0 10px 0 16px;color:var(--tm);font-size:20px;flex-shrink:0}
-        .nav-search-input{flex:1;border:none;outline:none;font-size:14px;font-family:'Inter',sans-serif;color:var(--txt);background:transparent;padding:12px 10px 12px 0;width:100%;min-width:0}
-        .nav-search-input::placeholder{color:var(--tm)}
-        .nav-search-btn{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:52px;height:52px;background:var(--pri);border:none;color:#fff;transition:background .15s;margin:-1px -1px -1px 0}
-        .nav-search-btn:hover{background:#0a3452}
-        .nav-search-btn .material-symbols-outlined{font-size:22px}
-
-        .navbar-spacer{flex:1}
-        .navbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-        .btn-login{padding:9px 22px;border:1.5px solid var(--pri);color:var(--pri);background:transparent;border-radius:50px;font-size:14px;font-weight:600;transition:all .2s}
-        .btn-login:hover{background:var(--pri);color:#fff}
-        .btn-empresa{padding:10px 24px;background:var(--pri);color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px}
-        .btn-empresa:hover{opacity:.88}
-
-        /* ── FILTERS BAR ── */
-        .filters-bar{background:var(--sur);border-bottom:1px solid var(--bor);padding:10px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-        .filters-bar-inner{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:8px;white-space:nowrap}
-        .filter-pill{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:var(--sur);border:1.5px solid var(--bor);border-radius:50px;font-size:13px;font-weight:500;color:var(--tv);cursor:pointer;transition:all .15s;white-space:nowrap}
-        .filter-pill:hover,.filter-pill.active{border-color:var(--pri);color:var(--pri);background:rgba(0,39,65,.04)}
-        .filter-pill .material-symbols-outlined{font-size:16px}
-        .filter-pill select{border:none;outline:none;background:transparent;font-size:13px;font-weight:500;color:inherit;cursor:pointer;padding:0;-webkit-appearance:none;appearance:none}
-
-        /* ── MAIN LAYOUT ── */
-        .main{max-width:1400px;margin:0 auto;padding:20px;display:flex;gap:20px;align-items:flex-start}
-        .col-list{width:400px;flex-shrink:0}
-        .col-detail{flex:1;min-width:0;position:sticky;top:86px;max-height:calc(100vh - 100px)}
-
-        /* ── RESULTS HEADER ── */
-        .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-        .results-count{font-size:14px;color:var(--tv)}
-        .results-count strong{color:var(--txt);font-weight:700}
-
-        /* ── JOB LIST ── */
-        .job-list{display:flex;flex-direction:column;gap:0;background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);overflow:hidden}
-        .job-item{padding:16px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s;position:relative}
-        .job-item:last-child{border-bottom:none}
-        .job-item:hover{background:#f9fafb}
-        .job-item.active{background:rgba(0,39,65,.04);border-left:3px solid var(--pri)}
-        .job-item-urgent{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em}
-        .job-item-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
-        .job-item-logo{width:38px;height:38px;border-radius:8px;overflow:hidden;border:1px solid var(--bor);background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:var(--pri)}
-        .job-item-logo img{width:100%;height:100%;object-fit:contain;padding:2px}
-        .job-item-meta{flex:1;min-width:0}
-        .job-item-title{font-size:14px;font-weight:600;color:var(--txt);line-height:1.35;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-        .job-item:hover .job-item-title,.job-item.active .job-item-title{color:var(--pri)}
-        .job-item-company{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--tv)}
-        .job-item-company .material-symbols-outlined{font-size:14px;color:var(--sec)}
-        .job-item-location{font-size:12px;color:var(--tm);margin-top:2px}
-        .job-item-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap}
-        .job-item-time{font-size:11px;color:var(--tm)}
-        .job-item-tags{display:flex;gap:4px;flex-wrap:wrap}
-        .tag-xs{padding:2px 8px;border-radius:50px;font-size:10px;font-weight:500}
-        .tag-pri{background:rgba(0,39,65,.07);color:var(--pri)}
-        .tag-sec{background:rgba(0,107,96,.07);color:var(--sec)}
-        .tag-acc{background:rgba(249,115,22,.1);color:#c2410c;font-weight:700}
-        .btn-vista{padding:4px 12px;border:1px solid var(--bor);border-radius:50px;font-size:12px;color:var(--tv);background:transparent;transition:all .15s}
-        .btn-vista:hover{border-color:var(--pri);color:var(--pri)}
-
-        /* Skeletons */
-        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-        .skel{background:linear-gradient(90deg,#f0f2f4 25%,#e4e7ea 50%,#f0f2f4 75%);background-size:1200px 100%;animation:shimmer 1.3s ease-in-out infinite;border-radius:6px}
-
-        /* ── LOAD MORE ── */
-        .load-more-wrap{text-align:center;margin-top:16px}
-        .btn-load-more{padding:11px 32px;background:transparent;border:1.5px solid var(--pri);color:var(--pri);border-radius:50px;font-size:14px;font-weight:600;transition:all .2s}
-        .btn-load-more:hover{background:var(--pri);color:#fff}
-        .no-more{font-size:13px;color:var(--tm);padding:8px}
-
-        /* ── DETAIL PANEL ── */
-        .detail-panel{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);overflow-y:auto;max-height:calc(100vh - 100px);display:flex;flex-direction:column}
-        .detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:80px 40px;text-align:center;color:var(--tm)}
-        .detail-empty .material-symbols-outlined{font-size:60px;color:var(--bor);margin-bottom:16px}
-        .detail-empty p{font-size:15px}
-
-        /* Detail header */
-        .d-header{padding:24px 24px 20px;border-bottom:1px solid var(--bor);position:sticky;top:0;background:var(--sur);z-index:5}
-        .d-company-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-        .d-logo{width:64px;height:64px;border-radius:14px;overflow:hidden;border:1px solid var(--bor);background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:700;color:var(--pri)}
-        .d-logo img{width:100%;height:100%;object-fit:contain;padding:5px}
-        .d-company-info{flex:1;min-width:0}
-        .d-title{font-size:20px;font-weight:700;color:var(--txt);line-height:1.3;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif}
-        .d-company-name{font-size:14px;color:var(--pri);font-weight:600}
-        .d-location{font-size:13px;color:var(--tv);margin-top:2px;display:flex;align-items:center;gap:4px}
-        .d-location .material-symbols-outlined{font-size:15px}
-        .d-verified{display:inline-flex;align-items:center;gap:4px;color:var(--sec);font-size:12px;font-weight:600;margin-top:4px}
-        .d-verified .material-symbols-outlined{font-size:15px}
-        .d-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-        .btn-postular{display:inline-flex;align-items:center;gap:8px;padding:13px 32px;background:var(--pri);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;transition:all .2s;cursor:pointer}
-        .btn-postular:hover{background:#0a3452;transform:translateY(-1px)}
-        .btn-icon{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--bor);background:transparent;display:flex;align-items:center;justify-content:center;color:var(--tv);transition:all .15s}
-        .btn-icon:hover{border-color:var(--pri);color:var(--pri)}
-
-        /* Detail body */
-        .d-body{padding:24px;display:flex;flex-direction:column;gap:20px}
-        .d-chips{display:flex;flex-wrap:wrap;gap:8px}
-        .d-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:50px;font-size:13px;font-weight:500;border:1px solid var(--bor);color:var(--tv)}
-        .d-chip .material-symbols-outlined{font-size:15px;color:var(--sec)}
-        .d-section-title{font-size:13px;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-        .d-text{font-size:14px;line-height:1.75;color:var(--tv);white-space:pre-line}
-        .d-salary-box{display:flex;align-items:center;gap:14px;padding:16px;background:rgba(0,107,96,.06);border:1px solid rgba(0,107,96,.15);border-radius:10px}
-        .d-salary-box .material-symbols-outlined{font-size:26px;color:var(--sec)}
-        .d-salary-lbl{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
-        .d-salary-val{font-size:20px;font-weight:700;color:var(--sec)}
-        .d-deadline{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--tv);background:var(--bg);border-radius:50px;padding:6px 14px;border:1px solid var(--bor)}
-        .d-deadline .material-symbols-outlined{font-size:15px;color:var(--acc)}
-
-        /* ── PLACE DROPDOWN ── */
-        .place-wrap{position:relative;flex:0 0 180px;display:flex;align-items:center}
-        .place-dropdown{position:absolute;top:calc(100% + 8px);left:-12px;right:-12px;background:#fff;border:1px solid var(--bor);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:500;overflow:hidden;max-height:280px;overflow-y:auto;display:none}
-        .place-dropdown.open{display:block}
-        .place-option{padding:10px 16px;font-size:14px;color:var(--tv);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .12s}
-        .place-option:hover,.place-option.focused{background:rgba(0,39,65,.05);color:var(--pri)}
-        .place-option .material-symbols-outlined{font-size:16px;color:var(--tm)}
-        .place-empty{padding:12px 16px;font-size:13px;color:var(--tm);text-align:center}
-
-        /* ── Q SEARCH DROPDOWN ── */
-        .q-wrap{position:relative;flex:1;display:flex;align-items:center}
-        .q-dropdown{position:absolute;top:calc(100% + 8px);left:-12px;right:-12px;background:#fff;border:1px solid var(--bor);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:500;overflow:hidden;max-height:280px;overflow-y:auto;display:none}
-        .q-dropdown.open{display:block}
-        .q-option{padding:10px 16px;font-size:14px;color:var(--tv);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .12s}
-        .q-option:hover,.q-option.focused{background:rgba(0,39,65,.05);color:var(--pri)}
-        .q-option .material-symbols-outlined{font-size:16px;color:var(--tm)}
-        .q-empty{padding:12px 16px;font-size:13px;color:var(--tm);text-align:center}
-
-        /* ── MOBILE ── */
-        @media(max-width:900px){
-            .col-list{width:100%}
-            .col-detail{display:none;position:fixed;inset:0;z-index:200;max-height:100vh;top:0}
-            .col-detail.open{display:block}
-            .detail-panel{border-radius:0;max-height:100vh;min-height:100vh}
-            .d-close-mobile{display:flex}
-            .main{flex-direction:column;padding:12px}
-            .col-list{width:100%}
-        }
-        .d-close-mobile{display:none;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--bor);cursor:pointer;color:var(--tv);font-size:14px;font-weight:500;background:var(--sur)}
-        .d-close-mobile .material-symbols-outlined{font-size:20px}
-
-        /* ── MODAL POSTULAR ── */
-        .modal-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
-        .modal-overlay.open{display:flex}
-        .modal-box{background:var(--sur);border-radius:20px;width:100%;max-width:400px;padding:32px;box-shadow:0 24px 64px rgba(0,0,0,.2);text-align:center;animation:scaleIn .25s ease both}
-        @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-        .modal-icon{font-size:52px;color:var(--pri);margin-bottom:16px}
-        .modal-title{font-size:22px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:8px}
-        .modal-sub{font-size:14px;color:var(--tv);margin-bottom:24px;line-height:1.6}
-        .modal-actions{display:flex;flex-direction:column;gap:10px}
-        .modal-btn-pri{padding:14px;background:var(--pri);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-        .modal-btn-pri:hover{opacity:.9}
-        .modal-btn-sec{padding:13px;background:transparent;color:var(--tv);border:1.5px solid var(--bor);border-radius:12px;font-size:14px;font-weight:500;transition:all .15s}
-        .modal-btn-sec:hover{border-color:var(--pri);color:var(--pri)}
-
-        /* ── FOOTER ── */
-        .footer{background:var(--sur);border-top:1px solid var(--bor);padding:20px;margin-top:auto}
-        .footer-inner{max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
-        .footer-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--pri);font-size:16px;display:flex;align-items:center;gap:8px}
-        .footer-brand img{height:28px;width:auto}
-        .footer-copy{font-size:12px;color:var(--tm)}
-        .footer-links{display:flex;gap:16px}
-        .footer-link{font-size:13px;color:var(--tv);transition:color .15s}
-        .footer-link:hover{color:var(--pri)}
-
-        /* Scrollbar thin */
-        .detail-panel::-webkit-scrollbar{width:5px}
-        .detail-panel::-webkit-scrollbar-track{background:transparent}
-        .detail-panel::-webkit-scrollbar-thumb{background:var(--bor);border-radius:3px}
-
-        @media(max-width:640px){
-            .navbar-inner{gap:8px;padding:0 12px}
-            .brand{font-size:17px}
-            .nav-search{display:none}
-            .main{padding:8px}
-        }
-        /* ── PROFILE MENU ── */
-        .profile-menu-wrap{position:relative}
-        .profile-trigger{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1.5px solid var(--bor);border-radius:50px;background:#fff;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
-        .profile-trigger:hover{border-color:var(--pri);background:rgba(0,39,65,.03)}
-        .profile-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-        .profile-avatar.lg{width:44px;height:44px;font-size:17px;flex-shrink:0}
-        .profile-name{font-size:14px;font-weight:600;color:var(--txt);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .profile-dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid var(--bor);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.12);min-width:240px;z-index:500;overflow:hidden;display:none;animation:scaleIn .2s ease both;transform-origin:top right}
-        .profile-dropdown.open{display:block}
-        .profile-dropdown-header{display:flex;align-items:center;gap:12px;padding:16px;background:rgba(0,39,65,.03)}
-        .profile-dropdown-divider{height:1px;background:var(--bor);margin:4px 0}
-        .profile-dropdown-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:transparent;color:var(--txt);font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;transition:background .12s;text-align:left}
-        .profile-dropdown-item:hover{background:rgba(0,39,65,.05);color:var(--pri)}
-        .profile-dropdown-item .material-symbols-outlined{font-size:18px;color:var(--tm)}
-        .cv-badge{margin-left:auto;background:var(--pri);color:#fff;border-radius:50px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
-
-        /* ── STUDENT MODALS ── */
-        .s-modal{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.45);backdrop-filter:blur(4px)}
-        .s-modal.open{display:flex}
-        .s-modal-box{background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18)}
-        .s-modal-header{padding:20px 24px 14px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:20px 20px 0 0;z-index:5}
-        .s-modal-title{font-size:18px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--txt)}
-        .s-modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--tv);cursor:pointer;transition:background .15s}
-        .s-modal-close:hover{background:var(--bor)}
-        .s-modal-body{padding:24px;display:flex;flex-direction:column;gap:16px}
-        .s-form-group{display:flex;flex-direction:column;gap:6px}
-        .s-form-label{font-size:12px;font-weight:700;color:var(--tv);text-transform:uppercase;letter-spacing:.06em}
-        .s-form-input{padding:11px 14px;border:1.5px solid var(--bor);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--txt);outline:none;transition:border-color .2s;width:100%;background:#fff}
-        .s-form-input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,39,65,.08)}
-        .s-form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7078' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
-        .s-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-        .s-form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-        .btn-s-primary{padding:13px 24px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
-        .btn-s-primary:hover{opacity:.9}
-        .s-alert{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;display:none}
-        .s-alert.success{background:rgba(0,107,96,.08);color:var(--sec);border:1px solid rgba(0,107,96,.2)}
-        .s-alert.error{background:rgba(220,38,38,.06);color:#dc2626;border:1px solid rgba(220,38,38,.2)}
-
-        /* CVs list */
-        .cv-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--bor);border-radius:10px;background:#fff;transition:background .15s}
-        .cv-item:hover{background:var(--bg)}
-        .cv-item-icon{width:36px;height:36px;background:rgba(220,38,38,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;flex-shrink:0}
-        .cv-item-info{flex:1;min-width:0}
-        .cv-item-name{font-size:13px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .cv-item-date{font-size:11px;color:var(--tm)}
-        .cv-item-actions{display:flex;gap:6px;flex-shrink:0}
-        .btn-cv-action{padding:5px 10px;border-radius:6px;border:1px solid var(--bor);background:transparent;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--tv);transition:all .15s}
-        .btn-cv-action:hover{border-color:var(--pri);color:var(--pri)}
-        .btn-cv-delete{color:#dc2626}
-        .btn-cv-delete:hover{border-color:#dc2626;color:#dc2626;background:rgba(220,38,38,.05)}
-        .cv-upload-area{border:2px dashed var(--bor);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s}
-        /* ── WARNING BANNER ── */
-        .warning-banner{background:#fffbeb;border-bottom:1px solid #fde68a;padding:12px 20px;transition:all .3s}
-        .warning-banner-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:between;gap:16px;flex-wrap:wrap}
-        .warning-banner-msg{font-size:13.5px;color:#92400e;font-weight:500;display:flex;align-items:center;gap:10px;flex:1}
-        .warning-banner-msg .material-symbols-outlined{color:#d97706;font-size:22px}
-        .warning-banner-actions{display:flex;align-items:center;gap:10px}
-        .btn-warning-action{padding:7px 16px;font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif}
-        .btn-warning-pri{background:#d97706;color:#fff;border:none;transition:background .15s}
-        .btn-warning-pri:hover{background:#b45309}
-        .btn-warning-sec{background:transparent;color:#78350f;border:1px solid #f59e0b;transition:all .15s}
-        .btn-warning-sec:hover{background:rgba(217,119,6,.06)}
-        .warning-banner.hide{display:none}
-
-        /* ── SIMILAR JOBS ── */
-        .similar-card{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--bor);border-radius:10px;cursor:pointer;transition:all .15s;background:#fff}
-        .similar-card:hover{border-color:var(--pri);background:#f9fafb}
-        .similar-card-logo{width:36px;height:36px;border-radius:6px;overflow:hidden;border:1px solid var(--bor);background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:var(--pri)}
-        .similar-card-logo img{width:100%;height:100%;object-fit:contain;padding:2px}
-        .similar-card-info{flex:1;min-width:0}
-        .similar-card-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .similar-card-company{font-size:11px;color:var(--tv);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .similar-card-tag{padding:2px 8px;border-radius:50px;font-size:10px;font-weight:500;background:rgba(0,107,96,.06);color:var(--sec);white-space:nowrap}
-
-        /* ── BADGES POSTULACIONES ── */
-        .badge-app{padding:4px 10px;border-radius:50px;font-size:10.5px;font-weight:700;display:inline-block;text-align:center;text-transform:uppercase;letter-spacing:.03em}
-        .badge-app.postulated{background:rgba(0,39,65,.08);color:var(--pri)}
-        .badge-app.reviewed{background:rgba(217,119,6,.08);color:#d97706}
-        .badge-app.selected{background:rgba(0,107,96,.08);color:var(--sec)}
-        .badge-app.rejected{background:rgba(220,38,38,.08);color:#dc2626}
-        .badge-app.finished{background:rgba(107,114,128,.08);color:#6b7280}
-
-        /* Toast Notification */
-        .toast-notify{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(0,39,65,0.95);color:#fff;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,0.25);z-index:2000;opacity:0;transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);backdrop-filter:blur(8px)}
-        .toast-notify.show{transform:translateX(-50%) translateY(0);opacity:1}
-
-        /* ── APPLY LOADING ── */
-        .apply-loading{display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 0}
-        .apply-loading.show{display:flex}
-        .apply-progress-wrap{width:100%;max-width:280px}
-        .apply-progress-bar{width:100%;height:8px;background:var(--bg);border-radius:50px;overflow:hidden}
-        .apply-progress-fill{height:100%;background:linear-gradient(90deg,var(--pri),var(--sec));border-radius:50px;width:0;transition:width .3s ease}
-        .apply-progress-text{font-size:13px;font-weight:600;color:var(--pri);text-align:center;margin-top:4px}
-        .apply-loading-icon{width:48px;height:48px;border-radius:50%;background:rgba(0,39,65,.08);display:flex;align-items:center;justify-content:center;animation:pulse 1.5s ease-in-out infinite}
-        @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.7}}
-        .apply-loading-icon .material-symbols-outlined{font-size:24px;color:var(--pri);animation:spin 1s linear infinite}
-        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        .btn-postular:disabled{opacity:.6;cursor:not-allowed;transform:none}
-        .tag-applied{background:rgba(249,115,22,.1);color:#c2410c;font-weight:700}
-
-        /* ── BUSCADOR MÓVIL DEDICADO ── */
-        .mobile-search-bar {
-            display: none;
+        .navbar {
             background: var(--sur);
             border-bottom: 1px solid var(--bor);
-            padding: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.03);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .mobile-search-field {
+        .navbar-inner {
+            height: 74px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: var(--bg);
-            border: 1.5px solid var(--bor);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 10px;
-            transition: border-color .15s;
+            justify-content: space-between;
+            gap: 20px;
         }
-        .mobile-search-field:focus-within {
-            border-color: var(--pri);
-            background: #fff;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
         }
-        .mobile-search-field span {
-            color: var(--tm);
-            font-size: 20px;
-        }
-        .mobile-search-field input {
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 14px;
-            font-family: inherit;
-            color: var(--txt);
-            width: 100%;
-        }
-        .mobile-search-btn {
-            width: 100%;
+        .brand-logo-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: var(--pri);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 700;
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: opacity .15s;
+            font-size: 20px;
+            font-weight: 800;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
-        .mobile-search-btn:active {
-            opacity: .8;
+        .brand-logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .brand-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+        .brand-sub {
+            font-size: 11px;
+            font-weight: 500;
+            color: #6b7280;
+            margin-top: 1px;
         }
 
-        /* ── MEJORAS MÓVILES EN MEDIA QUERIES ── */
-        @media(max-width:640px) {
-            .mobile-search-bar {
-                display: block;
-            }
-            .warning-banner {
-                padding: 10px 14px;
-            }
-            .warning-banner-inner {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            .btn-warning-action {
-                width: 100%;
-                text-align: center;
-            }
-            /* Campanita de notificaciones en móvil */
-            #student-notifications-menu {
-                width: calc(100vw - 24px) !important;
-                right: -12px !important;
-            }
-            /* Ajustar paddings de la lista para aprovechar espacio */
-            .main {
-                padding: 10px 6px !important;
-            }
-            .job-item {
-                padding: 16px !important;
-                border-radius: 12px !important;
-            }
-        /* ── HERO SECTION ── */
-        .hero-section {
-            background: linear-gradient(135deg, var(--pri) 0%, #031422 100%);
-            position: relative;
-            overflow: hidden;
-            color: #ffffff;
-            padding: 56px 20px 52px;
-            text-align: center;
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -20%;
-            width: 140%;
-            height: 200%;
-            background: radial-gradient(circle at 50% 20%, rgba(0, 107, 96, 0.28) 0%, transparent 60%),
-                        radial-gradient(circle at 80% 40%, rgba(249, 115, 22, 0.12) 0%, transparent 50%);
-            pointer-events: none;
+        .nav-link {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            transition: color 0.15s;
         }
-        .hero-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
+        .nav-link:hover {
+            color: var(--pri);
         }
-        .hero-badge {
+        .btn-empresa-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border: 1.5px solid var(--bor);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--txt);
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .btn-empresa-nav:hover {
+            border-color: var(--pri);
+            color: var(--pri);
+            background: var(--pri-tint);
+        }
+
+        /* Profile Menu (Authenticated) */
+        .profile-menu-wrap { position: relative; }
+        .profile-trigger {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 7px 18px;
+            padding: 5px 12px;
+            border: 1.5px solid var(--bor);
             border-radius: 50px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: #ffffff;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .profile-trigger:hover {
+            border-color: var(--pri);
+        }
+        .profile-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--pri);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .profile-name {
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 22px;
-            backdrop-filter: blur(12px);
-            letter-spacing: 0.01em;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: var(--txt);
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .hero-badge .material-symbols-outlined {
-            color: var(--secc);
-            font-size: 18px;
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--bor);
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(0,0,0,.12);
+            min-width: 230px;
+            z-index: 500;
+            overflow: hidden;
+            display: none;
+            animation: fadeIn .15s ease both;
+        }
+        .profile-dropdown.open { display: block; }
+        .profile-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: var(--pri-tint);
+        }
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--txt);
+            font-size: 13px;
+            cursor: pointer;
+            transition: background .12s;
+            text-align: left;
+        }
+        .profile-dropdown-item:hover {
+            background: var(--pri-tint);
+            color: var(--pri);
+        }
+        .profile-dropdown-divider {
+            height: 1px;
+            background: var(--bor);
+            margin: 4px 0;
+        }
+
+        /* ── HERO BANNER ── */
+        .hero-wrap {
+            margin-top: 24px;
+            margin-bottom: 24px;
+        }
+        .hero-banner-card {
+            background: var(--pri-tint);
+            border: 1px solid var(--pri-tint-border);
+            border-radius: 28px;
+            padding: 48px 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            position: relative;
+            overflow: visible;
+        }
+        .hero-left {
+            max-width: 540px;
+        }
+        .hero-tagline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--pri);
+            margin-bottom: 16px;
+        }
+        .hero-tagline-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--pri);
         }
         .hero-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 42px;
             font-weight: 800;
-            line-height: 1.22;
-            margin-bottom: 16px;
+            line-height: 1.15;
+            color: #111827;
             letter-spacing: -0.03em;
-            color: #ffffff;
+            margin-bottom: 16px;
         }
-        .hero-highlight {
-            color: var(--secc);
-            background: linear-gradient(135deg, #ffffff 15%, var(--secc) 85%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hero-subtitle {
-            font-size: 17px;
-            line-height: 1.65;
-            color: rgba(255, 255, 255, 0.84);
-            max-width: 680px;
-            margin: 0 auto 34px;
-            font-weight: 400;
-        }
-        .hero-search-box {
-            max-width: 820px;
-            margin: 0 auto 28px;
-            background: #ffffff;
-            border-radius: 60px;
-            padding: 6px 8px 6px 22px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .hero-search-box:focus-within {
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
-            border-color: var(--sec);
-            transform: translateY(-1px);
-        }
-        .hero-search-field {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-            color: var(--txt);
-        }
-        .hero-search-field .hero-icon {
-            color: var(--tm);
-            font-size: 22px;
-            flex-shrink: 0;
-        }
-        .hero-input {
-            border: none;
-            outline: none;
-            background: transparent;
+        .hero-desc {
             font-size: 15px;
-            font-family: inherit;
-            color: var(--txt);
-            width: 100%;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 28px;
         }
-        .hero-input::placeholder {
-            color: var(--tm);
+        .hero-bottom-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 13px;
+            color: #4b5563;
         }
-        .hero-divider {
-            width: 1px;
-            height: 32px;
-            background: var(--bor);
-            flex-shrink: 0;
+        .hero-offers-count strong {
+            color: var(--pri);
+            font-size: 15px;
+            font-weight: 800;
         }
-        .hero-search-btn {
-            flex-shrink: 0;
+        .hero-profile-link {
+            font-weight: 700;
+            color: var(--pri);
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 14px 30px;
-            background: var(--sec);
-            color: #ffffff;
-            border: none;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 14px rgba(0, 107, 96, 0.35);
+            gap: 4px;
+            transition: opacity 0.15s;
         }
-        .hero-search-btn:hover {
-            opacity: 0.92;
-            transform: translateY(-1px);
-        }
-        .hero-categories {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 38px;
-        }
-        .hero-cat-label {
-            color: rgba(255, 255, 255, 0.72);
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .hero-cat-pill {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            padding: 6px 15px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            backdrop-filter: blur(8px);
-        }
-        .hero-cat-pill:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-1px);
-        }
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            max-width: 860px;
-            margin: 0 auto;
-        }
-        .hero-stat-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            text-align: left;
-            backdrop-filter: blur(10px);
-            transition: transform 0.2s;
-        }
-        .hero-stat-card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.12);
-        }
-        .hero-stat-icon {
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
+        .hero-profile-link:hover { opacity: 0.8; }
+
+        /* Right Tilted 3D Card */
+        .hero-right-visual {
+            position: relative;
             flex-shrink: 0;
+            width: 270px;
+            height: 250px;
         }
-        .hero-stat-val {
-            display: block;
+        .tilted-card {
+            width: 250px;
+            height: 230px;
+            background: linear-gradient(145deg, var(--pri), color-mix(in srgb, var(--pri) 85%, #000000));
+            border-radius: 24px;
+            padding: 24px;
+            color: #ffffff;
+            transform: rotate(-5deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        .tilted-card:hover {
+            transform: rotate(-2deg) scale(1.02);
+        }
+        .tilted-card-arrow-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .tilted-card-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 24px;
             font-weight: 800;
+            line-height: 1.25;
             color: #ffffff;
-            line-height: 1.1;
-            margin-bottom: 3px;
+            letter-spacing: -0.02em;
         }
-        .hero-stat-lbl {
-            display: block;
-            font-size: 12px;
+        .tilted-card-footer {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
             color: rgba(255, 255, 255, 0.75);
-            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .floating-pill {
+            position: absolute;
+            bottom: -6px;
+            right: -10px;
+            background: #ffffff;
+            border-radius: 50px;
+            padding: 8px 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--bor);
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            z-index: 5;
         }
 
-        /* User welcome banner when authenticated */
-        .welcome-auth-banner {
+        /* ── SEARCH & FILTER CARD ── */
+        .search-card {
             background: #ffffff;
-            border-bottom: 1px solid var(--bor);
-            padding: 14px 20px;
+            border: 1px solid var(--bor);
+            border-radius: 20px;
+            padding: 28px 32px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+            margin-bottom: 36px;
         }
-        .welcome-auth-inner {
-            max-width: 1400px;
-            margin: 0 auto;
+        .search-fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .field-input, .field-select {
+            width: 100%;
+            height: 48px;
+            border: 1.5px solid var(--bor);
+            border-radius: 12px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--txt);
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .field-input:focus, .field-select:focus {
+            border-color: var(--pri);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 15%, transparent);
+        }
+        .field-select {
+            cursor: pointer;
+        }
+
+        .btn-search-main {
+            width: 100%;
+            height: 48px;
+            background: var(--pri);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+            margin-bottom: 20px;
+        }
+        .btn-search-main:hover {
+            opacity: 0.94;
+            transform: translateY(-1px);
+        }
+
+        .filter-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
             flex-wrap: wrap;
         }
-
-        /* Responsive Hero */
-        @media (max-width: 820px) {
-            .hero-section {
-                padding: 40px 16px 36px;
-            }
-            .hero-title {
-                font-size: 28px;
-            }
-            .hero-subtitle {
-                font-size: 15px;
-                margin-bottom: 24px;
-            }
-            .hero-search-box {
-                flex-direction: column;
-                border-radius: 20px;
-                padding: 14px;
-                gap: 12px;
-            }
-            .hero-divider {
-                display: none;
-            }
-            .hero-search-field {
-                width: 100%;
-            }
-            .hero-search-btn {
-                width: 100%;
-            }
-            .hero-stats {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
+        .filter-selectors {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .filter-item-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .filter-item-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+        }
+        .sub-select {
+            height: 38px;
+            border: 1.5px solid var(--bor);
+            border-radius: 10px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #374151;
+            background: #ffffff;
+            cursor: pointer;
+            outline: none;
+            min-width: 170px;
+        }
+        .sub-select:focus {
+            border-color: var(--pri);
+        }
+        .btn-clear-filters {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 6px 8px;
+            transition: color 0.15s;
+            margin-top: 14px;
+        }
+        .btn-clear-filters:hover {
+            color: var(--pri);
         }
 
+        /* ── SECTION HEADER ── */
+        .section-header-wrap {
+            margin-bottom: 20px;
+        }
+        .section-tagline {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--pri);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .section-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.02em;
+        }
+        .offers-count-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--pri-pill-bg);
+            color: var(--pri);
+            font-size: 13px;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 50px;
+        }
+        .section-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* ── 2-COLUMN JOB CARDS GRID ── */
+        .job-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .job-card {
+            background: #ffffff;
+            border: 1.5px solid var(--bor);
+            border-radius: 20px;
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .job-card:hover {
+            border-color: var(--pri);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+        .job-card.card-applied {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 800;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .card-avatar-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .card-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-type-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        .badge-practica {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .badge-empleo {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .btn-card-star {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, transform 0.15s;
+        }
+        .btn-card-star:hover {
+            color: var(--pri);
+            transform: scale(1.15);
+        }
+        .btn-card-star.active {
+            color: var(--pri);
+        }
+
+        .card-company-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .card-job-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.35;
+            margin-bottom: 8px;
+            transition: color 0.15s;
+        }
+        .job-card:hover .card-job-title {
+            color: var(--pri);
+        }
+        .card-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        .card-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-meta-item .material-symbols-outlined {
+            font-size: 15px;
+            color: #9ca3af;
+        }
+        .card-desc {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .card-salary {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        .card-salary-sub {
+            font-size: 12px;
+            font-weight: 500;
+            color: #9ca3af;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 14px;
+            font-size: 12px;
+        }
+        .card-close-date {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        .card-link-action {
+            color: var(--pri);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ── SKELETONS ── */
+        .skel-box {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: skelPulse 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skelPulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── BOTTOM CTA BANNER (COMPANIES) ── */
+        .cta-company-card {
+            background: var(--pri-tint);
+            border: 1px solid var(--pri-tint-border);
+            border-radius: 24px;
+            padding: 36px 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        .cta-company-left {
+            max-width: 600px;
+        }
+        .cta-company-tagline {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--pri);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .cta-company-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+        .cta-company-desc {
+            font-size: 13px;
+            color: #4b5563;
+        }
+        .btn-cta-company {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 26px;
+            background: var(--pri);
+            color: #ffffff;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s;
+        }
+        .btn-cta-company:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            border-top: 1px solid var(--bor);
+            background: #ffffff;
+            padding: 22px 0;
+            margin-top: auto;
+        }
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .footer-brand {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .footer-link {
+            color: #6b7280;
+            transition: color 0.15s;
+        }
+        .footer-link:hover {
+            color: var(--pri);
+        }
+
+        /* ── MODALS (OPPORTUNITY DETAIL & POSTULAR) ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--sur);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+            animation: popIn 0.2s ease both;
+            position: relative;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--bor);
+            background: #ffffff;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .modal-close-btn:hover {
+            background: var(--bg);
+            color: #111827;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .modal-btn-pri {
+            padding: 14px;
+            background: var(--pri);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .modal-btn-pri:hover { opacity: 0.92; }
+        .modal-btn-sec {
+            padding: 12px;
+            background: transparent;
+            color: var(--txt);
+            border: 1.5px solid var(--bor);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .modal-btn-sec:hover { border-color: var(--pri); color: var(--pri); }
+
+        /* Toast Alert */
+        .toast-notify {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #111827;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: slideUp 0.25s ease both;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ── RESPONSIVE DESIGN ── */
+        @media (max-width: 900px) {
+            .hero-banner-card {
+                flex-direction: column;
+                padding: 36px 28px;
+                text-align: center;
+            }
+            .hero-left {
+                max-width: 100%;
+            }
+            .hero-title {
+                font-size: 32px;
+            }
+            .hero-desc {
+                margin: 0 auto 24px;
+            }
+            .hero-bottom-info {
+                justify-content: center;
+            }
+            .hero-right-visual {
+                margin: 10px auto 0;
+            }
+            .search-fields-grid {
+                grid-template-columns: 1fr;
+            }
+            .job-grid {
+                grid-template-columns: 1fr;
+            }
+            .cta-company-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 32px 24px;
+            }
+            .btn-cta-company {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 640px) {
+            .navbar-inner {
+                height: 64px;
+            }
+            .nav-link {
+                display: none;
+            }
+            .hero-title {
+                font-size: 26px;
+            }
+            .search-card {
+                padding: 20px 16px;
+            }
+            .sub-select {
+                min-width: 100%;
+                width: 100%;
+            }
+            .filter-selectors {
+                width: 100%;
+            }
+            .filter-item-wrap {
+                width: 100%;
+            }
+            .btn-clear-filters {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
 
-{{-- ══ TOPBAR ══ --}}
-<div class="topbar">
-    <div class="topbar-inner">
-        @if($authUser)
-        <span class="topbar-link">
-            <span class="material-symbols-outlined" style="font-size:14px;">person</span>
-            Bienvenido, {{ $authUser->person->names ?? $authUser->email }}
-        </span>
-        @elseif(!request()->has('offer'))
-        <a href="#empresas" class="topbar-link">
-            <span class="material-symbols-outlined" style="font-size:14px;">domain</span>
-            ¿Eres una empresa? Publica ofertas
-        </a>
-        <span style="color:rgba(255,255,255,.3)">|</span>
-        <a href="{{ route('login') }}" class="topbar-link">
-            <span class="material-symbols-outlined" style="font-size:14px;">person</span>
-            Acceso para postulantes
-        </a>
-        @endif
-    </div>
-</div>
-
-{{-- ══ NAVBAR ══ --}}
-<nav class="navbar">
-    <div class="navbar-inner">
-        {{-- Brand --}}
-        <a href="{{ route('landing') }}" class="brand">
-            @if(!empty($config['logo']))
-                <img src="{{ $config['logo'] }}" alt="{{ $config['application_name'] ?? 'Bolsa Laboral' }}">
-            @else
-                <span class="material-symbols-outlined filled" style="font-size:28px;color:var(--pri)">work</span>
-            @endif
-            <span style="display:none;display:block;">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
-        </a>
-
-        {{-- Search bar --}}
-        <div class="nav-search">
-            <div class="nav-search-field q-wrap" id="q-wrap">
-                <span class="material-symbols-outlined nav-search-ico">work</span>
-                <input id="nav-search-q" type="text" class="nav-search-input"
-                    placeholder="Cargo, categoría o empresa..."
-                    autocomplete="off"
-                    onkeydown="handleQKey(event)"
-                    oninput="filterQDropdown(this.value)"
-                    onfocus="openQDropdown()"
-                    aria-label="Cargo, categoría o empresa"
-                    aria-autocomplete="list"
-                    aria-haspopup="listbox">
-                <div class="q-dropdown" id="q-dropdown" role="listbox">
-                    @if($categories->count() > 0)
-                        <div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--tm);background:var(--bg);text-transform:uppercase;letter-spacing:.05em">Categorías</div>
-                        @foreach($categories as $cat)
-                        <div class="q-option" role="option" onclick="selectQ('{{ addslashes($cat->name) }}')" data-q="{{ strtolower($cat->name) }}">
-                            <span class="material-symbols-outlined">category</span>
-                            {{ $cat->name }}
-                        </div>
-                        @endforeach
-                    @endif
-                    @if($availableTitles->count() > 0)
-                        <div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--tm);background:var(--bg);text-transform:uppercase;letter-spacing:.05em">Cargos Populares</div>
-                        @foreach($availableTitles as $title)
-                        <div class="q-option" role="option" onclick="selectQ('{{ addslashes($title) }}')" data-q="{{ strtolower($title) }}">
-                            <span class="material-symbols-outlined">work</span>
-                            {{ $title }}
-                        </div>
-                        @endforeach
-                    @endif
-                    @if(isset($availableCompanies) && $availableCompanies->count() > 0)
-                        <div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--tm);background:var(--bg);text-transform:uppercase;letter-spacing:.05em">Empresas</div>
-                        @foreach($availableCompanies as $company)
-                        <div class="q-option" role="option" onclick="selectQ('{{ addslashes($company) }}')" data-q="{{ strtolower($company) }}">
-                            <span class="material-symbols-outlined">business</span>
-                            {{ $company }}
-                        </div>
-                        @endforeach
-                    @endif
-                    <div class="q-empty" style="display:none">No se encontraron sugerencias</div>
-                </div>
-            </div>
-            <div class="nav-search-field place-wrap" id="place-wrap">
-                <span class="material-symbols-outlined nav-search-ico">location_on</span>
-                <input id="nav-search-loc" type="text" class="nav-search-input"
-                    placeholder="Departamento"
-                    autocomplete="off"
-                    onkeydown="handlePlaceKey(event)"
-                    oninput="filterPlaceDropdown(this.value)"
-                    onfocus="openPlaceDropdown()"
-                    aria-label="Departamento de trabajo"
-                    aria-autocomplete="list"
-                    aria-haspopup="listbox">
-                <div class="place-dropdown" id="place-dropdown" role="listbox">
-                    @if($availablePlaces->count() > 0)
-                    <div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--tm);background:var(--bg);text-transform:uppercase;letter-spacing:.05em">Departamentos</div>
-                    @endif
-                    @forelse($availablePlaces as $place)
-                    <div class="place-option" role="option" onclick="selectPlace('{{ addslashes($place) }}')" data-place="{{ strtolower($place) }}">
-                        <span class="material-symbols-outlined">location_on</span>
-                        {{ $place }}
-                    </div>
-                    @empty
-                    <div class="place-empty">No hay departamentos disponibles</div>
-                    @endforelse
-                </div>
-            </div>
-            <button class="nav-search-btn" onclick="triggerSearch()" aria-label="Buscar">
-                <span class="material-symbols-outlined">search</span>
-            </button>
-        </div>
-
-        <div class="navbar-spacer"></div>
-
-        {{-- Actions --}}
-        <div class="navbar-actions">
-            @if($authUser)
-            {{-- Campanita de notificaciones --}}
-            <div style="position:relative;">
-                <button id="student-notifications-button" type="button" onclick="toggleStudentNotifMenu()" style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--tv);background:transparent;border:none;border-radius:12px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bor)'" onmouseout="this.style.background='transparent'">
-                    <span class="material-symbols-outlined">notifications</span>
-                    <span id="student-notifications-badge" style="position:absolute;top:4px;right:4px;width:10px;height:10px;background:#dc2626;border-radius:50%;display:none;border:2px solid var(--sur);"></span>
-                </button>
-                <div id="student-notifications-menu" style="display:none;position:absolute;right:0;top:48px;width:320px;background:var(--sur);border:1px solid var(--bor);border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.12);overflow:hidden;z-index:200;">
-                    <div style="padding:16px 20px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;">
-                        <div>
-                            <p style="font-weight:700;font-size:15px;color:var(--txt);margin:0;">Notificaciones</p>
-                            <p style="font-size:12px;color:var(--tm);margin:4px 0 0 0;">Actividad reciente de tu cuenta</p>
-                        </div>
-                        <button onclick="markStudentNotifRead()" style="width:32px;height:32px;border-radius:50%;background:rgba(0,107,96,.1);color:var(--sec);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Marcar todo como leído">
-                            <span class="material-symbols-outlined" style="font-size:18px;">done_all</span>
-                        </button>
-                    </div>
-                    <div id="student-notifications-list" style="max-height:384px;overflow-y:auto;"></div>
-                </div>
-            </div>
-            @if($authUser->rol_id == 4)
-                <a href="/company/dashboard?tab=offers" class="btn-empresa" style="margin-right:12px;">
-                    <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
-                    Publicar empleo
-                </a>
-            @endif
-            @if($authUser->rol_id == 1)
-                <a href="/admin/dashboard" class="btn-empresa" style="background:var(--pri);margin-right:12px;">
-                    <span class="material-symbols-outlined" style="font-size:18px">dashboard</span>
-                    Panel Admin
-                </a>
-            @endif
-
-            {{-- Menú de perfil del estudiante --}}
-            <div class="profile-menu-wrap" id="profile-menu-wrap">
-                <button class="profile-trigger" id="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
-                    @if($authUser->avatar)
-                        <img src="{{ $authUser->avatar }}" class="profile-avatar" alt="Avatar" id="nav-avatar-img" style="object-fit:cover">
-                    @else
-                        <span class="profile-avatar" id="nav-avatar-init">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
-                    @endif
-                    <span class="profile-name">{{ explode(' ', $authUser->person->names ?? $authUser->email)[0] }}</span>
-                    <span class="material-symbols-outlined" style="font-size:18px;">expand_more</span>
-                </button>
-                <div class="profile-dropdown" id="profile-dropdown">
-                    <div class="profile-dropdown-header">
-                        @if($authUser->avatar)
-                            <img src="{{ $authUser->avatar }}" class="profile-avatar lg" alt="Avatar" id="drop-avatar-img" style="object-fit:cover">
+    {{-- ══ NAVBAR ══ --}}
+    <nav class="navbar">
+        <div class="page-container">
+            <div class="navbar-inner">
+                {{-- Brand --}}
+                <a href="{{ route('landing') }}" class="brand">
+                    <div class="brand-logo-box">
+                        @if(!empty($config['logo']))
+                            <img src="{{ $config['logo'] }}" alt="Logo">
                         @else
-                            <span class="profile-avatar lg" id="drop-avatar-init">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
+                            {{ strtoupper(substr($config['application_name'] ?? 'L', 0, 1)) }}
                         @endif
-                        <div>
-                            <p style="font-weight:600;font-size:14px;">{{ $authUser->person->names ?? $authUser->email }}</p>
-                            <p style="font-size:12px;color:var(--tm);">{{ $authUser->email }}</p>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-title">{{ $config['application_name'] ?? 'Instituto de prueba LOOPZ' }}</span>
+                        <span class="brand-sub">Bolsa laboral</span>
+                    </div>
+                </a>
+
+                {{-- Nav Links --}}
+                <div class="nav-links">
+                    <a href="#oportunidades" class="nav-link">Oportunidades</a>
+
+                    @if($authUser)
+                        {{-- Perfil Logueado --}}
+                        <div class="profile-menu-wrap" id="profile-menu-wrap">
+                            <button class="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true">
+                                @if($authUser->avatar)
+                                    <img src="{{ $authUser->avatar }}" class="profile-avatar" alt="Avatar">
+                                @else
+                                    <span class="profile-avatar">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
+                                @endif
+                                <span class="profile-name">{{ explode(' ', $authUser->person->names ?? $authUser->email)[0] }}</span>
+                                <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
+                            </button>
+                            <div class="profile-dropdown" id="profile-dropdown">
+                                <div class="profile-dropdown-header">
+                                    <span class="profile-avatar">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
+                                    <div>
+                                        <p style="font-size:13px;font-weight:700;color:var(--txt);">{{ $authUser->person->names ?? $authUser->email }}</p>
+                                        <p style="font-size:11px;color:var(--tv);">{{ $authUser->email }}</p>
+                                    </div>
+                                </div>
+                                @if($authUser->rol_id == 3 || $authUser->rol_id == 5)
+                                <a href="{{ route('student.applications') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">assignment_turned_in</span>
+                                    Mis postulaciones ({{ $studentApplications->count() }})
+                                </a>
+                                <a href="{{ route('student.saved.offers') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">bookmark</span>
+                                    Ofertas guardadas ({{ count($studentSavedOfferIds ?? []) }})
+                                </a>
+                                @endif
+                                <button class="profile-dropdown-item" onclick="openModal('modal-password');closeProfileMenu()">
+                                    <span class="material-symbols-outlined">lock</span> Cambiar contraseña
+                                </button>
+                                <div class="profile-dropdown-divider"></div>
+                                <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                                    @csrf
+                                    <button type="submit" class="profile-dropdown-item" style="color:#dc2626;">
+                                        <span class="material-symbols-outlined">logout</span> Cerrar sesión
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="nav-link">Mi espacio</a>
+                    @endif
+
+                    <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
+                        <span>Mi empresa</span>
+                        <span style="font-size:13px;">↗</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {{-- Main Content --}}
+    <main class="page-container">
+
+        {{-- ══ HERO BANNER ══ --}}
+        <section class="hero-wrap">
+            <div class="hero-banner-card">
+                <div class="hero-left">
+                    <div class="hero-tagline">
+                        <span class="hero-tagline-dot"></span>
+                        <span>TALENTO QUE CONECTA</span>
+                    </div>
+                    <h1 class="hero-title">
+                        Tu talento, tu próxima<br>oportunidad.
+                    </h1>
+                    <p class="hero-desc">
+                        Prácticas y empleos para estudiantes y egresados. Conecta con empresas y da el siguiente paso en tu carrera.
+                    </p>
+                    <div class="hero-bottom-info">
+                        <span class="hero-offers-count">
+                            <strong id="hero-count-number">{{ $totalActiveOffers }}</strong> oportunidades vigentes
+                        </span>
+                        @if($authUser)
+                            <a href="#" onclick="openModal('modal-perfil');return false;" class="hero-profile-link">
+                                Completar mi perfil ↗
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="hero-profile-link">
+                                Iniciar sesión ↗
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Tilted 3D Card --}}
+                <div class="hero-right-visual">
+                    <div class="tilted-card">
+                        <div class="tilted-card-arrow-wrap">
+                            ↗
+                        </div>
+                        <div class="tilted-card-title">
+                            Tu próximo<br>paso<br>empieza aquí.
+                        </div>
+                        <div class="tilted-card-footer">
+                            APRENDE • CONECTA • CRECE
                         </div>
                     </div>
-                    <div class="profile-dropdown-divider"></div>
-                    <button class="profile-dropdown-item" onclick="openModal('modal-perfil');closeProfileMenu()">
-                        <span class="material-symbols-outlined">manage_accounts</span> Editar perfil
-                    </button>
-                    @php
-                        $canAccessCandidateMenu = ($authUser->rol_id == 3) || ($authUser->rol_id == 2 && ($config['allow_teacher_applications'] ?? '0') === '1');
-                    @endphp
-                    @if($canAccessCandidateMenu)
-                    <button class="profile-dropdown-item" onclick="openModal('modal-cvs');closeProfileMenu()">
-                        <span class="material-symbols-outlined">description</span>
-                        Mis CVs
-                        @if($studentCvs->count())
-                        <span class="cv-badge">{{ $studentCvs->count() }}</span>
-                        @endif
-                    </button>
-                    <a href="{{ route('student.applications') }}" class="profile-dropdown-item">
-                        <span class="material-symbols-outlined">assignment_turned_in</span>
-                        Mis postulaciones
-                        @if($studentApplications->count())
-                        <span class="cv-badge" style="background:var(--sec)">{{ $studentApplications->count() }}</span>
-                        @endif
-                    </a>
-                    <a href="{{ route('student.saved.offers') }}" class="profile-dropdown-item">
-                        <span class="material-symbols-outlined">bookmark</span>
-                        Ofertas guardadas
-                        @if(count($studentSavedOfferIds ?? []))
-                        <span class="cv-badge" style="background:var(--acc)">{{ count($studentSavedOfferIds) }}</span>
-                        @endif
-                    </a>
-                    @endif
-                    <button class="profile-dropdown-item" onclick="openModal('modal-password');closeProfileMenu()">
-                        <span class="material-symbols-outlined">lock</span> Cambiar contraseña
-                    </button>
-                    <div class="profile-dropdown-divider"></div>
-                    <form method="POST" action="{{ route('logout') }}" style="margin:0">
-                        @csrf
-                        <button type="submit" class="profile-dropdown-item" style="color:#dc2626;width:100%;text-align:left">
-                            <span class="material-symbols-outlined">logout</span> Cerrar sesión
-                        </button>
-                    </form>
-                </div>
-            </div>
-            @else
-                @if(!request()->has('offer'))
-                <a href="{{ route('login') }}" class="btn-login">Ingresar</a>
-                @endif
-                <a href="{{ route('login') }}#empresa" class="btn-empresa">
-                    <span class="material-symbols-outlined" style="font-size:18px">domain_add</span>
-                    Publicar empleo
-                </a>
-            @endif
-        </div>
-    </div>
-</nav>
-
-@if(session('show_password_warning'))
-<div class="warning-banner" id="pwd-warning-banner">
-    <div class="warning-banner-inner">
-        <div class="warning-banner-msg">
-            <span class="material-symbols-outlined filled">security</span>
-            <span><strong>¡Alerta de Seguridad!</strong> Estás usando una contraseña por defecto (tu DNI). Te recomendamos cambiarla por seguridad.</span>
-        </div>
-        <div class="warning-banner-actions">
-            <button class="btn-warning-action btn-warning-pri" onclick="openModal('modal-password')">Cambiar ahora</button>
-            <button class="btn-warning-action btn-warning-sec" onclick="dismissPwdWarning()">Más tarde</button>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ══ HERO SECTION / PUBLIC & AUTH BANNER ══ --}}
-@if(!$authUser)
-<section class="hero-section" id="hero-section">
-    <div class="hero-container">
-        <div class="hero-badge">
-            <span class="material-symbols-outlined filled">verified</span>
-            Portal Oficial de Empleabilidad &bull; {{ $config['application_name'] ?? 'Bolsa Laboral' }}
-        </div>
-        <h1 class="hero-title">
-            Encuentra tu próximo <span class="hero-highlight">desafío profesional</span>
-        </h1>
-        <p class="hero-subtitle">
-            Explora ofertas laborales verificadas directamente con empresas líderes. Postula fácilmente y conecta con empleadores de confianza.
-        </p>
-
-        {{-- Hero Search Form --}}
-        <div class="hero-search-box">
-            <div class="hero-search-field">
-                <span class="material-symbols-outlined hero-icon">work</span>
-                <input type="text" id="hero-search-q" class="hero-input" placeholder="Cargo, palabra clave o empresa..." autocomplete="off" onkeydown="if(event.key==='Enter')syncAndSearch()">
-            </div>
-            <div class="hero-divider"></div>
-            <div class="hero-search-field">
-                <span class="material-symbols-outlined hero-icon">location_on</span>
-                <input type="text" id="hero-search-loc" class="hero-input" placeholder="Departamento..." autocomplete="off" onkeydown="if(event.key==='Enter')syncAndSearch()">
-            </div>
-            <button type="button" class="hero-search-btn" onclick="syncAndSearch()">
-                <span class="material-symbols-outlined">search</span>
-                <span>Buscar empleos</span>
-            </button>
-        </div>
-
-        {{-- Category Pills --}}
-        @if(isset($categories) && $categories->count() > 0)
-        <div class="hero-categories">
-            <span class="hero-cat-label">Categorías populares:</span>
-            @foreach($categories->take(6) as $cat)
-            <button type="button" class="hero-cat-pill" onclick="filterByCategory('{{ $cat->id }}', '{{ addslashes($cat->name) }}')">
-                {{ $cat->name }}
-            </button>
-            @endforeach
-        </div>
-        @endif
-
-        {{-- Stats Row --}}
-        <div class="hero-stats">
-            <div class="hero-stat-card">
-                <div class="hero-stat-icon">
-                    <span class="material-symbols-outlined filled">work</span>
-                </div>
-                <div>
-                    <span class="hero-stat-val">{{ number_format($totalActiveOffers) }}</span>
-                    <span class="hero-stat-lbl">Ofertas de empleo activas</span>
-                </div>
-            </div>
-            <div class="hero-stat-card">
-                <div class="hero-stat-icon" style="color:var(--sec);background:rgba(0,107,96,.15);">
-                    <span class="material-symbols-outlined filled">domain</span>
-                </div>
-                <div>
-                    <span class="hero-stat-val">{{ number_format($totalCompanies) }}</span>
-                    <span class="hero-stat-lbl">Empresas verificadas</span>
-                </div>
-            </div>
-            <div class="hero-stat-card">
-                <div class="hero-stat-icon" style="color:var(--acc);background:rgba(249,115,22,.15);">
-                    <span class="material-symbols-outlined filled">verified_user</span>
-                </div>
-                <div>
-                    <span class="hero-stat-val">100%</span>
-                    <span class="hero-stat-lbl">Validación institucional</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-@else
-<div class="welcome-auth-banner">
-    <div class="welcome-auth-inner">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,39,65,0.08);color:var(--pri);display:flex;align-items:center;justify-content:center;">
-                <span class="material-symbols-outlined" style="font-size:22px;">handshake</span>
-            </div>
-            <div>
-                <h2 style="font-size:15px;font-weight:700;color:var(--txt);margin:0;">
-                    ¡Bienvenido, {{ explode(' ', $authUser->person->names ?? $authUser->email)[0] }}!
-                </h2>
-                <p style="font-size:13px;color:var(--tv);margin:2px 0 0 0;">
-                    Explora las vacantes disponibles y postula de inmediato con tu CV registrado.
-                </p>
-            </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-            <a href="{{ route('student.applications') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:50px;font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
-                <span class="material-symbols-outlined" style="font-size:16px;color:var(--sec);">fact_check</span>
-                Mis postulaciones ({{ $studentApplications->count() }})
-            </a>
-            <a href="{{ route('student.saved.offers') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:50px;font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
-                <span class="material-symbols-outlined" style="font-size:16px;color:var(--acc);">bookmark</span>
-                Guardadas ({{ count($studentSavedOfferIds ?? []) }})
-            </a>
-        </div>
-    </div>
-</div>
-@endif
-
-
-{{-- ══ MOBILE SEARCH BAR ══ --}}
-<div class="mobile-search-bar">
-    <div class="mobile-search-field">
-        <span class="material-symbols-outlined">work</span>
-        <input id="mobile-search-q" type="text" placeholder="Cargo, categoría o empresa..." onkeydown="if(event.key === 'Enter') triggerSearch()">
-    </div>
-    <div class="mobile-search-field">
-        <span class="material-symbols-outlined">location_on</span>
-        <input id="mobile-search-loc" type="text" placeholder="Departamento..." onkeydown="if(event.key === 'Enter') triggerSearch()">
-    </div>
-    <button class="mobile-search-btn" onclick="triggerSearch()">
-        <span class="material-symbols-outlined">search</span> Buscar
-    </button>
-</div>
-
-{{-- ══ FILTERS BAR ══ --}}
-<div class="filters-bar">
-    <div class="filters-bar-inner">
-        <div class="filter-pill">
-            <span class="material-symbols-outlined">sort</span>
-            <select id="filter-sort" onchange="applyFilters()">
-                <option value="recent">Ordenar</option>
-                <option value="recent">Más recientes</option>
-                <option value="salary_desc">Mayor salario</option>
-                <option value="salary_asc">Menor salario</option>
-                <option value="title_asc">A-Z</option>
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-date-range" onchange="applyFilters()">
-                <option value="">Fecha</option>
-                <option value="today">Hoy</option>
-                <option value="week">Esta semana</option>
-                <option value="month">Este mes</option>
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-location" onchange="applyFilters()">
-                <option value="">Lugar de trabajo</option>
-                @foreach($locations as $loc)
-                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-schedule" onchange="applyFilters()">
-                <option value="">Jornada</option>
-                @foreach($workSchedules as $ws)
-                    <option value="{{ $ws->id }}">{{ $ws->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-contract" onchange="applyFilters()">
-                <option value="">Contrato</option>
-                @foreach($contractTypes as $ct)
-                    <option value="{{ $ct->id }}">{{ $ct->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-category" onchange="applyFilters()">
-                <option value="">Categoría</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-pill">
-            <select id="filter-salary" onchange="applyFilters()">
-                <option value="">Salario</option>
-                <option value="under_1000">Menos de S/ 1,000</option>
-                <option value="1000_to_2000">S/ 1,000 - 2,000</option>
-                <option value="2000_to_4000">S/ 2,000 - 4,000</option>
-                <option value="above_4000">Más de S/ 4,000</option>
-            </select>
-        </div>
-        @if(count($categories) > 0)
-        <button class="filter-pill" onclick="clearFilters()" style="color:var(--acc);border-color:var(--acc)">
-            <span class="material-symbols-outlined" style="font-size:15px">close</span>
-            Limpiar
-        </button>
-        @endif
-    </div>
-</div>
-
-{{-- ══ MAIN LAYOUT ══ --}}
-<main class="main" id="main-content">
-
-    {{-- ── Lista de ofertas ── --}}
-    <div class="col-list">
-        <div class="results-header">
-            <p class="results-count" id="results-count-label">Cargando...</p>
-        </div>
-
-        <div class="job-list" id="job-list">
-            @for($i=0;$i<8;$i++)
-            <div class="job-item">
-                <div class="job-item-header">
-                    <div class="job-item-logo"><div class="skel" style="width:38px;height:38px;border-radius:8px;"></div></div>
-                    <div class="job-item-meta" style="flex:1">
-                        <div class="skel" style="height:14px;width:75%;margin-bottom:6px;"></div>
-                        <div class="skel" style="height:12px;width:50%;"></div>
+                    <div class="floating-pill">
+                        De tu potencial a tu logro ✨
                     </div>
                 </div>
-                <div class="skel" style="height:11px;width:40%;margin-bottom:6px;"></div>
-                <div class="skel" style="height:11px;width:60%;"></div>
+            </div>
+        </section>
+
+        {{-- ══ SEARCH & FILTERS CARD ══ --}}
+        <section class="search-card">
+            <div class="search-fields-grid">
+                <div>
+                    <label class="field-label" for="search-input">¿Qué oportunidad buscas?</label>
+                    <input type="text" id="search-input" class="field-input" placeholder="Puesto, empresa o palabra clave" autocomplete="off" onkeydown="if(event.key==='Enter')triggerSearch()">
+                </div>
+                <div>
+                    <label class="field-label" for="location-select">Ubicación</label>
+                    <select id="location-select" class="field-select" onchange="triggerSearch()">
+                        <option value="">Todo el Perú</option>
+                        @foreach($availablePlaces as $place)
+                            <option value="{{ $place }}">{{ $place }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="btn-search-main" onclick="triggerSearch()">
+                <span>Buscar oportunidades</span>
+                <span>➔</span>
+            </button>
+
+            <div class="filter-row">
+                <div class="filter-selectors">
+                    <div class="filter-item-wrap">
+                        <label class="filter-item-label" for="category-select">Oportunidad</label>
+                        <select id="category-select" class="sub-select" onchange="triggerSearch()">
+                            <option value="">Todas las oportunidades</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-item-wrap">
+                        <label class="filter-item-label" for="modality-select">Modalidad</label>
+                        <select id="modality-select" class="sub-select" onchange="triggerSearch()">
+                            <option value="">Todas las modalidades</option>
+                            @foreach($locations as $loc)
+                                <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-item-wrap">
+                        <label class="filter-item-label" for="sort-select">Ordenar por</label>
+                        <select id="sort-select" class="sub-select" onchange="triggerSearch()">
+                            <option value="recent">Más recientes</option>
+                            <option value="salary_desc">Mayor salario</option>
+                            <option value="salary_asc">Menor salario</option>
+                            <option value="title_asc">A - Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-clear-filters" onclick="clearAllFilters()">
+                    Limpiar filtros
+                </button>
+            </div>
+        </section>
+
+        {{-- ══ OPPORTUNITIES SECTION HEADER ══ --}}
+        <section class="section-header-wrap" id="oportunidades">
+            <span class="section-tagline">ENCUENTRA TU LUGAR</span>
+            <div class="section-title-row">
+                <h2 class="section-title">
+                    Oportunidades para ti
+                    <span class="offers-count-pill" id="grid-offers-count">{{ $totalActiveOffers }}</span>
+                </h2>
+                <span class="section-subtitle">
+                    El siguiente paso en tu carrera está más cerca.
+                </span>
+            </div>
+        </section>
+
+        {{-- ══ 2-COLUMN JOB CARDS GRID ══ --}}
+        <section class="job-grid" id="job-list">
+            @for($i = 0; $i < 6; $i++)
+            <div class="job-card" style="min-height: 240px;">
+                <div class="card-header">
+                    <div class="card-header-left">
+                        <div class="skel-box" style="width:36px;height:36px;border-radius:10px;"></div>
+                        <div class="skel-box" style="width:110px;height:22px;border-radius:50px;"></div>
+                    </div>
+                    <div class="skel-box" style="width:24px;height:24px;border-radius:50%;"></div>
+                </div>
+                <div class="skel-box" style="width:40%;height:14px;margin-bottom:8px;"></div>
+                <div class="skel-box" style="width:80%;height:20px;margin-bottom:12px;"></div>
+                <div class="skel-box" style="width:60%;height:14px;margin-bottom:16px;"></div>
+                <div class="skel-box" style="width:100%;height:32px;margin-bottom:16px;"></div>
+                <div class="skel-box" style="width:35%;height:18px;"></div>
             </div>
             @endfor
+        </section>
+
+        {{-- Load More / Empty State Container --}}
+        <div id="grid-empty-msg" class="hidden" style="text-align:center;padding:50px 20px;background:#fff;border:1px solid var(--bor);border-radius:20px;margin-bottom:32px;">
+            <span class="material-symbols-outlined" style="font-size:48px;color:#9ca3af;margin-bottom:12px;">search_off</span>
+            <h3 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:6px;">No se encontraron oportunidades</h3>
+            <p style="font-size:14px;color:#6b7280;">Prueba ajustando los términos de búsqueda o limpiando los filtros seleccionados.</p>
         </div>
 
-        <div class="load-more-wrap">
-            <button id="load-more-btn" class="btn-load-more hidden" onclick="loadMoreOffers()">
-                Ver más ofertas
+        <div style="text-align:center;margin-bottom:40px;">
+            <button id="load-more-btn" type="button" class="btn-empresa-nav hidden" style="padding:12px 28px;font-size:14px;cursor:pointer;" onclick="loadMoreOffers()">
+                Cargar más oportunidades
             </button>
-            <p id="no-more-label" class="no-more hidden"></p>
+        </div>
+
+        {{-- ══ CALL TO ACTION: EMPRESAS ══ --}}
+        <section class="cta-company-card">
+            <div class="cta-company-left">
+                <span class="cta-company-tagline">EMPRESAS QUE IMPULSAN EL FUTURO</span>
+                <h3 class="cta-company-title">El talento de mañana puede estar en tu equipo.</h3>
+                <p class="cta-company-desc">Publica oportunidades y conecta con estudiantes y egresados de nuestra institución.</p>
+            </div>
+            <a href="{{ route('login') }}#empresa" class="btn-cta-company">
+                <span>Registrar mi empresa</span>
+                <span>↗</span>
+            </a>
+        </section>
+
+    </main>
+
+    {{-- ══ FOOTER ══ --}}
+    <footer class="footer">
+        <div class="page-container">
+            <div class="footer-inner">
+                <span class="footer-brand">
+                    Creado por <strong>{{ $config['application_name'] ?? 'LOOPZ' }}</strong> • v2.0.0
+                </span>
+                <a href="{{ route('login') }}" class="footer-link">
+                    Contactar a la institución
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    {{-- ══ MODAL DE DETALLE DE OPORTUNIDAD ══ --}}
+    <div id="detail-modal" class="modal-overlay" onclick="if(event.target===this)closeDetailModal()">
+        <div class="modal-box" style="max-width:680px;">
+            <button type="button" class="modal-close-btn" onclick="closeDetailModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;">
+                <div id="m-logo" class="card-avatar" style="width:48px;height:48px;border-radius:12px;font-size:20px;"></div>
+                <div>
+                    <h2 id="m-title" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#111827;line-height:1.25;">—</h2>
+                    <p id="m-company" style="font-size:13px;font-weight:600;color:#6b7280;margin-top:2px;">—</p>
+                    <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#6b7280;margin-top:6px;">
+                        <span id="m-location" style="display:inline-flex;align-items:center;gap:4px;"><span class="material-symbols-outlined" style="font-size:15px;">location_on</span>—</span>
+                        <span id="m-modality" style="display:inline-flex;align-items:center;gap:4px;"><span class="material-symbols-outlined" style="font-size:15px;">domain</span>—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+                <span id="m-badge-type" class="card-type-badge badge-practica">Prácticas</span>
+                <span id="m-badge-schedule" class="card-type-badge" style="background:#f1f5f9;color:#334155;">Tiempo Completo</span>
+                <span id="m-badge-category" class="card-type-badge" style="background:#e0f2fe;color:#0369a1;">Categoría</span>
+            </div>
+
+            <div style="background:#f8fafc;border:1px solid var(--bor);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <span style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;">Remuneración</span>
+                    <p id="m-salary" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:#111827;">—</p>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;">Fecha límite</span>
+                    <p id="m-deadline" style="font-size:13px;font-weight:600;color:#4b5563;">—</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;color:#111827;letter-spacing:0.04em;margin-bottom:8px;">Descripción del puesto</h4>
+                <div id="m-desc" style="font-size:14px;line-height:1.65;color:#4b5563;white-space:pre-line;"></div>
+            </div>
+
+            <div id="m-req-section" style="margin-bottom:20px;">
+                <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;color:#111827;letter-spacing:0.04em;margin-bottom:8px;">Requisitos</h4>
+                <div id="m-req" style="font-size:14px;line-height:1.65;color:#4b5563;white-space:pre-line;"></div>
+            </div>
+
+            <div id="m-ben-section" style="margin-bottom:24px;display:none;">
+                <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;color:#111827;letter-spacing:0.04em;margin-bottom:8px;">Beneficios</h4>
+                <div id="m-ben" style="font-size:14px;line-height:1.65;color:#4b5563;white-space:pre-line;"></div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--bor);padding-top:20px;">
+                <button type="button" id="m-btn-apply" class="modal-btn-pri" style="flex:1;" onclick="handleModalApplyClick()">
+                    <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+                    <span>Postularme ahora</span>
+                </button>
+                <button type="button" id="m-btn-save" class="modal-btn-sec" onclick="handleModalSaveClick()" title="Guardar oferta">
+                    <span class="material-symbols-outlined" id="m-save-icon">bookmark_border</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    {{-- ── Panel de detalle ── --}}
-    <div class="col-detail" id="detail-col">
-        <div class="detail-panel" id="detail-panel">
-            <div class="d-close-mobile" onclick="closeDetail()">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Volver a la lista
-            </div>
-            <div class="detail-empty" id="detail-empty">
-                <span class="material-symbols-outlined filled">work</span>
-                <p>Selecciona una oferta para ver los detalles</p>
-            </div>
-            <div id="detail-content" class="hidden">
-                <div class="d-header">
-                    <div class="d-company-row">
-                        <div class="d-logo" id="d-logo-wrap"></div>
-                        <div>
-                            <h1 class="d-title" id="d-title">—</h1>
-                            <div class="d-company-name" id="d-company">—</div>
-                            <div class="d-location">
-                                <span class="material-symbols-outlined">location_on</span>
-                                <span id="d-location">—</span>
-                            </div>
-                            <div class="d-verified" id="d-verified-row">
-                                <span class="material-symbols-outlined filled">verified</span>
-                                Empresa verificada
-                            </div>
-                        </div>
+    {{-- ══ MODAL POSTULAR (AUTH VS GUEST) ══ --}}
+    <div id="postular-modal" class="modal-overlay" onclick="if(event.target===this)closePostularModal()">
+        <div class="modal-box" style="max-width:440px;text-align:center;">
+            <button type="button" class="modal-close-btn" onclick="closePostularModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            @if($authUser)
+                {{-- Formulario de postulación autenticado --}}
+                <div style="width:56px;height:56px;border-radius:18px;background:var(--pri-tint);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <span class="material-symbols-outlined filled" style="font-size:28px;">send</span>
+                </div>
+                <h2 class="modal-title" id="modal-offer-title" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;">Postular a vacante</h2>
+                <p class="modal-sub" style="font-size:13px;color:#6b7280;margin-bottom:18px;">Selecciona tu CV registrado para enviar tu postulación.</p>
+
+                <div id="postular-alert" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:left;"></div>
+
+                <div id="apply-form-content">
+                    @if($studentCvs->count())
+                    <div style="text-align:left;margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Selecciona tu CV</label>
+                        <select id="select-cv-id" class="field-select" style="height:44px;font-size:13px;">
+                            @foreach($studentCvs as $cv)
+                            <option value="{{ $cv->id }}">v{{ $cv->version }} — {{ $cv->filename }} ({{ $cv->uploaded_at }})</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="d-actions">
-                        @if($authUser && $authUser->rol_id == 2)
-                            @if(($config['allow_teacher_applications'] ?? '0') === '1')
-                                <button class="btn-postular" onclick="openPostularModal()">
-                                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
-                                    Postularme
-                                </button>
-                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
-                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
-                                </button>
-                            @else
-                                <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
-                                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
-                                    Vista Docente
-                                </div>
-                            @endif
-                        @elseif($authUser && $authUser->rol_id == 4)
-                            <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
-                                <span class="material-symbols-outlined" style="font-size:16px;color:var(--sec)">visibility</span>
-                                Vista Empresa
-                            </div>
-                        @elseif($authUser && $authUser->rol_id == 1)
-                            <div style="font-size:12px;color:var(--tm);font-weight:700;background:var(--bg);padding:10px 16px;border-radius:50px;border:1.5px solid var(--bor);display:flex;align-items:center;gap:6px">
-                                <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
-                                Vista Admin
-                            </div>
-                        @elseif($authUser && ($authUser->rol_id == 3 || $authUser->rol_id == 5))
-                            @if(($config['allow_student_applications'] ?? '1') === '1')
-                                <button class="btn-postular" onclick="openPostularModal()">
-                                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
-                                    Postularme
-                                </button>
-                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
-                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
-                                </button>
-                            @else
-                                <div style="font-size:12px;color:#dc2626;font-weight:700;background:rgba(220,38,38,0.08);padding:10px 16px;border-radius:50px;border:1.5px solid rgba(220,38,38,0.2);display:flex;align-items:center;gap:6px">
-                                    <span class="material-symbols-outlined" style="font-size:16px;color:#dc2626">block</span>
-                                    Postulaciones no disponibles
-                                </div>
-                                <button class="btn-icon" title="Guardar" id="btn-save-offer" onclick="toggleSaveOffer(event)">
-                                    <span class="material-symbols-outlined" style="font-size:18px" id="save-icon">bookmark_add</span>
-                                </button>
-                            @endif
-                        @elseif(!$authUser)
-                            <button type="button" class="btn-postular" onclick="openPostularModal()">
-                                <span class="material-symbols-outlined" style="font-size:18px">send</span>
-                                Postularme
-                            </button>
-                            <button type="button" class="btn-icon" title="Guardar" onclick="openPostularModal()">
-                                <span class="material-symbols-outlined" style="font-size:18px">bookmark_add</span>
-                            </button>
-                        @endif
-                        <button class="btn-icon" title="Compartir" onclick="shareOffer()">
-                            <span class="material-symbols-outlined" style="font-size:18px">share</span>
+                    <div style="text-align:left;margin-bottom:18px;">
+                        <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Mensaje de presentación (opcional)</label>
+                        <textarea id="apply-message" class="field-input" rows="3" placeholder="Preséntate brevemente a la empresa..." style="height:auto;padding:10px;resize:vertical;"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="btn-submit-apply" type="button" class="modal-btn-pri" onclick="submitApply()">
+                            <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+                            Enviar postulación
                         </button>
+                        <button type="button" class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>
                     </div>
-                </div>
-                <div class="d-body">
-                    <div id="d-chips" class="d-chips"></div>
-
-                    <div class="d-salary-box" id="d-salary-box">
-                        <span class="material-symbols-outlined filled">payments</span>
-                        <div>
-                            <p class="d-salary-lbl">Salario</p>
-                            <p class="d-salary-val" id="d-salary">—</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p class="d-section-title">Descripción del puesto</p>
-                        <p class="d-text" id="d-description"></p>
-                    </div>
-
-                    <div>
-                        <p class="d-section-title">Requisitos</p>
-                        <p class="d-text" id="d-requirements"></p>
-                    </div>
-
-                    <div id="d-benefits-block" style="display:none">
-                        <p class="d-section-title">Beneficios</p>
-                        <p class="d-text" id="d-benefits"></p>
-                    </div>
-
-                    <div id="d-deadline-row" style="display:none">
-                        <span class="d-deadline">
-                            <span class="material-symbols-outlined">event</span>
-                            <span id="d-deadline-text"></span>
-                        </span>
-                    </div>
-
-                    <div id="d-company-info" style="display:none;border-top:1px solid var(--bor);padding-top:20px;margin-top:8px">
-                        <p class="d-section-title" style="display:flex;align-items:center;gap:8px">
-                            <span class="material-symbols-outlined" style="font-size:20px;color:var(--pri)">info</span>
-                            Sobre la empresa
-                        </p>
-                        <div id="d-company-description" style="display:none;margin-bottom:12px">
-                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Descripción</p>
-                            <p class="d-text" id="d-co-desc"></p>
-                        </div>
-                        <div id="d-company-address" style="display:none;margin-bottom:12px">
-                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Dirección</p>
-                            <p class="d-text" style="display:flex;align-items:center;gap:6px"><span class="material-symbols-outlined" style="font-size:16px;color:var(--tm)">location_on</span><span id="d-co-addr"></span></p>
-                        </div>
-                        <div id="d-company-website" style="display:none;margin-bottom:12px">
-                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tm);letter-spacing:.5px;margin-bottom:4px">Página web</p>
-                            <a id="d-co-web" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:var(--pri);font-weight:600;font-size:14px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:16px">open_in_new</span><span id="d-co-web-text"></span></a>
-                        </div>
-                    </div>
-
-                    {{-- ── Empleos similares ── --}}
-                    <div id="d-similar-section" style="margin-top:24px;border-top:1px solid var(--bor);padding-top:20px">
-                        <p class="d-section-title">Empleos similares</p>
-                        <div id="d-similar-list" style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
-                            <!-- Se llena dinámicamente vía JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-
-{{-- ══ EMPRESA CTA ══ --}}
-@if(!$authUser && !request()->has('offer'))
-<section id="empresas" style="background:linear-gradient(160deg,var(--pri),#0a3452 50%,#004d45);padding:72px 20px;text-align:center;color:#fff;margin-top:40px">
-    <div style="max-width:680px;margin:0 auto">
-        <span class="material-symbols-outlined filled" style="font-size:56px;color:var(--secc);display:block;margin-bottom:16px">rocket_launch</span>
-        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:800;margin-bottom:12px">¿Eres una empresa?</h2>
-        <p style="font-size:17px;color:rgba(255,255,255,.78);margin-bottom:32px;line-height:1.6">Publica tus ofertas laborales y conecta con cientos de candidatos calificados de nuestra institución. Rápido y sencillo.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
-            <a href="{{ route('login') }}#empresa" style="display:inline-flex;align-items:center;gap:8px;padding:16px 36px;background:#fff;color:var(--pri);border-radius:50px;font-size:16px;font-weight:800;transition:all .2s;text-decoration:none">
-                <span class="material-symbols-outlined" style="font-size:20px">domain_add</span>
-                Registrar mi empresa
-            </a>
-            <a href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:50px;font-size:16px;font-weight:600;transition:all .2s;text-decoration:none">
-                <span class="material-symbols-outlined" style="font-size:20px">login</span>
-                Iniciar sesión
-            </a>
-        </div>
-    </div>
-</section>
-@endif
-
-{{-- ══ FOOTER ══ --}}
-<footer class="footer">
-    <div class="footer-inner">
-        <div class="footer-brand">
-            @if($config['logo'] ?? '')
-                <img src="{{ $config['logo'] }}" alt="Logo">
-            @else
-                <span class="material-symbols-outlined filled" style="font-size:22px">work</span>
-            @endif
-            {{ $config['application_name'] ?? 'Bolsa Laboral' }}
-        </div>
-        <p class="footer-copy">&copy; {{ date('Y') }} {{ $config['application_name'] ?? 'Bolsa Laboral' }}. Todos los derechos reservados.</p>
-        @if(!$authUser && !request()->has('offer'))
-        <div class="footer-links">
-            <a href="{{ route('login') }}" class="footer-link">Iniciar Sesión</a>
-            <a href="{{ route('login') }}#empresa" class="footer-link">Para Empresas</a>
-        </div>
-        @endif
-    </div>
-</footer>
-
-{{-- ══ MODAL POSTULAR ══ --}}
-<div id="postular-modal" class="modal-overlay" onclick="if(event.target===this)closePostularModal()">
-    <div class="modal-box">
-        @if($authUser)
-        {{-- Formulario de postulación real --}}
-        <span class="material-symbols-outlined filled modal-icon">send</span>
-        <h2 class="modal-title" id="modal-offer-title">Postular a oferta</h2>
-        <p class="modal-sub">Selecciona tu CV y envía tu postulación.</p>
-        <div id="postular-alert" class="s-alert" style="margin-bottom:8px;display:none"></div>
-        {{-- Loading State --}}
-        <div id="apply-loading" class="apply-loading">
-            <div class="apply-loading-icon">
-                <span class="material-symbols-outlined">progress_activity</span>
-            </div>
-            <div class="apply-progress-wrap">
-                <div class="apply-progress-bar">
-                    <div id="apply-progress-fill" class="apply-progress-fill"></div>
-                </div>
-                <p id="apply-progress-text" class="apply-progress-text">Enviando postulación... 0%</p>
-            </div>
-        </div>
-        {{-- Form State --}}
-        <div id="apply-form-content">
-        @if($studentCvs->count())
-        <div style="margin-bottom:12px">
-            <label class="s-form-label" style="display:block;margin-bottom:6px">Selecciona tu CV</label>
-            <select id="select-cv-id" class="s-form-input s-form-select">
-                @foreach($studentCvs as $cv)
-                <option value="{{ $cv->id }}">v{{ $cv->version }} — {{ $cv->filename }} ({{ $cv->uploaded_at }})</option>
-                @endforeach
-            </select>
-        </div>
-        <div style="margin-bottom:12px">
-            <label class="s-form-label" style="display:block;margin-bottom:6px">Mensaje (opcional)</label>
-            <textarea id="apply-message" class="s-form-input" rows="3" placeholder="Cuéntale a la empresa por qué eres el candidato ideal..." style="resize:vertical"></textarea>
-        </div>
-        <div class="modal-actions">
-            <button id="btn-submit-apply" class="modal-btn-pri" onclick="submitApply()">
-                <span class="material-symbols-outlined" style="font-size:18px">send</span>
-                Enviar postulación
-            </button>
-            <button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>
-        </div>
-        @else
-        <p class="modal-sub" style="color:#dc2626">Necesitas subir al menos un CV antes de postular.</p>
-        <div class="modal-actions">
-            <button class="modal-btn-pri" onclick="closePostularModal();openModal('modal-cvs')">
-                <span class="material-symbols-outlined" style="font-size:18px">upload_file</span>
-                Subir mi CV
-            </button>
-            <button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>
-        </div>
-        @endif
-        </div>
-        @else
-        {{-- No autenticado --}}
-        <div style="width:68px;height:68px;border-radius:24px;background:rgba(0,39,65,.08);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-            <span class="material-symbols-outlined filled" style="font-size:38px;color:var(--pri)">lock_person</span>
-        </div>
-        <h2 class="modal-title" style="font-size:22px;margin-bottom:8px;">Inicia sesión para postular</h2>
-        <p class="modal-sub" id="guest-modal-sub" style="margin-bottom:20px;line-height:1.6;font-size:14px;color:var(--tv);">
-            Para postular a <strong id="guest-modal-offer-title">esta vacante</strong>, necesitas acceder con tu cuenta de estudiante o egresado.
-        </p>
-        <div class="modal-actions" style="display:flex;flex-direction:column;gap:10px;">
-            <a id="btn-guest-login" href="{{ route('login') }}" class="modal-btn-pri" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:12px;font-size:15px;font-weight:700;">
-                <span class="material-symbols-outlined" style="font-size:20px">login</span>
-                Iniciar Sesión
-            </a>
-            <a id="btn-guest-register-grad" href="{{ route('register.graduate') }}" class="modal-btn-sec" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;font-size:14px;font-weight:600;border:1.5px solid var(--bor);color:var(--txt);">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--sec)">school</span>
-                Registrarme como Egresado
-            </a>
-            <button type="button" class="modal-btn-sec" onclick="closePostularModal()" style="border:none;background:transparent;color:var(--tm);font-size:13px;padding:8px;cursor:pointer;margin-top:4px;">
-                Seguir explorando ofertas
-            </button>
-        </div>
-        @endif
-    </div>
-</div>
-
-@if($authUser)
-{{-- ══ MODAL EDITAR PERFIL ══ --}}
-<div id="modal-perfil" class="s-modal" onclick="if(event.target===this)closeModal('modal-perfil')">
-    <div class="s-modal-box">
-        <div class="s-modal-header">
-            <h2 class="s-modal-title">Editar Perfil</h2>
-            <button class="s-modal-close" onclick="closeModal('modal-perfil')"><span class="material-symbols-outlined" style="font-size:20px">close</span></button>
-        </div>
-        <div class="s-modal-body">
-            <div id="perfil-alert" class="s-alert"></div>
-            
-            {{-- Foto de Perfil (Avatar) --}}
-            <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:8px">
-                <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatar-file-input').click()">
-                    @if($authUser->avatar)
-                        <img src="{{ $authUser->avatar }}" id="perfil-avatar-preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid var(--bor)">
                     @else
-                        <div id="perfil-avatar-init-preview" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;border:2px solid var(--bor)">
-                            {{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}
-                        </div>
-                    @endif
-                    <div style="position:absolute;bottom:0;right:0;background:var(--pri);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)">
-                        <span class="material-symbols-outlined" style="font-size:16px">photo_camera</span>
+                    <div style="background:#fef2f2;border:1px solid #fee2e2;border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;">
+                        <p style="font-size:13px;font-weight:600;color:#dc2626;">Necesitas subir al menos un CV antes de postular.</p>
                     </div>
-                </div>
-                <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0])">
-                <p style="font-size:11px;color:var(--tm);margin-top:6px">Haz clic para cambiar tu foto (JPG, PNG · Máx 3MB)</p>
-            </div>
-
-            <div class="s-form-row">
-                <div class="s-form-group" style="grid-column:1/-1">
-                    <label class="s-form-label">Nombre completo *</label>
-                    <input type="text" id="p-names" class="s-form-input" value="{{ $authUser->person->names ?? '' }}" placeholder="Nombres y apellidos">
-                </div>
-            </div>
-            <div class="s-form-row">
-                <div class="s-form-group">
-                    <label class="s-form-label">Tipo de documento *</label>
-                    <select id="p-doc-type" class="s-form-input s-form-select">
-                        <option value="DNI" {{ ($authUser->person->document_type??'') === 'DNI' ? 'selected' : '' }}>DNI</option>
-                        <option value="CE" {{ ($authUser->person->document_type??'') === 'CE' ? 'selected' : '' }}>CE</option>
-                        <option value="PASAPORTE" {{ ($authUser->person->document_type??'') === 'PASAPORTE' ? 'selected' : '' }}>Pasaporte</option>
-                    </select>
-                </div>
-                <div class="s-form-group">
-                    <label class="s-form-label">Número de documento *</label>
-                    <input type="text" id="p-doc-num" class="s-form-input" value="{{ $authUser->person->document_number ?? '' }}" placeholder="12345678">
-                </div>
-            </div>
-            <div class="s-form-row">
-                <div class="s-form-group">
-                    <label class="s-form-label">Teléfono</label>
-                    <input type="text" id="p-phone" class="s-form-input" value="{{ $authUser->person->phone ?? '' }}" placeholder="999 999 999">
-                </div>
-                <div class="s-form-group">
-                    <label class="s-form-label">Sexo</label>
-                    <select id="p-sex" class="s-form-input s-form-select">
-                        <option value="">Sin especificar</option>
-                        <option value="M" {{ ($authUser->person->sex??'') === 'M' ? 'selected' : '' }}>Masculino</option>
-                        <option value="F" {{ ($authUser->person->sex??'') === 'F' ? 'selected' : '' }}>Femenino</option>
-                        <option value="O" {{ ($authUser->person->sex??'') === 'O' ? 'selected' : '' }}>Otro</option>
-                    </select>
-                </div>
-            </div>
-            <div class="s-form-row">
-                <div class="s-form-group">
-                    <label class="s-form-label">Fecha de nacimiento</label>
-                    <input type="date" id="p-birth" class="s-form-input" value="{{ $authUser->person->birth_date ?? '' }}">
-                </div>
-                <div class="s-form-group">
-                    <label class="s-form-label">Idioma nativo</label>
-                    <input type="text" id="p-lang" class="s-form-input" value="{{ $authUser->person->native_language ?? '' }}" placeholder="Español">
-                </div>
-            </div>
-            <div class="s-form-group">
-                <label class="s-form-label">Carrera / Programa de estudios</label>
-                <input type="text" id="p-career" class="s-form-input" value="{{ $authUser->person->career ?? '' }}" placeholder="Ej: Contabilidad, Enfermería, Computación...">
-            </div>
-            <div class="s-form-group">
-                <label class="s-form-label">Presentación personal <span style="font-size:10px;color:var(--tm);font-weight:400;text-transform:none">(visible para empresas)</span></label>
-                <textarea id="p-about" class="s-form-input" rows="4" placeholder="Cuéntale a las empresas sobre ti, tus objetivos y fortalezas...">{{ $authUser->person->about_me ?? '' }}</textarea>
-            </div>
-            <div class="s-form-group">
-                <label class="s-form-label">Habilidades <span style="font-size:10px;color:var(--tm);font-weight:400;text-transform:none">(escribe y presiona Enter)</span></label>
-                <div id="skills-tag-container" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:42px;padding:6px 10px;border:1.5px solid var(--bor);border-radius:10px;background:#fff;cursor:text;" onclick="document.getElementById('p-skill-input').focus()">
-                    @if(!empty($authUser->person->skills) && is_array($authUser->person->skills))
-                        @foreach($authUser->person->skills as $skill)
-                        <span class="skill-tag" style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,107,96,.1);color:var(--sec);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500;">
-                            {{ $skill }}
-                            <button type="button" onclick="removeSkillTag(this)" style="background:none;border:none;cursor:pointer;color:inherit;font-size:14px;line-height:1;padding:0 0 0 2px;">&times;</button>
-                        </span>
-                        @endforeach
-                    @endif
-                    <input type="text" id="p-skill-input" placeholder="Ej: Excel, Atención al cliente..." style="border:none;outline:none;font-size:13px;font-family:inherit;color:var(--txt);background:transparent;min-width:140px;flex:1;padding:2px 4px;"
-                        onkeydown="handleSkillInput(event)">
-                </div>
-                <input type="hidden" id="p-skills-json" value="{{ htmlspecialchars(json_encode($authUser->person->skills ?? []), ENT_QUOTES, 'UTF-8') }}">
-            </div>
-            <button class="btn-s-primary" onclick="saveProfile()">
-                <span class="material-symbols-outlined" style="font-size:18px">save</span>
-                Guardar cambios
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- ══ MODAL CVs ══ --}}
-<div id="modal-cvs" class="s-modal" onclick="if(event.target===this)closeModal('modal-cvs')">
-    <div class="s-modal-box">
-        <div class="s-modal-header">
-            <h2 class="s-modal-title">Mis CVs</h2>
-            <button class="s-modal-close" onclick="closeModal('modal-cvs')"><span class="material-symbols-outlined" style="font-size:20px">close</span></button>
-        </div>
-        <div class="s-modal-body">
-            <div id="cvs-alert" class="s-alert"></div>
-            {{-- Lista de CVs --}}
-            <div id="cvs-list" style="display:flex;flex-direction:column;gap:8px">
-                @forelse($studentCvs as $cv)
-                <div class="cv-item" id="cv-row-{{ $cv->id }}">
-                    <div class="cv-item-icon"><span class="material-symbols-outlined filled" style="font-size:20px">picture_as_pdf</span></div>
-                    <div class="cv-item-info">
-                        <p class="cv-item-name">v{{ $cv->version }} — {{ $cv->filename }}</p>
-                        <p class="cv-item-date">Subido: {{ $cv->uploaded_at }}</p>
-                    </div>
-                    <div class="cv-item-actions">
-                        <a href="{{ route('student.cv.download', $cv->id) }}" class="btn-cv-action" title="Descargar">
-                            <span class="material-symbols-outlined" style="font-size:14px">download</span>
-                        </a>
-                        <button class="btn-cv-action btn-cv-delete" onclick="deleteCv({{ $cv->id }})" title="Eliminar">
-                            <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                    <div class="modal-actions">
+                        <button type="button" class="modal-btn-pri" onclick="closePostularModal();openModal('modal-cvs')">
+                            <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+                            Subir mi CV ahora
                         </button>
+                        <button type="button" class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>
                     </div>
+                    @endif
                 </div>
-                @empty
-                <p id="cvs-empty" style="text-align:center;color:var(--tm);font-size:14px;padding:20px 0">No tienes CVs subidos todavía.</p>
-                @endforelse
-            </div>
-            {{-- Upload area --}}
-            <div class="cv-upload-area" id="cv-drop-area" onclick="document.getElementById('cv-file-input').click()"
-                ondragover="event.preventDefault();this.classList.add('drag-over')"
-                ondragleave="this.classList.remove('drag-over')"
-                ondrop="handleCvDrop(event)">
-                <span class="material-symbols-outlined" style="font-size:36px;color:var(--tm);display:block;margin-bottom:8px">upload_file</span>
-                <p style="font-weight:600;font-size:14px;color:var(--txt);margin-bottom:4px">Sube un nuevo CV</p>
-                <p style="font-size:12px;color:var(--tm)">PDF · máx 5MB · Haz clic o arrastra aquí</p>
-                <input type="file" id="cv-file-input" accept=".pdf" style="display:none" onchange="uploadCv(this.files[0])">
-            </div>
-            <div id="cv-upload-progress" style="display:none">
-                <p style="font-size:13px;color:var(--tv);margin-bottom:6px">Subiendo CV...</p>
-                <div style="background:var(--bg);border-radius:50px;height:6px;overflow:hidden">
-                    <div id="cv-progress-bar" style="height:100%;background:var(--pri);border-radius:50px;width:0;transition:width .3s"></div>
+            @else
+                {{-- No autenticado: modal para iniciar sesión --}}
+                <div style="width:64px;height:64px;border-radius:20px;background:var(--pri-tint);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <span class="material-symbols-outlined filled" style="font-size:34px;">lock_person</span>
                 </div>
-            </div>
+                <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#111827;margin-bottom:8px;">Inicia sesión para postular</h2>
+                <p id="guest-modal-sub" style="font-size:14px;color:#4b5563;line-height:1.55;margin-bottom:24px;">
+                    Para postular a <strong id="guest-modal-offer-title">esta vacante</strong>, necesitas acceder con tu cuenta de estudiante o egresado.
+                </p>
+                <div class="modal-actions">
+                    <a id="btn-guest-login" href="{{ route('login') }}" class="modal-btn-pri">
+                        <span class="material-symbols-outlined" style="font-size:18px;">login</span>
+                        Iniciar Sesión
+                    </a>
+                    <a id="btn-guest-register-grad" href="{{ route('register.graduate') }}" class="modal-btn-sec">
+                        <span class="material-symbols-outlined" style="font-size:18px;color:var(--pri);">school</span>
+                        Registrarme como Egresado
+                    </a>
+                    <button type="button" class="modal-btn-sec" onclick="closePostularModal()" style="border:none;color:#9ca3af;font-size:13px;">
+                        Seguir explorando
+                    </button>
+                </div>
+            @endif
         </div>
     </div>
-</div>
 
-{{-- ══ MODAL CONTRASEÑA ══ --}}
-<div id="modal-password" class="s-modal" onclick="if(event.target===this)closeModal('modal-password')">
-    <div class="s-modal-box">
-        <div class="s-modal-header">
-            <h2 class="s-modal-title">Cambiar Contraseña</h2>
-            <button class="s-modal-close" onclick="closeModal('modal-password')"><span class="material-symbols-outlined" style="font-size:20px">close</span></button>
-        </div>
-        <div class="s-modal-body">
-            <div id="pwd-alert" class="s-alert"></div>
-            <div class="s-form-group">
-                <label class="s-form-label">Contraseña actual *</label>
-                <input type="password" id="pwd-current" class="s-form-input" placeholder="Tu contraseña actual">
-            </div>
-            <div class="s-form-group">
-                <label class="s-form-label">Nueva contraseña *</label>
-                <input type="password" id="pwd-new" class="s-form-input" placeholder="Mínimo 8 caracteres">
-            </div>
-            <div class="s-form-group">
-                <label class="s-form-label">Confirmar nueva contraseña *</label>
-                <input type="password" id="pwd-confirm" class="s-form-input" placeholder="Repite la nueva contraseña">
-            </div>
-            <button class="btn-s-primary" onclick="changePassword()">
-                <span class="material-symbols-outlined" style="font-size:18px">lock_reset</span>
-                Cambiar contraseña
-            </button>
-        </div>
-</div>
-
-@endif
+    {{-- Toast Notification --}}
+    <div id="toast-notify" class="toast-notify">
+        <span class="material-symbols-outlined" id="toast-icon">check_circle</span>
+        <span id="toast-text">Mensaje</span>
+    </div>
 
 <script>
-// ── Estado ──────────────────────────────────────────────────────────────────
 var currentPage = 1;
-var isLoading   = false;
-var searchTimer = null;
-var activeItemId= null;
-
-// ── Skills tag input ─────────────────────────────────────────────────────────
-var currentSkills = (function(){
-    try {
-        var el = document.getElementById('p-skills-json');
-        return el ? JSON.parse(el.value) : [];
-    } catch(e) { return []; }
-})();
-
-function handleSkillInput(e) {
-    if (e.key === 'Enter' || e.key === ',') {
-        e.preventDefault();
-        var input = document.getElementById('p-skill-input');
-        var val = input.value.replace(/,/g,'').trim();
-        if (val && !currentSkills.includes(val)) {
-            currentSkills.push(val);
-            var container = document.getElementById('skills-tag-container');
-            var tag = document.createElement('span');
-            tag.className = 'skill-tag';
-            tag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:rgba(0,107,96,.1);color:var(--sec);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500;';
-            tag.innerHTML = val + '<button type="button" onclick="removeSkillTag(this)" style="background:none;border:none;cursor:pointer;color:inherit;font-size:14px;line-height:1;padding:0 0 0 2px;">&times;</button>';
-            container.insertBefore(tag, input);
-        }
-        input.value = '';
-    }
-    if (e.key === 'Backspace' && document.getElementById('p-skill-input').value === '') {
-        var tags = document.querySelectorAll('#skills-tag-container .skill-tag');
-        if (tags.length > 0) {
-            var last = tags[tags.length - 1];
-            var skillText = last.textContent.replace('×','').trim();
-            currentSkills = currentSkills.filter(function(s){ return s !== skillText; });
-            last.remove();
-        }
-    }
-}
-
-function removeSkillTag(btn) {
-    var tag = btn.parentElement;
-    var skillText = tag.textContent.replace('×','').trim();
-    currentSkills = currentSkills.filter(function(s){ return s !== skillText; });
-    tag.remove();
-}
+var isLoading = false;
 var loadedOffers = [];
-var sharedOffer  = @json($sharedOffer);
-var appliedOffers = new Set(@json($studentApplicationIds));
+var currentSelectedOffer = null;
+var appliedOffers = new Set(@json($studentApplicationIds ?? []));
 var savedOffers = new Set(@json($studentSavedOfferIds ?? []));
-var studentCvsData = @json($studentCvsJson);
+var isAuth = {{ $authUser ? 'true' : 'false' }};
 
-// ── Refresh postular modal CV selector ──────────────────────────────────────
-function refreshApplyFormCvs(){
-    var formContent = document.getElementById('apply-form-content');
-    if(!formContent) return;
-    if(studentCvsData.length === 0){
-        formContent.innerHTML =
-            '<p class="modal-sub" style="color:#dc2626">Necesitas subir al menos un CV antes de postular.</p>' +
-            '<div class="modal-actions">' +
-            '<button class="modal-btn-pri" onclick="closePostularModal();openModal(\'modal-cvs\')">' +
-            '<span class="material-symbols-outlined" style="font-size:18px">upload_file</span>' +
-            'Subir mi CV</button>' +
-            '<button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>' +
-            '</div>';
-        return;
-    }
-    var options = studentCvsData.map(function(cv){
-        return '<option value="'+cv.id+'">v'+cv.version+' — '+esc(cv.filename)+' ('+cv.uploaded_at+')</option>';
-    }).join('');
-    formContent.innerHTML =
-        '<div style="margin-bottom:12px">' +
-        '<label class="s-form-label" style="display:block;margin-bottom:6px">Selecciona tu CV</label>' +
-        '<select id="select-cv-id" class="s-form-input s-form-select">'+options+'</select>' +
-        '</div>' +
-        '<div style="margin-bottom:12px">' +
-        '<label class="s-form-label" style="display:block;margin-bottom:6px">Mensaje (opcional)</label>' +
-        '<textarea id="apply-message" class="s-form-input" rows="3" placeholder="Cuéntale a la empresa por qué eres el candidato ideal..." style="resize:vertical"></textarea>' +
-        '</div>' +
-        '<div class="modal-actions">' +
-        '<button id="btn-submit-apply" class="modal-btn-pri" onclick="submitApply()">' +
-        '<span class="material-symbols-outlined" style="font-size:18px">send</span>' +
-        'Enviar postulación</button>' +
-        '<button class="modal-btn-sec" onclick="closePostularModal()">Cancelar</button>' +
-        '</div>';
+// Paletas aleatorias armoniosas para avatares
+var avatarPalettes = [
+    { bg: '#eff6ff', color: '#1d4ed8' },
+    { bg: '#f5f3ff', color: '#6d28d9' },
+    { bg: '#ecfdf5', color: '#047857' },
+    { bg: '#fff7ed', color: '#c2410c' },
+    { bg: '#fdf2f8', color: '#be185d' },
+    { bg: '#f0fdfa', color: '#0f766e' }
+];
+
+function getAvatarBg(str) {
+    var code = (str || 'A').charCodeAt(0);
+    return avatarPalettes[code % avatarPalettes.length].bg;
+}
+function getAvatarColor(str) {
+    var code = (str || 'A').charCodeAt(0);
+    return avatarPalettes[code % avatarPalettes.length].color;
 }
 
-// ── Init ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-    loadOffers(1, true);
-
-    @if(request()->has('apply'))
-    setTimeout(function() {
-        if (typeof openPostularModal === 'function') {
-            openPostularModal();
-        }
-    }, 700);
-    @endif
-});
-
-// ── Search & Filter Helpers ──────────────────────────────────────────────────
-function syncAndSearch() {
-    var hq = document.getElementById('hero-search-q');
-    var hloc = document.getElementById('hero-search-loc');
-    var nq = document.getElementById('nav-search-q');
-    var nloc = document.getElementById('nav-search-loc');
-    var mq = document.getElementById('mobile-search-q');
-    var mloc = document.getElementById('mobile-search-loc');
-
-    var qVal = hq ? hq.value.trim() : '';
-    var locVal = hloc ? hloc.value.trim() : '';
-
-    if (nq) nq.value = qVal;
-    if (mq) mq.value = qVal;
-    if (nloc) nloc.value = locVal;
-    if (mloc) mloc.value = locVal;
-
-    triggerSearch();
-
-    var mainEl = document.getElementById('main-content');
-    if (mainEl) {
-        mainEl.scrollIntoView({ behavior: 'smooth' });
-    }
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function stripHtml(html) {
+    var tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
 }
 
-function filterByCategory(catId, catName) {
-    var catSelect = document.getElementById('filter-category');
-    if (catSelect) {
-        catSelect.value = catId;
-        applyFilters();
-        var mainEl = document.getElementById('main-content');
-        if (mainEl) {
-            mainEl.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-}
-
-// ── Search ──────────────────────────────────────────────────────────────────
-function triggerSearch() {
-    loadOffers(1, true);
-}
-
-function applyFilters() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function(){ loadOffers(1, true); }, 280);
-}
-
-function clearFilters() {
-    if (document.getElementById('nav-search-q'))     document.getElementById('nav-search-q').value = '';
-    if (document.getElementById('mobile-search-q'))  document.getElementById('mobile-search-q').value = '';
-    if (document.getElementById('nav-search-loc'))   document.getElementById('nav-search-loc').value = '';
-    if (document.getElementById('mobile-search-loc')) document.getElementById('mobile-search-loc').value = '';
-    document.getElementById('filter-sort').value     = 'recent';
-    document.getElementById('filter-location').value = '';
-    document.getElementById('filter-schedule').value = '';
-    document.getElementById('filter-contract').value = '';
-    document.getElementById('filter-category').value = '';
-    document.getElementById('filter-salary').value   = '';
-    loadOffers(1, true);
-}
-
-// ── Params ──────────────────────────────────────────────────────────────────
-function buildParams(page) {
-    var p = new URLSearchParams();
-    
-    // Read from desktop or mobile search inputs
-    var desktopQ = document.getElementById('nav-search-q') ? document.getElementById('nav-search-q').value.trim() : '';
-    var mobileQ  = document.getElementById('mobile-search-q') ? document.getElementById('mobile-search-q').value.trim() : '';
-    var q = desktopQ || mobileQ;
-
-    var desktopLoc = document.getElementById('nav-search-loc') ? document.getElementById('nav-search-loc').value.trim() : '';
-    var mobileLoc  = document.getElementById('mobile-search-loc') ? document.getElementById('mobile-search-loc').value.trim() : '';
-    var loc = desktopLoc || mobileLoc;
-
-    if (q)   p.set('search', q);
-    if (loc) p.set('province', loc);
-
-    var locId = document.getElementById('filter-location').value;
-    var schId = document.getElementById('filter-schedule').value;
-    var conId = document.getElementById('filter-contract').value;
-    var catId = document.getElementById('filter-category').value;
-    var sal   = document.getElementById('filter-salary').value;
-    var sort  = document.getElementById('filter-sort').value;
-
-    if (locId) p.set('location_id', locId);
-    if (schId) p.set('work_schedule_id', schId);
-    if (conId) p.set('contract_type_id', conId);
-    if (catId) p.set('category_id', catId);
-    if (sal)   p.set('salary_filter', sal);
-    if (sort)  p.set('sort_by', sort);
-
-    p.set('page', page);
-    p.set('per_page', 15);
-    return p;
-}
-
-// ── Load offers ──────────────────────────────────────────────────────────────
+// ── Cargar Ofertas ─────────────────────────────────────────────────────────────
 function loadOffers(page, reset) {
     if (isLoading) return;
     isLoading = true;
 
-    var list       = document.getElementById('job-list');
-    var loadBtn    = document.getElementById('load-more-btn');
-    var noMoreLbl  = document.getElementById('no-more-label');
+    var list = document.getElementById('job-list');
+    var emptyMsg = document.getElementById('grid-empty-msg');
+    var loadBtn = document.getElementById('load-more-btn');
 
     if (reset) {
         currentPage = 1;
-        activeItemId = null;
-        showDetailEmpty();
-        list.innerHTML = renderSkeletons(8);
+        list.innerHTML = renderSkeletons(6);
+        emptyMsg.classList.add('hidden');
         loadBtn.classList.add('hidden');
-        noMoreLbl.classList.add('hidden');
     }
 
-    var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    var url = '/buscar-ofertas?' + buildParams(page).toString() + '&_=' + Date.now();
-    console.log('[loadOffers] Fetching:', url);
-    fetch(url, {
-        headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
-     })
-     .then(function(r){ 
-         console.log('[loadOffers] Response status:', r.status);
-         return r.json(); 
-     })
-     .then(function(data){
-         console.log('[loadOffers] Data received:', data);
-         if (!data.success) throw new Error(data.message);
-         if (reset) {
-             list.innerHTML = '';
-             loadedOffers = [];
-             if (sharedOffer) {
-                 list.insertAdjacentHTML('beforeend', renderItem(sharedOffer));
-                 loadedOffers.push(sharedOffer);
-             }
-         }
+    var q = document.getElementById('search-input') ? document.getElementById('search-input').value.trim() : '';
+    var loc = document.getElementById('location-select') ? document.getElementById('location-select').value : '';
+    var cat = document.getElementById('category-select') ? document.getElementById('category-select').value : '';
+    var mod = document.getElementById('modality-select') ? document.getElementById('modality-select').value : '';
+    var sort = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'recent';
 
-         var countEl = document.getElementById('results-count-label');
-         if (data.total === 0 && reset && !sharedOffer) {
-             list.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tm)"><span class="material-symbols-outlined" style="font-size:48px;color:var(--bor);display:block;margin-bottom:12px">search_off</span><p style="font-size:15px">No se encontraron ofertas</p></div>';
-             countEl.innerHTML = 'Sin resultados';
-         } else {
-             data.offers.forEach(function(o){
-                 if (!sharedOffer || o.id !== sharedOffer.id) {
-                     list.insertAdjacentHTML('beforeend', renderItem(o));
-                     loadedOffers.push(o);
-                 }
-             });
-             currentPage = data.current_page;
-             var totalCount = data.total + (sharedOffer ? 1 : 0);
-             countEl.innerHTML = '<strong>' + Number(totalCount).toLocaleString('es-PE') + '</strong> oferta' + (totalCount!==1?'s':'') + ' encontrada' + (totalCount!==1?'s':'');
+    var params = new URLSearchParams();
+    if (q) params.set('search', q);
+    if (loc) params.set('province', loc);
+    if (cat) params.set('category_id', cat);
+    if (mod) params.set('modality_id', mod);
+    if (sort) params.set('sort_by', sort);
+    params.set('page', page);
+    params.set('per_page', 8);
 
-             if (data.has_more) {
-                 loadBtn.classList.remove('hidden');
-                 noMoreLbl.classList.add('hidden');
-              } else {
-                  loadBtn.classList.add('hidden');
-                  if (!reset){ noMoreLbl.textContent = 'Has visto todas las ofertas.'; noMoreLbl.classList.remove('hidden'); }
-              }
-
-              if (reset && sharedOffer) {
-                  openDetail(sharedOffer);
-              } else if (reset && data.offers.length > 0 && window.innerWidth >= 900) {
-                  openDetail(data.offers[0]);
-              }
-         }
-     })
-    .catch(function(err){
-        console.error('[loadOffers] Error:', err);
-        list.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tm)"><span class="material-symbols-outlined" style="font-size:48px;color:var(--bor);display:block;margin-bottom:12px">cloud_off</span><p>Error al cargar: ' + (err.message || err) + '. Intenta de nuevo.</p></div>';
+    fetch('/buscar-ofertas?' + params.toString() + '&_=' + Date.now(), {
+        headers: { 'Accept': 'application/json' }
     })
-    .finally(function(){ isLoading = false; });
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.message);
+
+        if (reset) {
+            list.innerHTML = '';
+            loadedOffers = [];
+        }
+
+        var countBadge = document.getElementById('grid-offers-count');
+        var heroCount = document.getElementById('hero-count-number');
+        if (countBadge) countBadge.textContent = data.total;
+        if (heroCount) heroCount.textContent = data.total;
+
+        if (data.total === 0 && reset) {
+            emptyMsg.classList.remove('hidden');
+            loadBtn.classList.add('hidden');
+        } else {
+            data.offers.forEach(function(o) {
+                list.insertAdjacentHTML('beforeend', renderCard(o));
+                loadedOffers.push(o);
+            });
+
+            if (data.has_more) {
+                loadBtn.classList.remove('hidden');
+            } else {
+                loadBtn.classList.add('hidden');
+            }
+        }
+    })
+    .catch(function(err) {
+        console.error('[loadOffers] Error:', err);
+        if (reset) {
+            list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444;">Error al cargar las oportunidades. Por favor intenta de nuevo.</div>';
+        }
+    })
+    .finally(function() {
+        isLoading = false;
+    });
 }
 
-function loadMoreOffers() { loadOffers(currentPage + 1, false); }
+function loadMoreOffers() {
+    currentPage++;
+    loadOffers(currentPage, false);
+}
 
-// ── Render skeleton ──────────────────────────────────────────────────────────
-function renderSkeletons(n){
-    var h='';
-    for(var i=0;i<n;i++){
-        h+='<div class="job-item">' +
-            '<div class="job-item-header">' +
-            '<div class="job-item-logo"><div class="skel" style="width:38px;height:38px;border-radius:8px;"></div></div>' +
-            '<div class="job-item-meta">' +
-            '<div class="skel" style="height:14px;width:75%;margin-bottom:7px;"></div>' +
-            '<div class="skel" style="height:12px;width:50%;"></div>' +
-            '</div></div>' +
-            '<div class="skel" style="height:11px;width:40%;margin:8px 0 4px;"></div>' +
-            '<div class="skel" style="height:22px;width:80px;border-radius:50px;margin-top:6px;"></div>' +
-            '</div>';
+function triggerSearch() {
+    loadOffers(1, true);
+}
+
+function clearAllFilters() {
+    if (document.getElementById('search-input')) document.getElementById('search-input').value = '';
+    if (document.getElementById('location-select')) document.getElementById('location-select').value = '';
+    if (document.getElementById('category-select')) document.getElementById('category-select').value = '';
+    if (document.getElementById('modality-select')) document.getElementById('modality-select').value = '';
+    if (document.getElementById('sort-select')) document.getElementById('sort-select').value = 'recent';
+    loadOffers(1, true);
+}
+
+// ── Render Card ─────────────────────────────────────────────────────────────
+function renderCard(o) {
+    var co = o.company || {};
+    var name = co.name || 'Empresa';
+    var logo = co.logo;
+    var initial = name.charAt(0).toUpperCase();
+    var isSaved = savedOffers.has(o.id);
+    var isApplied = appliedOffers.has(o.id);
+
+    // Tipo / Badge
+    var typeBadge = 'Empleo';
+    var badgeClass = 'badge-empleo';
+    var catName = (o.category ? o.category.name : '').toLowerCase();
+    var titleLower = (o.title || '').toLowerCase();
+    if (titleLower.includes('practicante') || titleLower.includes('práctica') || catName.includes('práctica')) {
+        typeBadge = 'Prácticas profesionales';
+        badgeClass = 'badge-practica';
+    } else if (o.contract_type && o.contract_type.name) {
+        typeBadge = o.contract_type.name;
+    }
+
+    var modalityName = o.modality ? o.modality.name : 'Presencial';
+    var locationStr = (o.province ? o.province + ', ' : '') + (o.department || 'Perú');
+
+    // Salario
+    var salaryStr = 'A tratar';
+    if (!o.hide_salary && o.salary) {
+        salaryStr = 'S/ ' + Number(o.salary).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Cierre
+    var closeStr = 'Convocatoria abierta';
+    if (o.deadline) {
+        var d = new Date(o.deadline);
+        var months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'];
+        closeStr = 'Cierra ' + String(d.getDate()).padStart(2, '0') + ' ' + (months[d.getMonth()] || '');
+    }
+
+    // Avatar
+    var avatarHtml = '';
+    if (logo) {
+        avatarHtml = '<img src="' + esc(logo) + '" alt="' + esc(name) + '" class="card-logo-img" onerror="this.onerror=null;this.parentNode.innerHTML=\'<span class=\\\'card-avatar-text\\\'>' + initial + '</span>\';">';
+    } else {
+        avatarHtml = '<span class="card-avatar-text">' + initial + '</span>';
+    }
+
+    return '<div class="job-card ' + (isApplied ? 'card-applied' : '') + '" onclick="openOpportunityDetail(' + o.id + ')" data-id="' + o.id + '">' +
+        '<div class="card-header">' +
+            '<div class="card-header-left">' +
+                '<div class="card-avatar" style="background:' + getAvatarBg(initial) + ';color:' + getAvatarColor(initial) + ';">' + avatarHtml + '</div>' +
+                '<span class="card-type-badge ' + badgeClass + '">' + esc(typeBadge) + '</span>' +
+            '</div>' +
+            '<button type="button" class="btn-card-star ' + (isSaved ? 'active' : '') + '" onclick="handleStarClick(event, ' + o.id + ')" title="' + (isSaved ? 'Quitar de guardadas' : 'Guardar oportunidad') + '">' +
+                '<span class="material-symbols-outlined ' + (isSaved ? 'filled' : '') + '">' + (isSaved ? 'bookmark' : 'bookmark_border') + '</span>' +
+            '</button>' +
+        '</div>' +
+        '<div class="card-body">' +
+            '<div class="card-company-name">' + esc(name) + '</div>' +
+            '<h3 class="card-job-title">' + esc(o.title) + '</h3>' +
+            '<div class="card-meta-row">' +
+                '<span class="card-meta-item"><span class="material-symbols-outlined">location_on</span>' + esc(locationStr) + '</span>' +
+                '<span class="card-meta-item"><span class="material-symbols-outlined">domain</span>' + esc(modalityName) + '</span>' +
+            '</div>' +
+            '<p class="card-desc">' + esc(stripHtml(o.description || '')) + '</p>' +
+            '<div class="card-salary">' + esc(salaryStr) + ' <span class="card-salary-sub">/ mes</span></div>' +
+        '</div>' +
+        '<div class="card-footer">' +
+            '<span class="card-close-date">' + esc(closeStr) + '</span>' +
+            '<span class="card-link-action">Ver oportunidad ↗</span>' +
+        '</div>' +
+    '</div>';
+}
+
+function renderSkeletons(count) {
+    var h = '';
+    for(var i=0; i<count; i++) {
+        h += '<div class="job-card" style="min-height: 240px;">' +
+            '<div class="card-header">' +
+                '<div class="card-header-left">' +
+                    '<div class="skel-box" style="width:36px;height:36px;border-radius:10px;"></div>' +
+                    '<div class="skel-box" style="width:110px;height:22px;border-radius:50px;"></div>' +
+                '</div>' +
+                '<div class="skel-box" style="width:24px;height:24px;border-radius:50%;"></div>' +
+            '</div>' +
+            '<div class="skel-box" style="width:40%;height:14px;margin-bottom:8px;"></div>' +
+            '<div class="skel-box" style="width:80%;height:20px;margin-bottom:12px;"></div>' +
+            '<div class="skel-box" style="width:60%;height:14px;margin-bottom:16px;"></div>' +
+            '<div class="skel-box" style="width:100%;height:32px;margin-bottom:16px;"></div>' +
+            '<div class="skel-box" style="width:35%;height:18px;"></div>' +
+        '</div>';
     }
     return h;
 }
 
-// ── Render item ──────────────────────────────────────────────────────────────
-function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// ── Detalle de Oportunidad (Modal) ───────────────────────────────────────────
+function openOpportunityDetail(id) {
+    var o = loadedOffers.find(function(item) { return item.id === id; });
+    if (!o) return;
+    currentSelectedOffer = o;
 
-function timeAgo(dateStr){
-    if(!dateStr) return '';
-    var d = new Date(dateStr);
-    var now = new Date();
-    var diff = Math.floor((now - d) / 60000);
-    if(diff < 60) return 'Hace ' + diff + ' min';
-    diff = Math.floor(diff/60);
-    if(diff < 24) return 'Hace ' + diff + ' hora' + (diff>1?'s':'');
-    diff = Math.floor(diff/24);
-    if(diff < 30) return 'Hace ' + diff + ' día' + (diff>1?'s':'');
-    return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short'});
+    var co = o.company || {};
+    var name = co.name || 'Empresa';
+    var initial = name.charAt(0).toUpperCase();
+
+    // Fill Modal
+    document.getElementById('m-title').textContent = o.title;
+    document.getElementById('m-company').textContent = name;
+    document.getElementById('m-location').innerHTML = '<span class="material-symbols-outlined" style="font-size:15px;">location_on</span>' + esc((o.province ? o.province + ', ' : '') + (o.department || 'Perú'));
+    document.getElementById('m-modality').innerHTML = '<span class="material-symbols-outlined" style="font-size:15px;">domain</span>' + esc(o.modality ? o.modality.name : 'Presencial');
+
+    var mLogo = document.getElementById('m-logo');
+    mLogo.style.background = getAvatarBg(initial);
+    mLogo.style.color = getAvatarColor(initial);
+    if (co.logo) {
+        mLogo.innerHTML = '<img src="' + esc(co.logo) + '" alt="' + esc(name) + '" style="width:100%;height:100%;object-fit:cover;">';
+    } else {
+        mLogo.innerHTML = initial;
+    }
+
+    // Badges
+    document.getElementById('m-badge-schedule').textContent = o.work_schedule ? o.work_schedule.name : 'Jornada regular';
+    document.getElementById('m-badge-category').textContent = o.category ? o.category.name : 'General';
+
+    // Salario
+    var salaryStr = 'A convenir';
+    if (!o.hide_salary && o.salary) {
+        salaryStr = 'S/ ' + Number(o.salary).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' / mes';
+    }
+    document.getElementById('m-salary').textContent = salaryStr;
+
+    // Fecha
+    document.getElementById('m-deadline').textContent = o.deadline ? o.deadline : 'Sin fecha límite';
+
+    // Textos
+    document.getElementById('m-desc').textContent = o.description || 'Sin descripción detallada.';
+    document.getElementById('m-req').textContent = o.requirements || 'No especificados.';
+    if (o.benefits) {
+        document.getElementById('m-ben-section').style.display = 'block';
+        document.getElementById('m-ben').textContent = o.benefits;
+    } else {
+        document.getElementById('m-ben-section').style.display = 'none';
+    }
+
+    // Botón Guardar estado
+    var isSaved = savedOffers.has(o.id);
+    var saveIcon = document.getElementById('m-save-icon');
+    if (saveIcon) {
+        saveIcon.textContent = isSaved ? 'bookmark' : 'bookmark_border';
+        saveIcon.className = 'material-symbols-outlined ' + (isSaved ? 'filled' : '');
+    }
+
+    // Botón postular estado
+    var applyBtn = document.getElementById('m-btn-apply');
+    if (appliedOffers.has(o.id)) {
+        applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">check_circle</span> Ya has postulado';
+        applyBtn.style.opacity = '0.7';
+    } else {
+        applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">send</span> Postularme ahora';
+        applyBtn.style.opacity = '1';
+    }
+
+    document.getElementById('detail-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
-function renderItem(o){
-    var co  = o.company||{};
-    var cat = o.category||{};
-    var loc = o.location||{};
-    var name= co.name||'Empresa';
-    var logo= co.logo||'';
-    var addr= [o.province, o.department].filter(Boolean).join(', ');
-    var salary = o.salary ? 'S/ '+Number(o.salary).toLocaleString('es-PE') : 'A tratar';
-    var isApplied = appliedOffers.has(o.id);
-
-    var logoHtml = logo
-        ? '<img src="'+esc(logo)+'" alt="'+esc(name)+'">'
-        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;font-size:12px;font-weight:700;">'+esc(name.substring(0,2).toUpperCase())+'</div>';
-
-    var oJson = JSON.stringify(o).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-
-    return '<div class="job-item" id="item-'+o.id+'" onclick=\'openDetail('+oJson+')\'>'+
-        '<div class="job-item-header">'+
-        '<div class="job-item-logo">'+logoHtml+'</div>'+
-        '<div class="job-item-meta">'+
-        '<p class="job-item-title">'+esc(o.title)+'</p>'+
-        '<p class="job-item-company">'+
-        (co.is_verified?'<span class="material-symbols-outlined filled">verified</span>':'')+
-        esc(name)+'</p>'+
-        '</div></div>'+
-        (addr?'<p class="job-item-location">'+esc(addr)+'</p>':'')+
-        '<div class="job-item-footer">'+
-        '<span class="job-item-time">'+timeAgo(o.publication_date)+'</span>'+
-        '<div class="job-item-tags">'+
-        (cat.name?'<span class="tag-xs tag-pri">'+esc(cat.name)+'</span>':'')+
-        '<span class="tag-xs tag-sec">'+esc(salary)+'</span>'+
-        (isApplied?'<span class="tag-xs tag-acc tag-applied">✓ Postulado</span>':'')+
-        '</div>'+
-        '<button class="btn-vista" onclick="event.stopPropagation();openDetail('+oJson+')">Vista</button>'+
-        '</div>'+
-        '</div>';
-}
-
-// ── Detail panel ─────────────────────────────────────────────────────────────
-function openDetail(o) {
-    // Quitar activo anterior
-    if (activeItemId) {
-        var prev = document.getElementById('item-' + activeItemId);
-        if (prev) prev.classList.remove('active');
-    }
-    activeItemId = o.id;
-    var el = document.getElementById('item-' + o.id);
-    if (el) el.classList.add('active');
-
-    var co  = o.company    || {};
-    var cat = o.category   || {};
-    var loc = o.location   || {};
-    var ws  = o.work_schedule || {};
-    var ct  = o.contract_type || {};
-
-    var name= co.name || 'Empresa';
-    var logo= co.logo || '';
-    var addr= [o.province, o.department].filter(Boolean).join(', ');
-
-    // Logo
-    var lw = document.getElementById('d-logo-wrap');
-    lw.innerHTML = logo
-        ? '<img src="'+esc(logo)+'" alt="'+esc(name)+'" style="width:100%;height:100%;object-fit:contain;padding:4px">'
-        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;font-size:18px;font-weight:700;">'+esc(name.substring(0,2).toUpperCase())+'</div>';
-
-    document.getElementById('d-title').textContent   = o.title || '';
-    document.getElementById('d-company').textContent = name;
-    document.getElementById('d-location').textContent= [loc.name, addr].filter(Boolean).join(' · ') || 'No especificada';
-
-    var verRow = document.getElementById('d-verified-row');
-    verRow.style.display = co.is_verified ? 'flex' : 'none';
-
-    // Chips
-    var chips = '';
-    if(ct.name)  chips += '<span class="d-chip"><span class="material-symbols-outlined">contract</span>'+esc(ct.name)+'</span>';
-    if(ws.name)  chips += '<span class="d-chip"><span class="material-symbols-outlined">schedule</span>'+esc(ws.name)+'</span>';
-    if(loc.name) chips += '<span class="d-chip"><span class="material-symbols-outlined">location_home</span>'+esc(loc.name)+'</span>';
-    if(cat.name) chips += '<span class="d-chip"><span class="material-symbols-outlined">category</span>'+esc(cat.name)+'</span>';
-    document.getElementById('d-chips').innerHTML = chips;
-
-    // Salary
-    var salary = o.salary ? 'S/ '+Number(o.salary).toLocaleString('es-PE')+' '+(o.salary_currency||'SOLES') : 'A tratar';
-    document.getElementById('d-salary').textContent = salary;
-
-    document.getElementById('d-description').textContent  = o.description  || '';
-    document.getElementById('d-requirements').textContent = o.requirements || '';
-
-    var benBlock = document.getElementById('d-benefits-block');
-    if(o.benefits){ document.getElementById('d-benefits').textContent=o.benefits; benBlock.style.display='block'; }
-    else { benBlock.style.display='none'; }
-
-    var dlRow = document.getElementById('d-deadline-row');
-    if(o.deadline){
-        try{ document.getElementById('d-deadline-text').textContent = 'Postulaciones hasta: '+new Date(o.deadline).toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}); } catch(e){}
-        dlRow.style.display='block';
-    } else { dlRow.style.display='none'; }
-
-    var coInfo = document.getElementById('d-company-info');
-    var coDesc = document.getElementById('d-company-description');
-    var coAddr = document.getElementById('d-company-address');
-    var coWeb  = document.getElementById('d-company-website');
-    var hasCoInfo = false;
-    if(co.description){ document.getElementById('d-co-desc').textContent=co.description; coDesc.style.display='block'; hasCoInfo=true; } else { coDesc.style.display='none'; }
-    if(co.address){ document.getElementById('d-co-addr').textContent=co.address; coAddr.style.display='block'; hasCoInfo=true; } else { coAddr.style.display='none'; }
-    if(co.website){
-        var url=co.website; if(!/^https?:\/\//i.test(url)) url='https://'+url;
-        document.getElementById('d-co-web').href=url;
-        document.getElementById('d-co-web-text').textContent=co.website.replace(/^https?:\/\//i,'');
-        coWeb.style.display='block'; hasCoInfo=true;
-    } else { coWeb.style.display='none'; }
-    coInfo.style.display=hasCoInfo?'block':'none';
-
-    // Update apply button based on applied status
-    var btnPostular = document.querySelector('.btn-postular');
-    var btnSave = document.querySelector('.d-actions .btn-icon[title="Guardar"]');
-    if(btnPostular){
-        var isApplied = appliedOffers.has(o.id);
-        if(isApplied){
-            btnPostular.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Ya postulado';
-            btnPostular.disabled = true;
-            btnPostular.style.opacity = '0.6';
-            btnPostular.style.cursor = 'not-allowed';
-            if(btnSave) btnSave.style.display = 'none';
-        } else {
-            btnPostular.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Postularme';
-            btnPostular.disabled = false;
-            btnPostular.style.opacity = '1';
-            btnPostular.style.cursor = 'pointer';
-            if(btnSave){
-                btnSave.style.display = 'flex';
-                var saveIcon = btnSave.querySelector('.material-symbols-outlined');
-                if(saveIcon){
-                    if(savedOffers.has(o.id)){
-                        saveIcon.textContent = 'bookmark';
-                        saveIcon.classList.add('filled');
-                    } else {
-                        saveIcon.textContent = 'bookmark_add';
-                        saveIcon.classList.remove('filled');
-                    }
-                }
-            }
-        }
-    }
-
-    // Show content
-    document.getElementById('detail-empty').classList.add('hidden');
-    document.getElementById('detail-content').classList.remove('hidden');
-
-    // Mobile: show detail col
-    if(window.innerWidth < 900){
-        document.getElementById('detail-col').classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-
-    // Cargar empleos similares
-    renderSimilarJobs(o);
-
-    // Scroll to top of detail
-    document.getElementById('detail-panel').scrollTop = 0;
-}
-
-// ── Similar Jobs Rendering ───────────────────────────────────────────────────
-function renderSimilarJobs(o) {
-    var list = document.getElementById('d-similar-list');
-    var sect = document.getElementById('d-similar-section');
-    if(!list) return;
-
-    // Filtrar similares (misma categoría o departamento, no la actual)
-    var matches = loadedOffers.filter(function(item) {
-        return item.id !== o.id && (
-            (o.category_id && item.category_id === o.category_id) || 
-            (o.province && item.province === o.province)
-        );
-    });
-
-    // Si no hay suficientes, rellenar con otras ofertas recientes en la lista
-    if(matches.length < 3) {
-        var ids = matches.map(function(m){ return m.id; });
-        var others = loadedOffers.filter(function(item) {
-            return item.id !== o.id && !ids.includes(item.id);
-        });
-        matches = matches.concat(others);
-    }
-
-    // Tomar máximo 3
-    matches = matches.slice(0, 3);
-
-    if(matches.length === 0) {
-        if(sect) sect.style.display = 'none';
-        return;
-    }
-    if(sect) sect.style.display = 'block';
-
-    list.innerHTML = '';
-    matches.forEach(function(item) {
-        var co  = item.company || {};
-        var name = co.name || 'Empresa';
-        var logo = co.logo || '';
-        var loc = item.province || (item.location ? item.location.name : '');
-        var salary = item.salary ? 'S/ ' + Number(item.salary).toLocaleString('es-PE') : 'A tratar';
-        
-        var logoHtml = logo
-            ? '<img src="'+esc(logo)+'" alt="'+esc(name)+'">'
-            : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pri),#0a3452);color:#fff;font-size:10px;font-weight:700;">'+esc(name.substring(0,2).toUpperCase())+'</div>';
-
-        var itemJson = JSON.stringify(item).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-
-        var html = '<div class="similar-card" onclick=\'openDetail('+itemJson+')\'>' +
-            '<div class="similar-card-logo">' + logoHtml + '</div>' +
-            '<div class="similar-card-info">' +
-                '<h4 class="similar-card-title">' + esc(item.title) + '</h4>' +
-                '<p class="similar-card-company">' + esc(name) + (loc ? ' · ' + esc(loc) : '') + '</p>' +
-            '</div>' +
-            '<span class="similar-card-tag">' + esc(salary) + '</span>' +
-            '</div>';
-        list.insertAdjacentHTML('beforeend', html);
-    });
-}
-
-
-function showDetailEmpty(){
-    document.getElementById('detail-empty').classList.remove('hidden');
-    document.getElementById('detail-content').classList.add('hidden');
-    if(activeItemId){
-        var prev = document.getElementById('item-' + activeItemId);
-        if(prev) prev.classList.remove('active');
-        activeItemId = null;
-    }
-}
-
-function closeDetail(){
-    document.getElementById('detail-col').classList.remove('open');
+function closeDetailModal() {
+    document.getElementById('detail-modal').classList.remove('open');
     document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closePostularModal(); closeDetail(); closePlaceDropdown(); } });
-
-// ── Place dropdown ────────────────────────────────────────────────────────────
-var placeTimer = null;
-var focusedPlaceIdx = -1;
-
-function openPlaceDropdown(){
-    var dd = document.getElementById('place-dropdown');
-    dd.classList.add('open');
-    filterPlaceDropdown(document.getElementById('nav-search-loc').value);
-    focusedPlaceIdx = -1;
+// ── Postular Handler ────────────────────────────────────────────────────────
+function handleModalApplyClick() {
+    if (!currentSelectedOffer) return;
+    closeDetailModal();
+    openPostularModal(currentSelectedOffer);
 }
 
-function closePlaceDropdown(){
-    document.getElementById('place-dropdown').classList.remove('open');
-    focusedPlaceIdx = -1;
-}
+function openPostularModal(offer) {
+    var o = offer || currentSelectedOffer;
+    if (!o) return;
+    currentSelectedOffer = o;
 
-function filterPlaceDropdown(val){
-    var dd = document.getElementById('place-dropdown');
-    dd.classList.add('open');
-    var opts = dd.querySelectorAll('.place-option');
-    var lower = val.toLowerCase().trim();
-    var visible = 0;
-    opts.forEach(function(o){
-        var match = !lower || o.dataset.place.indexOf(lower) !== -1;
-        o.style.display = match ? 'flex' : 'none';
-        if(match) visible++;
-    });
-    var empty = dd.querySelector('.place-empty');
-    if(empty) empty.style.display = visible === 0 ? 'block' : 'none';
-}
+    var modal = document.getElementById('postular-modal');
+    if (!modal) return;
 
-function selectPlace(val){
-    document.getElementById('nav-search-loc').value = val;
-    closePlaceDropdown();
-    triggerSearch();
-}
+    if (!isAuth) {
+        // Visitante
+        var guestTitle = document.getElementById('guest-modal-offer-title');
+        var guestLoginBtn = document.getElementById('btn-guest-login');
+        var guestGradBtn = document.getElementById('btn-guest-register-grad');
 
-function handlePlaceKey(e){
-    var dd = document.getElementById('place-dropdown');
-    var opts = Array.from(dd.querySelectorAll('.place-option')).filter(o=>o.style.display!=='none');
-    if(e.key === 'Enter'){
-        if(focusedPlaceIdx >= 0 && opts[focusedPlaceIdx]){
-            selectPlace(opts[focusedPlaceIdx].dataset.place.charAt(0).toUpperCase() + opts[focusedPlaceIdx].dataset.place.slice(1));
-        } else {
-            closePlaceDropdown();
-            triggerSearch();
+        if (guestTitle) {
+            guestTitle.textContent = o.title + (o.company ? ' en ' + o.company.name : '');
         }
-        e.preventDefault();
-        return;
-    }
-    if(e.key === 'ArrowDown'){
-        focusedPlaceIdx = Math.min(focusedPlaceIdx + 1, opts.length - 1);
-        opts.forEach(function(o,i){ o.classList.toggle('focused', i===focusedPlaceIdx); });
-        if(opts[focusedPlaceIdx]) opts[focusedPlaceIdx].scrollIntoView({block:'nearest'});
-        e.preventDefault();
-        return;
-    }
-    if(e.key === 'ArrowUp'){
-        focusedPlaceIdx = Math.max(focusedPlaceIdx - 1, 0);
-        opts.forEach(function(o,i){ o.classList.toggle('focused', i===focusedPlaceIdx); });
-        if(opts[focusedPlaceIdx]) opts[focusedPlaceIdx].scrollIntoView({block:'nearest'});
-        e.preventDefault();
-        return;
-    }
-    if(e.key === 'Escape'){ closePlaceDropdown(); return; }
-}
-
-// ── Q search dropdown ─────────────────────────────────────────────────────────
-var qTimer = null;
-var focusedQIdx = -1;
-
-function openQDropdown(){
-    var dd = document.getElementById('q-dropdown');
-    if(dd) {
-        dd.classList.add('open');
-        filterQDropdown(document.getElementById('nav-search-q').value);
-    }
-    focusedQIdx = -1;
-}
-
-function closeQDropdown(){
-    var dd = document.getElementById('q-dropdown');
-    if(dd) dd.classList.remove('open');
-    focusedQIdx = -1;
-}
-
-function filterQDropdown(val){
-    var dd = document.getElementById('q-dropdown');
-    if(!dd) return;
-    dd.classList.add('open');
-    var opts = dd.querySelectorAll('.q-option');
-    var lower = val.toLowerCase().trim();
-    var visible = 0;
-    
-    opts.forEach(function(o){
-        var match = !lower || o.dataset.q.indexOf(lower) !== -1;
-        o.style.display = match ? 'flex' : 'none';
-        if(match) visible++;
-    });
-    
-    var empty = dd.querySelector('.q-empty');
-    if(empty) empty.style.display = visible === 0 ? 'block' : 'none';
-}
-
-function selectQ(val){
-    document.getElementById('nav-search-q').value = val;
-    closeQDropdown();
-    triggerSearch();
-}
-
-function handleQKey(e){
-    var dd = document.getElementById('q-dropdown');
-    if(!dd) return;
-    var opts = Array.from(dd.querySelectorAll('.q-option')).filter(o=>o.style.display!=='none');
-    if(e.key === 'Enter'){
-        if(focusedQIdx >= 0 && opts[focusedQIdx]){
-            selectQ(opts[focusedQIdx].dataset.q);
-        } else {
-            closeQDropdown();
-            triggerSearch();
+        if (guestLoginBtn) {
+            guestLoginBtn.href = '{{ route("login") }}?redirect_offer=' + encodeURIComponent(o.id) + '&apply=1';
         }
-        e.preventDefault();
+        if (guestGradBtn) {
+            guestGradBtn.href = '{{ route("register.graduate") }}?redirect_offer=' + encodeURIComponent(o.id);
+        }
+    } else {
+        var al = document.getElementById('postular-alert');
+        if (al) { al.style.display = 'none'; al.textContent = ''; }
+        var modalTitle = document.getElementById('modal-offer-title');
+        if (modalTitle) modalTitle.textContent = 'Postular a ' + o.title;
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePostularModal() {
+    var modal = document.getElementById('postular-modal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function submitApply() {
+    if (!currentSelectedOffer) return;
+    var cvSelect = document.getElementById('select-cv-id');
+    var msg = document.getElementById('apply-message');
+    var al = document.getElementById('postular-alert');
+
+    if (!cvSelect) {
+        if (al) { al.style.display = 'block'; al.style.background = '#fef2f2'; al.style.color = '#dc2626'; al.textContent = 'Selecciona un CV.'; }
         return;
     }
-    if(e.key === 'ArrowDown'){
-        focusedQIdx = Math.min(focusedQIdx + 1, opts.length - 1);
-        opts.forEach(function(o,i){ o.classList.toggle('focused', i===focusedQIdx); });
-        if(opts[focusedQIdx]) opts[focusedQIdx].scrollIntoView({block:'nearest'});
-        e.preventDefault();
-        return;
-    }
-    if(e.key === 'ArrowUp'){
-        focusedQIdx = Math.max(focusedQIdx - 1, 0);
-        opts.forEach(function(o,i){ o.classList.toggle('focused', i===focusedQIdx); });
-        if(opts[focusedQIdx]) opts[focusedQIdx].scrollIntoView({block:'nearest'});
-        e.preventDefault();
-        return;
-    }
-    if(e.key === 'Escape'){ closeQDropdown(); return; }
-}
-
-// Cerrar dropdown al hacer click fuera
-document.addEventListener('click', function(e){
-    var wrap = document.getElementById('place-wrap');
-    if(wrap && !wrap.contains(e.target)) closePlaceDropdown();
-    var qWrap = document.getElementById('q-wrap');
-    if(qWrap && !qWrap.contains(e.target)) closeQDropdown();
-    // Cerrar profile menu
-    var pmWrap = document.getElementById('profile-menu-wrap');
-    if(pmWrap && !pmWrap.contains(e.target)) closeProfileMenu();
-});
-
-// ── Profile menu ──────────────────────────────────────────────────────────────
-function toggleProfileMenu(){
-    var dd = document.getElementById('profile-dropdown');
-    if(!dd) return;
-    dd.classList.toggle('open');
-    document.getElementById('profile-trigger').setAttribute('aria-expanded', dd.classList.contains('open'));
-}
-function closeProfileMenu(){
-    var dd = document.getElementById('profile-dropdown');
-    if(dd) dd.classList.remove('open');
-}
-
-// ── Generic modal helpers ─────────────────────────────────────────────────────
-function openModal(id){
-    var el = document.getElementById(id);
-    if(el){ el.classList.add('open'); document.body.style.overflow='hidden'; }
-}
-function closeModal(id){
-    var el = document.getElementById(id);
-    if(el){ el.classList.remove('open'); document.body.style.overflow=''; }
-}
-
-// ── Offer ID for apply ───────────────────────────────────────────────────────
-var currentOfferId = null;
-
-function toggleSaveOffer(event){
-    event.stopPropagation();
-    @if(!$authUser)
-        openPostularModal();
-        return;
-    @endif
-    if(!activeItemId) return;
-    var btn = document.getElementById('btn-save-offer');
-    var icon = document.getElementById('save-icon');
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
+    var cvId = cvSelect.value;
+    var message = msg ? msg.value : '';
+    var btn = document.getElementById('btn-submit-apply');
+    if (btn) btn.disabled = true;
 
     var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    fetch('/student/save-offer/'+activeItemId, {
+    fetch('/student/apply/' + currentSelectedOffer.id, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': token
+        },
+        body: JSON.stringify({ cv_id: cvId, message: message })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.success) {
+            appliedOffers.add(currentSelectedOffer.id);
+            closePostularModal();
+            showToast('¡Postulación enviada exitosamente!');
+            loadOffers(currentPage, true);
+        } else {
+            if (al) { al.style.display = 'block'; al.style.background = '#fef2f2'; al.style.color = '#dc2626'; al.textContent = d.message || 'Error al postular.'; }
+        }
+    })
+    .catch(function(err) {
+        if (al) { al.style.display = 'block'; al.style.background = '#fef2f2'; al.style.color = '#dc2626'; al.textContent = 'Error de conexión.'; }
+    })
+    .finally(function() {
+        if (btn) btn.disabled = false;
+    });
+}
+
+// ── Guardar Ofertas ─────────────────────────────────────────────────────────
+function handleStarClick(e, offerId) {
+    e.stopPropagation();
+    if (!isAuth) {
+        var o = loadedOffers.find(function(item) { return item.id === offerId; });
+        openPostularModal(o);
+        return;
+    }
+
+    var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch('/student/save-offer/' + offerId, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -2351,544 +1824,95 @@ function toggleSaveOffer(event){
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-        if(data.success){
-            if(data.saved){
-                savedOffers.add(activeItemId);
-                icon.textContent = 'bookmark';
-                icon.classList.add('filled');
-                showToast('Oferta guardada exitosamente.');
-            } else {
-                savedOffers.delete(activeItemId);
-                icon.textContent = 'bookmark_add';
-                icon.classList.remove('filled');
-                showToast('Oferta quitada de guardadas.');
-            }
-        } else {
-            showToast(data.message || 'Error al guardar oferta.', 'error');
-        }
-    })
-    .catch(function(){
-        showToast('Error de red al guardar oferta.', 'error');
-    })
-    .finally(function(){
-        btn.disabled = false;
-        btn.style.opacity = '1';
-    });
-}
-
-function openPostularModal(){
-    if(activeItemId) currentOfferId = activeItemId;
-    var modal = document.getElementById('postular-modal');
-    if(modal){
-        modal.classList.add('open');
-        document.body.style.overflow='hidden';
-
-        // Actualizar datos del modal para visitantes no autenticados
-        var activeOffer = loadedOffers.find(function(o){ return o.id == currentOfferId; }) || sharedOffer;
-        var guestTitle = document.getElementById('guest-modal-offer-title');
-        var guestLoginBtn = document.getElementById('btn-guest-login');
-        var guestGradBtn = document.getElementById('btn-guest-register-grad');
-
-        if(guestTitle && activeOffer){
-            guestTitle.textContent = activeOffer.title + (activeOffer.company ? ' (' + activeOffer.company.name + ')' : '');
-        }
-        if(guestLoginBtn && activeOffer){
-            guestLoginBtn.href = '{{ route("login") }}?redirect_offer=' + encodeURIComponent(activeOffer.id) + '&apply=1';
-        }
-        if(guestGradBtn && activeOffer){
-            guestGradBtn.href = '{{ route("register.graduate") }}?redirect_offer=' + encodeURIComponent(activeOffer.id);
-        }
-
-        // Reset alert
-        var al = document.getElementById('postular-alert');
-        if(al){ al.style.display='none'; al.textContent=''; }
-
-        // Refresh CV selector in case CVs were uploaded after page load
-        refreshApplyFormCvs();
-
-        // Reset loading state
-        var loadingEl = document.getElementById('apply-loading');
-        var formContent = document.getElementById('apply-form-content');
-        var progressFill = document.getElementById('apply-progress-fill');
-        var progressText = document.getElementById('apply-progress-text');
-        var btnSubmit = document.getElementById('btn-submit-apply');
-        if(loadingEl) loadingEl.classList.remove('show');
-        if(formContent) formContent.style.display = 'block';
-        if(progressFill) progressFill.style.width = '0';
-        if(progressText) progressText.textContent = 'Enviando postulación... 0%';
-        if(btnSubmit) btnSubmit.disabled = false;
-
-        // Check if already applied
-        if(currentOfferId && appliedOffers.has(currentOfferId)){
-            if(formContent) formContent.style.display = 'none';
-            if(al){
-                al.className = 's-alert error';
-                al.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px">block</span>Ya has postulado a esta oferta laboral.';
-                al.style.display = 'block';
-            }
-        }
-    }
-}
-function closePostularModal(){
-    var modal = document.getElementById('postular-modal');
-    if(modal){ modal.classList.remove('open'); document.body.style.overflow=''; }
-}
-
-// ── Submit apply ──────────────────────────────────────────────────────────────
-function submitApply(){
-    if(!currentOfferId){ showAlert('postular-alert','error','No hay oferta seleccionada.'); return; }
-    var cvSelect = document.getElementById('select-cv-id');
-    var msg      = document.getElementById('apply-message');
-    if(!cvSelect){ showAlert('postular-alert','error','Selecciona un CV.'); return; }
-    var cvId = cvSelect.value;
-    var message = msg ? msg.value : '';
-
-    // Show loading
-    var loadingEl = document.getElementById('apply-loading');
-    var formContent = document.getElementById('apply-form-content');
-    var progressFill = document.getElementById('apply-progress-fill');
-    var progressText = document.getElementById('apply-progress-text');
-    var btnSubmit = document.getElementById('btn-submit-apply');
-
-    if(loadingEl) loadingEl.classList.add('show');
-    if(formContent) formContent.style.display = 'none';
-    if(btnSubmit) btnSubmit.disabled = true;
-
-    // Simulate progress
-    var progress = 0;
-    var progressInterval = setInterval(function(){
-        progress += Math.random() * 15;
-        if(progress > 90) progress = 90;
-        if(progressFill) progressFill.style.width = progress + '%';
-        if(progressText) progressText.textContent = 'Enviando postulación... ' + Math.round(progress) + '%';
-    }, 200);
-
-    fetch('/student/apply/'+currentOfferId, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: JSON.stringify({cv_id: cvId, message: message})
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        clearInterval(progressInterval);
-        if(progressFill) progressFill.style.width = '100%';
-        if(progressText) progressText.textContent = '¡Postulación enviada!';
-
-        if(d.success){
-            // Mark as applied
-            if(currentOfferId){
-                appliedOffers.add(currentOfferId);
-                var item = document.getElementById('item-'+currentOfferId);
-                if(item){
-                    var footer = item.querySelector('.job-item-footer');
-                    if(footer && !footer.querySelector('.tag-applied')){
-                        footer.insertAdjacentHTML('beforeend','<span class="tag-xs tag-acc tag-applied">✓ Postulado</span>');
-                    }
-                }
-            }
-            setTimeout(function(){
-                showAlert('postular-alert','success',d.message);
-                setTimeout(function(){ closePostularModal(); }, 1200);
-            }, 500);
-        } else {
-            // Reset form on error
-            if(loadingEl) loadingEl.classList.remove('show');
-            if(formContent) formContent.style.display = 'block';
-            if(btnSubmit) btnSubmit.disabled = false;
-            showAlert('postular-alert','error',d.message);
-        }
-    })
-    .catch(function(){
-        clearInterval(progressInterval);
-        if(loadingEl) loadingEl.classList.remove('show');
-        if(formContent) formContent.style.display = 'block';
-        if(btnSubmit) btnSubmit.disabled = false;
-        showAlert('postular-alert','error','Error de conexión.');
-    });
-}
-
-// ── Save profile ──────────────────────────────────────────────────────────────
-function saveProfile(){
-    var data = {
-        names:            document.getElementById('p-names').value,
-        document_type:    document.getElementById('p-doc-type').value,
-        document_number:  document.getElementById('p-doc-num').value,
-        phone:            document.getElementById('p-phone').value,
-        sex:              document.getElementById('p-sex').value,
-        birth_date:       document.getElementById('p-birth').value,
-        native_language:  document.getElementById('p-lang').value,
-        about_me:         document.getElementById('p-about').value,
-        career:           document.getElementById('p-career').value,
-        skills:           currentSkills,
-    };
-    fetch('/student/profile', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: JSON.stringify(data)
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        showAlert('perfil-alert', d.success ? 'success' : 'error', d.message);
-        if(d.success) setTimeout(function(){ closeModal('modal-perfil'); location.reload(); }, 1500);
-    })
-    .catch(function(){ showAlert('perfil-alert','error','Error de conexión.'); });
-}
-
-// ── Change password ───────────────────────────────────────────────────────────
-function changePassword(){
-    var current = document.getElementById('pwd-current').value;
-    var nw      = document.getElementById('pwd-new').value;
-    var confirm = document.getElementById('pwd-confirm').value;
-    if(nw !== confirm){ showAlert('pwd-alert','error','Las contraseñas no coinciden.'); return; }
-    fetch('/student/password', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: JSON.stringify({current_password: current, new_password: nw, new_password_confirmation: confirm})
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        showAlert('pwd-alert', d.success ? 'success' : 'error', d.message);
-        if(d.success){ document.getElementById('pwd-current').value=''; document.getElementById('pwd-new').value=''; document.getElementById('pwd-confirm').value=''; }
-    })
-    .catch(function(){ showAlert('pwd-alert','error','Error de conexión.'); });
-}
-
-// ── Upload CV ─────────────────────────────────────────────────────────────────
-function handleCvDrop(e){
-    e.preventDefault();
-    document.getElementById('cv-drop-area').classList.remove('drag-over');
-    var file = e.dataTransfer.files[0];
-    if(file) uploadCv(file);
-}
-
-function uploadCv(file){
-    if(!file) return;
-    if(file.type !== 'application/pdf'){ showAlert('cvs-alert','error','Solo se permiten archivos PDF.'); return; }
-    if(file.size > 5*1024*1024){ showAlert('cvs-alert','error','El archivo no debe exceder 5MB.'); return; }
-
-    var progress = document.getElementById('cv-upload-progress');
-    var bar      = document.getElementById('cv-progress-bar');
-    progress.style.display='block';
-    bar.style.width='30%';
-
-    var form = new FormData();
-    form.append('cv', file);
-    form.append('_token', document.querySelector('meta[name=csrf-token]').content);
-
-    fetch('/student/cv/upload', { method:'POST', headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content}, body: form })
-    .then(function(r){ bar.style.width='80%'; return r.json(); })
-    .then(function(d){
-        bar.style.width='100%';
-        setTimeout(function(){ progress.style.display='none'; bar.style.width='0'; }, 600);
-        if(d.success){
-            showAlert('cvs-alert','success',d.message);
-            var cv = d.cv;
-            // Track CV in global array for postular modal
-            studentCvsData.unshift({id: cv.id, version: cv.version, filename: cv.filename, uploaded_at: cv.uploaded_at});
-            var list = document.getElementById('cvs-list');
-            var empty = document.getElementById('cvs-empty');
-            if(empty) empty.remove();
-            list.insertAdjacentHTML('afterbegin',
-                '<div class="cv-item" id="cv-row-'+cv.id+'">' +
-                '<div class="cv-item-icon"><span class="material-symbols-outlined filled" style="font-size:20px">picture_as_pdf</span></div>' +
-                '<div class="cv-item-info"><p class="cv-item-name">v'+cv.version+' — '+esc(cv.filename)+'</p><p class="cv-item-date">Subido: '+cv.uploaded_at+'</p></div>' +
-                '<div class="cv-item-actions">' +
-                '<button class="btn-cv-action btn-cv-delete" onclick="deleteCv('+cv.id+')" title="Eliminar"><span class="material-symbols-outlined" style="font-size:14px">delete</span></button>' +
-                '</div></div>'
-            );
-            // Update badge
-            var badge = document.querySelector('.cv-badge');
-            if(badge){ badge.textContent = parseInt(badge.textContent||0)+1; }
-            else {
-                var cvBtn = document.querySelector('[onclick*="modal-cvs"]');
-                if(cvBtn) cvBtn.insertAdjacentHTML('beforeend','<span class="cv-badge">1</span>');
-            }
-            // Reset file input
-            document.getElementById('cv-file-input').value='';
-        } else {
-            showAlert('cvs-alert','error',d.message);
-        }
-    })
-    .catch(function(){ progress.style.display='none'; showAlert('cvs-alert','error','Error al subir el CV.'); });
-}
-
-// ── Delete CV ─────────────────────────────────────────────────────────────────
-async function deleteCv(id){
-    const ok = await showConfirm({
-        title: '¿Eliminar este CV?',
-        message: 'Se eliminará permanentemente este currículum.',
-        type: 'danger',
-        icon: 'delete_forever',
-        okText: 'Sí, eliminar',
-    });
-    if (!ok) return;
-    fetch('/student/cv/delete/'+id, {
-        method:'POST',
-        headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: new URLSearchParams({_token: document.querySelector('meta[name=csrf-token]').content})
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        if(d.success){
-            var row = document.getElementById('cv-row-'+id);
-            if(row) row.remove();
-            // Remove from global CV array
-            studentCvsData = studentCvsData.filter(function(cv){ return cv.id !== id; });
-            showAlert('cvs-alert','success',d.message);
-            // Update badge
-            var badge = document.querySelector('.cv-badge');
-            if(badge){ var n=parseInt(badge.textContent||0)-1; if(n<=0) badge.remove(); else badge.textContent=n; }
-        } else {
-            showAlert('cvs-alert','error',d.message);
-        }
-    })
-    .catch(function(){ showAlert('cvs-alert','error','Error al eliminar el CV.'); });
-}
-
-// ── Alert helper ─────────────────────────────────────────────────────────────
-function showAlert(id, type, msg){
-    var el = document.getElementById(id);
-    if(!el) return;
-    el.className = 's-alert ' + type;
-    el.textContent = msg;
-    el.style.display = 'block';
-    setTimeout(function(){ if(el) el.style.display='none'; }, 5000);
-}
-
-// ── Dismiss Password Warning ──────────────────────────────────────────────────
-function dismissPwdWarning(){
-    var banner = document.getElementById('pwd-warning-banner');
-    if(banner) banner.classList.add('hide');
-    fetch('/clear-password-warning', {
-        method:'POST',
-        headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content}
-    });
-}
-
-// ── Upload Avatar (Profile Photo) ─────────────────────────────────────────────
-function uploadAvatar(file){
-    if(!file) return;
-    if(!file.type.startsWith('image/')){ showAlert('perfil-alert','error','Debe seleccionar un archivo de imagen.'); return; }
-    if(file.size > 3*1024*1024){ showAlert('perfil-alert','error','La imagen no debe superar los 3MB.'); return; }
-
-    var form = new FormData();
-    form.append('avatar', file);
-    form.append('_token', document.querySelector('meta[name=csrf-token]').content);
-
-    fetch('/student/avatar', {
-        method:'POST',
-        headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
-        body: form
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-        if(d.success){
-            showAlert('perfil-alert','success', d.message);
-            // Actualizar preview en modal
-            var preview = document.getElementById('perfil-avatar-preview');
-            var initPreview = document.getElementById('perfil-avatar-init-preview');
-            if(initPreview) {
-                // Si no había imagen antes, reemplazamos el div de iniciales por un tag img
-                initPreview.outerHTML = '<img src="'+d.avatar_url+'" id="perfil-avatar-preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid var(--bor)">';
-            } else if(preview) {
-                preview.src = d.avatar_url;
-            }
-
-            // Actualizar avatar en el navbar
-            var navImg = document.getElementById('nav-avatar-img');
-            var navInit = document.getElementById('nav-avatar-init');
-            if(navInit) {
-                navInit.outerHTML = '<img src="'+d.avatar_url+'" class="profile-avatar" alt="Avatar" id="nav-avatar-img" style="object-fit:cover">';
-            } else if(navImg) {
-                navImg.src = d.avatar_url;
-            }
-
-            // Actualizar avatar en el dropdown
-            var dropImg = document.getElementById('drop-avatar-img');
-            var dropInit = document.getElementById('drop-avatar-init');
-            if(dropInit) {
-                dropInit.outerHTML = '<img src="'+d.avatar_url+'" class="profile-avatar lg" alt="Avatar" id="drop-avatar-img" style="object-fit:cover">';
-            } else if(dropImg) {
-                dropImg.src = d.avatar_url;
-            }
-        } else {
-            showAlert('perfil-alert','error', d.message);
-        }
-    })
-    .catch(function(){ showAlert('perfil-alert','error','Error al subir la imagen.'); });
-}
-
-// ── Share Offer (Compartir oferta) ──────────────────────────────────────────
-function shareOffer() {
-    if (!activeItemId) return;
-    
-    // Buscar la oferta en memoria para obtener el título
-    var offer = loadedOffers.find(function(item) { return item.id === activeItemId; });
-    var title = offer ? offer.title : 'Oferta de Empleo';
-    var company = (offer && offer.company) ? offer.company.name : '';
-    
-    // Generar URL robusta para producción (usando window.location.origin y path principal)
-    var shareUrl = window.location.origin + window.location.pathname + '?offer=' + activeItemId;
-    var shareText = 'Mira esta oferta de trabajo: ' + title + (company ? ' en ' + company : '') + ' - Bolsa Laboral';
-
-    if (navigator.share) {
-        navigator.share({
-            title: title,
-            text: shareText,
-            url: shareUrl
-        }).catch(function() {
-            // Fallback si el usuario cancela o hay error
-            copyToClipboard(shareUrl);
-        });
-    } else {
-        copyToClipboard(shareUrl);
-    }
-}
-
-function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() {
-            showToastNotify('¡Enlace de oferta copiado al portapapeles!');
-        }).catch(function() {
-            fallbackCopy(text);
-        });
-    } else {
-        fallbackCopy(text);
-    }
-}
-
-function fallbackCopy(text) {
-    var textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";  // Evitar scroll
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-        document.execCommand('copy');
-        showToastNotify('¡Enlace de oferta copiado al portapapeles!');
-    } catch (err) {
-        console.error('Error al copiar', err);
-    }
-    document.body.removeChild(textArea);
-}
-
-function showToastNotify(msg) {
-    var toast = document.getElementById('toast-notify-el');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast-notify-el';
-        toast.className = 'toast-notify';
-        document.body.appendChild(toast);
-    }
-    toast.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;color:var(--secc)">link</span> ' + msg;
-    toast.classList.add('show');
-    
-    setTimeout(function() {
-        if (toast) toast.classList.remove('show');
-    }, 3000);
-}
-
-/* ===== Notificaciones del estudiante ===== */
-var studentNotifOpen = false;
-var studentNotifData = [];
-
-function toggleStudentNotifMenu() {
-    var menu = document.getElementById('student-notifications-menu');
-    studentNotifOpen = !studentNotifOpen;
-    if (studentNotifOpen) {
-        menu.style.display = 'block';
-        fetchStudentNotifications();
-    } else {
-        menu.style.display = 'none';
-    }
-}
-
-function fetchStudentNotifications() {
-    fetch('/notifications', {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
-    })
-    .then(function(r) { return r.json(); })
+    .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.success) {
-            studentNotifData = data.notifications || [];
-            renderStudentNotifications();
-            updateStudentBadge(data.unread_count || 0);
+            if (data.saved) {
+                savedOffers.add(offerId);
+                showToast('Oferta guardada.');
+            } else {
+                savedOffers.delete(offerId);
+                showToast('Oferta quitada de guardadas.');
+            }
+            // Update Card Icons
+            var cards = document.querySelectorAll('.job-card[data-id="' + offerId + '"] .btn-card-star');
+            cards.forEach(function(btn) {
+                btn.classList.toggle('active', data.saved);
+                var icon = btn.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.textContent = data.saved ? 'bookmark' : 'bookmark_border';
+                    icon.className = 'material-symbols-outlined ' + (data.saved ? 'filled' : '');
+                }
+            });
         }
-    });
-}
-
-function handleNotifClick(el) {
-    var link = el.getAttribute('data-link');
-    if (link && link !== '#' && link !== '') {
-        window.location.href = link;
-    }
-}
-
-function renderStudentNotifications() {
-    var list = document.getElementById('student-notifications-list');
-    if (!list) return;
-
-    var now = new Date();
-    // Filter out read notifications that are older than 1 minute (60000 ms)
-    var visibleNotifications = studentNotifData.filter(function(n) {
-        if (!n.read_at) return true; // Unread notifications are always shown
-        var readTime = new Date(n.read_at);
-        return (now - readTime) < 60000;
-    });
-
-    if (!visibleNotifications.length) {
-        list.innerHTML = '<div style="padding:32px 20px;text-align:center;"><span class="material-symbols-outlined" style="font-size:40px;color:var(--bor);display:block;margin-bottom:8px;">notifications_none</span><p style="font-weight:600;color:var(--txt);">Todo está al día</p><p style="font-size:13px;color:var(--tm);margin-top:4px;">Las novedades importantes aparecerán aquí.</p></div>';
-        return;
-    }
-    list.innerHTML = visibleNotifications.map(function(n) {
-        var isUnread = !n.read_at;
-        var border = isUnread ? 'border-left:3px solid var(--pri);background:rgba(0,39,65,.03);' : '';
-        var time = n.created_at ? new Date(n.created_at).toLocaleString('es-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-        var bgOut = isUnread ? 'rgba(0,39,65,.03)' : 'transparent';
-        var link = esc(n.link || '');
-        return '<div data-link="' + link + '" onclick="handleNotifClick(this)" style="padding:12px 16px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s;' + border + '" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'' + bgOut + '\'">' +
-            '<div style="display:flex;align-items:flex-start;gap:10px;">' +
-            '<span class="material-symbols-outlined" style="font-size:20px;color:var(--pri);margin-top:2px;">notifications</span>' +
-            '<div style="flex:1;min-width:0;">' +
-            '<p style="font-weight:600;font-size:13px;color:var(--txt);margin:0;line-height:1.3;">' + (n.title||'') + '</p>' +
-            '<p style="font-size:12px;color:var(--tv);margin:4px 0 0 0;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (n.message||'') + '</p>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">' +
-            '<span style="font-size:11px;color:var(--tm);">' + time + '</span>' +
-            (isUnread ? '<span style="width:8px;height:8px;background:#dc2626;border-radius:50%;display:inline-block;"></span>' : '') +
-            '</div></div></div></div>';
-    }).join('');
-}
-
-function updateStudentBadge(count) {
-    var badge = document.getElementById('student-notifications-badge');
-    if (!badge) return;
-    badge.style.display = count > 0 ? 'block' : 'none';
-}
-
-function markStudentNotifRead() {
-    fetch('/notifications/read-all', {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json', 'Content-Type': 'application/json' }
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) { if (data.success) fetchStudentNotifications(); });
+    .catch(function() {
+        showToast('Error de red al guardar oferta.');
+    });
 }
 
+function handleModalSaveClick() {
+    if (!currentSelectedOffer) return;
+    handleStarClick(new Event('click'), currentSelectedOffer.id);
+    var isSaved = savedOffers.has(currentSelectedOffer.id);
+    var icon = document.getElementById('m-save-icon');
+    if (icon) {
+        icon.textContent = isSaved ? 'bookmark' : 'bookmark_border';
+        icon.className = 'material-symbols-outlined ' + (isSaved ? 'filled' : '');
+    }
+}
+
+// ── Toast ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+    var t = document.getElementById('toast-notify');
+    var txt = document.getElementById('toast-text');
+    if (t && txt) {
+        txt.textContent = msg;
+        t.style.display = 'flex';
+        setTimeout(function() { t.style.display = 'none'; }, 3200);
+    }
+}
+
+function toggleProfileMenu() {
+    var dd = document.getElementById('profile-dropdown');
+    if (dd) dd.classList.toggle('open');
+}
+function closeProfileMenu() {
+    var dd = document.getElementById('profile-dropdown');
+    if (dd) dd.classList.remove('open');
+}
 document.addEventListener('click', function(e) {
-    var menu = document.getElementById('student-notifications-menu');
-    var btn = document.getElementById('student-notifications-button');
-    if (menu && menu.style.display === 'block') {
-        if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
-            studentNotifOpen = false;
-            menu.style.display = 'none';
-        }
+    var wrap = document.getElementById('profile-menu-wrap');
+    if (wrap && !wrap.contains(e.target)) closeProfileMenu();
+});
+
+// ── Init on DOMContentLoaded ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    loadOffers(1, true);
+
+    @if(request()->has('offer'))
+        setTimeout(function() {
+            var offerId = {{ (int) request('offer') }};
+            if (offerId) {
+                var o = loadedOffers.find(function(item) { return item.id === offerId; });
+                if (o) {
+                    openOpportunityDetail(o.id);
+                    @if(request()->has('apply'))
+                        setTimeout(function() { handleModalApplyClick(); }, 400);
+                    @endif
+                }
+            }
+        }, 800);
+    @endif
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDetailModal();
+        closePostularModal();
     }
 });
 </script>
-<script src="/assets/ui-alerts.js"></script>
 
 </body>
 </html>
