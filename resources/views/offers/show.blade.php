@@ -62,95 +62,157 @@
 
         /* ── NAVBAR ── */
         .navbar {
-            background: var(--sur);
-            border-bottom: 1px solid var(--bor);
+            background: #ffffff;
+            border-bottom: 1.5px solid rgba(1, 20, 60, 0.08);
+            box-shadow: 0 4px 20px -2px rgba(1, 20, 60, 0.04);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: all 0.25s ease;
         }
         .navbar-inner {
-            height: 74px;
+            height: 86px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            gap: 24px;
         }
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
             text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+        .brand:hover {
+            opacity: 0.95;
         }
         .brand-logo-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--pri);
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1.5px solid rgba(1, 20, 60, 0.10);
             color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 26px;
             font-weight: 800;
             overflow: hidden;
             flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 14px rgba(1, 20, 60, 0.07);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .brand:hover .brand-logo-box {
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 6px 18px rgba(1, 20, 60, 0.12);
+            border-color: rgba(1, 20, 60, 0.22);
         }
         .brand-logo-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            padding: 3px;
         }
         .brand-text {
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }
         .brand-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 15px;
+            font-size: 20px;
             font-weight: 800;
-            color: #111827;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
+            color: #01143c;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            transition: color 0.15s ease;
+        }
+        .brand:hover .brand-title {
+            color: #1e3a8a;
         }
         .brand-sub {
-            font-size: 11px;
-            font-weight: 500;
-            color: #6b7280;
-            margin-top: 1px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475eb8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            line-height: 1;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 16px;
         }
         .nav-link {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            color: #4b5563;
-            transition: color 0.15s;
+            color: #475569;
+            padding: 9px 16px;
+            border-radius: 50px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
         }
         .nav-link:hover {
-            color: var(--pri);
+            color: #01143c;
+            background: rgba(1, 20, 60, 0.05);
+        }
+        .btn-login-nav {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 22px;
+            border: 1.5px solid rgba(1, 20, 60, 0.18);
+            border-radius: 50px;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #01143c;
+            background: #ffffff;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+            box-shadow: 0 1px 3px rgba(1, 20, 60, 0.05);
+        }
+        .btn-login-nav:hover {
+            border-color: #01143c;
+            color: #01143c;
+            background: rgba(1, 20, 60, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(1, 20, 60, 0.09);
         }
         .btn-empresa-nav {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 18px;
-            border: 1.5px solid var(--bor);
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 24px;
+            border: 1.5px solid transparent;
             border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--txt);
-            background: #ffffff;
-            transition: all 0.2s;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(135deg, #01143c 0%, #1e3a8a 100%);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+            box-shadow: 0 4px 14px rgba(1, 20, 60, 0.22);
         }
         .btn-empresa-nav:hover {
-            border-color: var(--pri);
-            color: var(--pri);
-            background: var(--pri-tint);
+            color: #ffffff;
+            background: linear-gradient(135deg, #000a20 0%, #172554 100%);
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 20px rgba(1, 20, 60, 0.32);
+        }
+        .btn-empresa-nav .btn-arrow-icon {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+        .btn-empresa-nav:hover .btn-arrow-icon {
+            transform: translate(2px, -2px);
         }
 
         /* Profile Dropdown */
@@ -158,33 +220,40 @@
         .profile-trigger {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px 12px;
-            border: 1.5px solid var(--bor);
+            gap: 10px;
+            padding: 5px 16px 5px 6px;
+            border: 1.5px solid rgba(1, 20, 60, 0.16);
             border-radius: 50px;
-            background: #fff;
+            background: #ffffff;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 1px 3px rgba(1, 20, 60, 0.04);
         }
-        .profile-trigger:hover { border-color: var(--pri); }
+        .profile-trigger:hover {
+            border-color: #01143c;
+            background: rgba(1, 20, 60, 0.02);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(1, 20, 60, 0.08);
+        }
         .profile-avatar {
-            width: 28px;
-            height: 28px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--pri);
-            color: #fff;
+            background: #01143c;
+            color: #ffffff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 13.5px;
             font-weight: 700;
             flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(1, 20, 60, 0.15);
         }
         .profile-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--txt);
-            max-width: 100px;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #01143c;
+            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -1010,12 +1079,13 @@
             }
         }
         @media (max-width: 640px) {
-            .navbar-inner { height: 60px; gap: 10px; }
-            .brand-logo-box { width: 34px; height: 34px; font-size: 16px; }
-            .brand-title { font-size: 13px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .navbar-inner { height: 72px; gap: 12px; }
+            .brand-logo-box { width: 44px; height: 44px; border-radius: 11px; font-size: 20px; }
+            .brand-title { font-size: 15px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .brand-sub { display: none; }
             .nav-link-opportunities { display: none; }
-            .btn-empresa-nav { padding: 6px 14px; font-size: 12px; }
+            .btn-login-nav { padding: 8px 14px; font-size: 13px; }
+            .btn-empresa-nav { padding: 8px 15px; font-size: 13px; gap: 5px; }
             .offer-header-row { flex-direction: column; }
             .stats-highlight-grid { grid-template-columns: 1fr; }
             .footer-inner { flex-direction: column; text-align: center; gap: 10px; }
@@ -1088,12 +1158,14 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="nav-link">Mi espacio</a>
+                        <a href="{{ route('login') }}" class="btn-login-nav">
+                            <span>Iniciar Sesión</span>
+                        </a>
                     @endif
 
                     <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
-                        <span>Mi empresa</span>
-                        <span style="font-size:13px;">↗</span>
+                        <span>Registrarme como Empresa</span>
+                        <span class="btn-arrow-icon">↗</span>
                     </a>
                 </div>
             </div>

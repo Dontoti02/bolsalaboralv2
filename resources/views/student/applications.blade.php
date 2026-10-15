@@ -37,11 +37,10 @@
         .topbar-link{color:rgba(255,255,255,.8);font-size:12px;display:flex;align-items:center;gap:4px;transition:color .15s}
         .topbar-link:hover{color:#fff}
 
-        /* ── NAVBAR ── */
-        .navbar{background:var(--sur);border-bottom:1px solid var(--bor);position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-        .navbar-inner{max-width:1200px;margin:0 auto;padding:0 20px;height:70px;display:flex;align-items:center;justify-content:between;gap:16px}
-        .brand{display:flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--pri);flex-shrink:0}
-        .brand img{height:38px;width:auto}
+        .navbar{background:#fff;border-bottom:1.5px solid rgba(1,20,60,.08);position:sticky;top:0;z-index:100;box-shadow:0 4px 20px -2px rgba(1,20,60,.04)}
+        .navbar-inner{max-width:1200px;margin:0 auto;padding:0 20px;height:84px;display:flex;align-items:center;justify-content:between;gap:20px}
+        .brand{display:flex;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#01143c;flex-shrink:0;text-decoration:none}
+        .brand img{height:50px;width:auto;border-radius:12px;border:1.5px solid rgba(1,20,60,.08);padding:2px;background:#fff;box-shadow:0 2px 8px rgba(1,20,60,.06)}
 
         .navbar-actions{display:flex;align-items:center;gap:12px}
 
