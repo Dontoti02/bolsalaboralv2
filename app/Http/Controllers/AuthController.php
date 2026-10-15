@@ -104,6 +104,12 @@ class AuthController extends Controller
                 }
             }
 
+            // Redirección contextual si el postulante venía de intentar postular a una oferta específica
+            $redirectOffer = $request->input('redirect_offer');
+            if (!empty($redirectOffer) && in_array($user->rol_id, [2, 3, 5])) {
+                return redirect()->to('/?offer=' . urlencode($redirectOffer) . '&apply=1');
+            }
+
             // Redirect based on user role
             if ($user->rol_id == 1) {
                 return redirect()->intended('/admin/dashboard');

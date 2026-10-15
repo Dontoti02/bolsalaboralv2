@@ -127,8 +127,16 @@
                     <p class="text-xs sm:text-sm text-on-surface-variant">Bolsa Laboral - Accede al portal institucional.</p>
                 </div>
                 <!-- Form -->
-                <form action="{{ route('login') }}" method="POST" class="space-y-3.5 sm:space-y-4">
                     @csrf
+                    @if(request()->has('redirect_offer'))
+                        <input type="hidden" name="redirect_offer" value="{{ request('redirect_offer') }}">
+                        <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm font-medium">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-blue-700">info</span>
+                                <span>Inicia sesión para continuar con tu postulación.</span>
+                            </div>
+                        </div>
+                    @endif
                     
                     <div id="login-info-container" class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs sm:text-sm font-medium hidden">
                         <div class="flex items-start gap-2.5">

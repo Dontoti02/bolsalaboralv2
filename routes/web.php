@@ -21,10 +21,11 @@ use App\Models\User;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobOpportunityController;
 
+// Landing Page pública (acceso para visitantes y postulantes)
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
+
 Route::middleware(['auth'])->group(function () {
-    // Landing Page privada (solo para logueados)
-    Route::get('/', [LandingController::class, 'index'])->name('landing');
-    Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
 
     // Secure CV Download Route
     Route::get('/applications/{id}/cv', [\App\Http\Controllers\CompanyDashboardController::class, 'downloadApplicationCv'])->name('applications.cv.download');
