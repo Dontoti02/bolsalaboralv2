@@ -54,12 +54,12 @@
         }
         .hidden { display: none !important; }
 
-        /* Container */
+        /* Container - Full Fluid Width */
         .page-container {
             width: 100%;
-            max-width: 1180px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 clamp(16px, 3.2vw, 56px);
         }
 
         /* ── NAVBAR ── */
@@ -248,7 +248,7 @@
             background: var(--pri-tint);
             border: 1px solid var(--pri-tint-border);
             border-radius: 28px;
-            padding: 48px 52px;
+            padding: clamp(36px, 3.5vw, 56px) clamp(24px, 4vw, 64px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -257,7 +257,8 @@
             overflow: visible;
         }
         .hero-left {
-            max-width: 540px;
+            max-width: 760px;
+            flex: 1;
         }
         .hero-tagline {
             display: inline-flex;
@@ -278,7 +279,7 @@
         }
         .hero-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 42px;
+            font-size: clamp(30px, 2.7vw, 44px);
             font-weight: 800;
             line-height: 1.15;
             color: #111827;
@@ -286,10 +287,11 @@
             margin-bottom: 16px;
         }
         .hero-desc {
-            font-size: 15px;
+            font-size: clamp(14px, 1.05vw, 16px);
             line-height: 1.6;
             color: #4b5563;
             margin-bottom: 28px;
+            max-width: 640px;
         }
         .hero-bottom-info {
             display: flex;
@@ -297,6 +299,7 @@
             gap: 20px;
             font-size: 13px;
             color: #4b5563;
+            flex-wrap: wrap;
         }
         .hero-offers-count strong {
             color: var(--pri);
@@ -389,13 +392,13 @@
             background: #ffffff;
             border: 1px solid var(--bor);
             border-radius: 20px;
-            padding: 28px 32px;
+            padding: clamp(20px, 2.4vw, 32px) clamp(18px, 3vw, 36px);
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
             margin-bottom: 36px;
         }
         .search-fields-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.8fr 1.2fr;
             gap: 20px;
             margin-bottom: 16px;
         }
@@ -450,7 +453,7 @@
 
         .filter-row {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: space-between;
             gap: 16px;
             flex-wrap: wrap;
@@ -458,14 +461,16 @@
         .filter-selectors {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
             flex: 1;
         }
         .filter-item-wrap {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+            flex: 1 1 180px;
+            min-width: 170px;
         }
         .filter-item-label {
             font-size: 11px;
@@ -473,7 +478,8 @@
             color: #6b7280;
         }
         .sub-select {
-            height: 38px;
+            width: 100%;
+            height: 40px;
             border: 1.5px solid var(--bor);
             border-radius: 10px;
             padding: 0 14px;
@@ -483,7 +489,7 @@
             background: #ffffff;
             cursor: pointer;
             outline: none;
-            min-width: 170px;
+            transition: border-color 0.15s;
         }
         .sub-select:focus {
             border-color: var(--pri);
@@ -496,9 +502,10 @@
             font-weight: 600;
             cursor: pointer;
             text-decoration: underline;
-            padding: 6px 8px;
+            padding: 8px 10px;
             transition: color 0.15s;
-            margin-top: 14px;
+            margin-bottom: 2px;
+            white-space: nowrap;
         }
         .btn-clear-filters:hover {
             color: var(--pri);
@@ -551,12 +558,12 @@
             font-weight: 500;
         }
 
-        /* ── 2-COLUMN JOB CARDS GRID ── */
+        /* ── RESPONSIVE JOB CARDS GRID ── */
         .job-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+            gap: 22px;
+            margin-bottom: 36px;
         }
         .job-card {
             background: #ffffff;
@@ -741,7 +748,7 @@
             background: var(--pri-tint);
             border: 1px solid var(--pri-tint-border);
             border-radius: 24px;
-            padding: 36px 44px;
+            padding: clamp(28px, 3.2vw, 44px) clamp(24px, 3.8vw, 56px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -749,7 +756,7 @@
             margin-bottom: 48px;
         }
         .cta-company-left {
-            max-width: 600px;
+            max-width: 820px;
         }
         .cta-company-tagline {
             font-size: 11px;
@@ -762,7 +769,7 @@
         }
         .cta-company-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 24px;
+            font-size: clamp(20px, 2vw, 26px);
             font-weight: 800;
             color: #111827;
             margin-bottom: 6px;
@@ -929,69 +936,127 @@
         }
 
         /* ── RESPONSIVE DESIGN ── */
-        @media (max-width: 900px) {
+        @media (max-width: 960px) {
             .hero-banner-card {
                 flex-direction: column;
-                padding: 36px 28px;
+                padding: 32px 20px;
                 text-align: center;
+                gap: 28px;
             }
             .hero-left {
                 max-width: 100%;
             }
-            .hero-title {
-                font-size: 32px;
-            }
             .hero-desc {
-                margin: 0 auto 24px;
+                margin: 0 auto 20px;
             }
             .hero-bottom-info {
                 justify-content: center;
             }
             .hero-right-visual {
-                margin: 10px auto 0;
+                margin: 0 auto;
             }
             .search-fields-grid {
-                grid-template-columns: 1fr;
-            }
-            .job-grid {
                 grid-template-columns: 1fr;
             }
             .cta-company-card {
                 flex-direction: column;
                 text-align: center;
-                padding: 32px 24px;
+                padding: 28px 20px;
+                gap: 20px;
             }
             .btn-cta-company {
                 width: 100%;
                 justify-content: center;
             }
         }
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+            }
+            .filter-selectors {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .filter-item-wrap {
+                width: 100%;
+                min-width: 100%;
+            }
+            .btn-clear-filters {
+                text-align: center;
+                width: 100%;
+                margin-top: 0;
+            }
+            .section-title-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+        }
         @media (max-width: 640px) {
             .navbar-inner {
-                height: 64px;
+                height: 60px;
+                gap: 10px;
             }
-            .nav-link {
+            .brand-logo-box {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+            }
+            .brand-title {
+                font-size: 13px;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .brand-sub {
                 display: none;
+            }
+            .nav-link-opportunities {
+                display: none;
+            }
+            .btn-empresa-nav {
+                padding: 6px 14px;
+                font-size: 12px;
             }
             .hero-title {
                 font-size: 26px;
             }
             .search-card {
-                padding: 20px 16px;
+                padding: 18px 14px;
             }
-            .sub-select {
-                min-width: 100%;
-                width: 100%;
-            }
-            .filter-selectors {
-                width: 100%;
-            }
-            .filter-item-wrap {
-                width: 100%;
-            }
-            .btn-clear-filters {
-                width: 100%;
+            .footer-inner {
+                flex-direction: column;
                 text-align: center;
+                gap: 10px;
+            }
+            .modal-box {
+                padding: 22px 18px;
+                border-radius: 20px;
+            }
+        }
+        @media (max-width: 420px) {
+            .hero-right-visual {
+                width: 240px;
+                height: 220px;
+            }
+            .tilted-card {
+                width: 220px;
+                height: 200px;
+                padding: 18px;
+            }
+            .tilted-card-title {
+                font-size: 20px;
+            }
+            .floating-pill {
+                font-size: 11px;
+                padding: 6px 12px;
+                right: -6px;
+                bottom: -8px;
             }
         }
     </style>
@@ -1019,7 +1084,7 @@
 
                 {{-- Nav Links --}}
                 <div class="nav-links">
-                    <a href="#oportunidades" class="nav-link">Oportunidades</a>
+                    <a href="#oportunidades" class="nav-link nav-link-opportunities">Oportunidades</a>
 
                     @if($authUser)
                         {{-- Perfil Logueado --}}
