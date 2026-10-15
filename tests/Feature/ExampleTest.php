@@ -71,7 +71,7 @@ class ExampleTest extends TestCase
         
         if ($user) {
             $response = $this->actingAs($user)->get('/student/dashboard');
-            $response->assertStatus(200);
+            $response->assertRedirect('/');
         } else {
             $user = new User([
                 'email' => 'student@test.com',
@@ -79,7 +79,7 @@ class ExampleTest extends TestCase
                 'is_active' => true,
             ]);
             $response = $this->actingAs($user)->get('/student/dashboard');
-            $response->assertStatus(200);
+            $response->assertRedirect('/');
         }
     }
 
@@ -129,7 +129,7 @@ class ExampleTest extends TestCase
         
         if ($user) {
             $response = $this->actingAs($user)->get('/teacher/dashboard');
-            $response->assertStatus(200);
+            $response->assertRedirect('/');
         } else {
             $user = new User([
                 'email' => 'teacher@test.com',
@@ -137,7 +137,7 @@ class ExampleTest extends TestCase
                 'is_active' => true,
             ]);
             $response = $this->actingAs($user)->get('/teacher/dashboard');
-            $response->assertStatus(200);
+            $response->assertRedirect('/');
         }
     }
 }

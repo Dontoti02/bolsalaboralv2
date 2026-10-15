@@ -407,6 +407,272 @@
                 padding: 16px !important;
                 border-radius: 12px !important;
             }
+        /* ── HERO SECTION ── */
+        .hero-section {
+            background: linear-gradient(135deg, var(--pri) 0%, #031422 100%);
+            position: relative;
+            overflow: hidden;
+            color: #ffffff;
+            padding: 56px 20px 52px;
+            text-align: center;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 140%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 20%, rgba(0, 107, 96, 0.28) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 40%, rgba(249, 115, 22, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 18px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 22px;
+            backdrop-filter: blur(12px);
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .hero-badge .material-symbols-outlined {
+            color: var(--secc);
+            font-size: 18px;
+        }
+        .hero-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.22;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+        }
+        .hero-highlight {
+            color: var(--secc);
+            background: linear-gradient(135deg, #ffffff 15%, var(--secc) 85%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-subtitle {
+            font-size: 17px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.84);
+            max-width: 680px;
+            margin: 0 auto 34px;
+            font-weight: 400;
+        }
+        .hero-search-box {
+            max-width: 820px;
+            margin: 0 auto 28px;
+            background: #ffffff;
+            border-radius: 60px;
+            padding: 6px 8px 6px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hero-search-box:focus-within {
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+            border-color: var(--sec);
+            transform: translateY(-1px);
+        }
+        .hero-search-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            color: var(--txt);
+        }
+        .hero-search-field .hero-icon {
+            color: var(--tm);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .hero-input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--txt);
+            width: 100%;
+        }
+        .hero-input::placeholder {
+            color: var(--tm);
+        }
+        .hero-divider {
+            width: 1px;
+            height: 32px;
+            background: var(--bor);
+            flex-shrink: 0;
+        }
+        .hero-search-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 30px;
+            background: var(--sec);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(0, 107, 96, 0.35);
+        }
+        .hero-search-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+        .hero-categories {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 38px;
+        }
+        .hero-cat-label {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .hero-cat-pill {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            backdrop-filter: blur(8px);
+        }
+        .hero-cat-pill:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .hero-stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s;
+        }
+        .hero-stat-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .hero-stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+        .hero-stat-val {
+            display: block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+            margin-bottom: 3px;
+        }
+        .hero-stat-lbl {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 500;
+        }
+
+        /* User welcome banner when authenticated */
+        .welcome-auth-banner {
+            background: #ffffff;
+            border-bottom: 1px solid var(--bor);
+            padding: 14px 20px;
+        }
+        .welcome-auth-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive Hero */
+        @media (max-width: 820px) {
+            .hero-section {
+                padding: 40px 16px 36px;
+            }
+            .hero-title {
+                font-size: 28px;
+            }
+            .hero-subtitle {
+                font-size: 15px;
+                margin-bottom: 24px;
+            }
+            .hero-search-box {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 14px;
+                gap: 12px;
+            }
+            .hero-divider {
+                display: none;
+            }
+            .hero-search-field {
+                width: 100%;
+            }
+            .hero-search-btn {
+                width: 100%;
+            }
+            .hero-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
 
     </style>
@@ -634,6 +900,7 @@
                 </a>
             @endif
         </div>
+    </div>
 </nav>
 
 @if(session('show_password_warning'))
@@ -646,6 +913,112 @@
         <div class="warning-banner-actions">
             <button class="btn-warning-action btn-warning-pri" onclick="openModal('modal-password')">Cambiar ahora</button>
             <button class="btn-warning-action btn-warning-sec" onclick="dismissPwdWarning()">Más tarde</button>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- ══ HERO SECTION / PUBLIC & AUTH BANNER ══ --}}
+@if(!$authUser)
+<section class="hero-section" id="hero-section">
+    <div class="hero-container">
+        <div class="hero-badge">
+            <span class="material-symbols-outlined filled">verified</span>
+            Portal Oficial de Empleabilidad &bull; {{ $config['application_name'] ?? 'Bolsa Laboral' }}
+        </div>
+        <h1 class="hero-title">
+            Encuentra tu próximo <span class="hero-highlight">desafío profesional</span>
+        </h1>
+        <p class="hero-subtitle">
+            Explora ofertas laborales verificadas directamente con empresas líderes. Postula fácilmente y conecta con empleadores de confianza.
+        </p>
+
+        {{-- Hero Search Form --}}
+        <div class="hero-search-box">
+            <div class="hero-search-field">
+                <span class="material-symbols-outlined hero-icon">work</span>
+                <input type="text" id="hero-search-q" class="hero-input" placeholder="Cargo, palabra clave o empresa..." autocomplete="off" onkeydown="if(event.key==='Enter')syncAndSearch()">
+            </div>
+            <div class="hero-divider"></div>
+            <div class="hero-search-field">
+                <span class="material-symbols-outlined hero-icon">location_on</span>
+                <input type="text" id="hero-search-loc" class="hero-input" placeholder="Departamento..." autocomplete="off" onkeydown="if(event.key==='Enter')syncAndSearch()">
+            </div>
+            <button type="button" class="hero-search-btn" onclick="syncAndSearch()">
+                <span class="material-symbols-outlined">search</span>
+                <span>Buscar empleos</span>
+            </button>
+        </div>
+
+        {{-- Category Pills --}}
+        @if(isset($categories) && $categories->count() > 0)
+        <div class="hero-categories">
+            <span class="hero-cat-label">Categorías populares:</span>
+            @foreach($categories->take(6) as $cat)
+            <button type="button" class="hero-cat-pill" onclick="filterByCategory('{{ $cat->id }}', '{{ addslashes($cat->name) }}')">
+                {{ $cat->name }}
+            </button>
+            @endforeach
+        </div>
+        @endif
+
+        {{-- Stats Row --}}
+        <div class="hero-stats">
+            <div class="hero-stat-card">
+                <div class="hero-stat-icon">
+                    <span class="material-symbols-outlined filled">work</span>
+                </div>
+                <div>
+                    <span class="hero-stat-val">{{ number_format($totalActiveOffers) }}</span>
+                    <span class="hero-stat-lbl">Ofertas de empleo activas</span>
+                </div>
+            </div>
+            <div class="hero-stat-card">
+                <div class="hero-stat-icon" style="color:var(--sec);background:rgba(0,107,96,.15);">
+                    <span class="material-symbols-outlined filled">domain</span>
+                </div>
+                <div>
+                    <span class="hero-stat-val">{{ number_format($totalCompanies) }}</span>
+                    <span class="hero-stat-lbl">Empresas verificadas</span>
+                </div>
+            </div>
+            <div class="hero-stat-card">
+                <div class="hero-stat-icon" style="color:var(--acc);background:rgba(249,115,22,.15);">
+                    <span class="material-symbols-outlined filled">verified_user</span>
+                </div>
+                <div>
+                    <span class="hero-stat-val">100%</span>
+                    <span class="hero-stat-lbl">Validación institucional</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@else
+<div class="welcome-auth-banner">
+    <div class="welcome-auth-inner">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,39,65,0.08);color:var(--pri);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="font-size:22px;">handshake</span>
+            </div>
+            <div>
+                <h2 style="font-size:15px;font-weight:700;color:var(--txt);margin:0;">
+                    ¡Bienvenido, {{ explode(' ', $authUser->person->names ?? $authUser->email)[0] }}!
+                </h2>
+                <p style="font-size:13px;color:var(--tv);margin:2px 0 0 0;">
+                    Explora las vacantes disponibles y postula de inmediato con tu CV registrado.
+                </p>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <a href="{{ route('student.applications') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:50px;font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
+                <span class="material-symbols-outlined" style="font-size:16px;color:var(--sec);">fact_check</span>
+                Mis postulaciones ({{ $studentApplications->count() }})
+            </a>
+            <a href="{{ route('student.saved.offers') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:50px;font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
+                <span class="material-symbols-outlined" style="font-size:16px;color:var(--acc);">bookmark</span>
+                Guardadas ({{ count($studentSavedOfferIds ?? []) }})
+            </a>
         </div>
     </div>
 </div>
@@ -825,7 +1198,7 @@
                                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--pri)">visibility</span>
                                 Vista Admin
                             </div>
-                        @elseif($authUser && $authUser->rol_id == 3)
+                        @elseif($authUser && ($authUser->rol_id == 3 || $authUser->rol_id == 5))
                             @if(($config['allow_student_applications'] ?? '1') === '1')
                                 <button class="btn-postular" onclick="openPostularModal()">
                                     <span class="material-symbols-outlined" style="font-size:18px">send</span>
@@ -844,10 +1217,13 @@
                                 </button>
                             @endif
                         @elseif(!$authUser)
-                            <a href="{{ route('login') }}" class="btn-postular" style="text-decoration:none;">
+                            <button type="button" class="btn-postular" onclick="openPostularModal()">
                                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
                                 Postularme
-                            </a>
+                            </button>
+                            <button type="button" class="btn-icon" title="Guardar" onclick="openPostularModal()">
+                                <span class="material-symbols-outlined" style="font-size:18px">bookmark_add</span>
+                            </button>
                         @endif
                         <button class="btn-icon" title="Compartir" onclick="shareOffer()">
                             <span class="material-symbols-outlined" style="font-size:18px">share</span>
@@ -1017,15 +1393,25 @@
         </div>
         @else
         {{-- No autenticado --}}
-        <span class="material-symbols-outlined filled modal-icon">lock_person</span>
-        <h2 class="modal-title">Inicia sesión para postular</h2>
-        <p class="modal-sub">Crea tu cuenta o inicia sesión para postularte a esta oferta y acceder a todas las funciones de tu perfil.</p>
-        <div class="modal-actions">
-            <a href="{{ route('login') }}" class="modal-btn-pri">
-                <span class="material-symbols-outlined" style="font-size:18px">login</span>
+        <div style="width:68px;height:68px;border-radius:24px;background:rgba(0,39,65,.08);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <span class="material-symbols-outlined filled" style="font-size:38px;color:var(--pri)">lock_person</span>
+        </div>
+        <h2 class="modal-title" style="font-size:22px;margin-bottom:8px;">Inicia sesión para postular</h2>
+        <p class="modal-sub" id="guest-modal-sub" style="margin-bottom:20px;line-height:1.6;font-size:14px;color:var(--tv);">
+            Para postular a <strong id="guest-modal-offer-title">esta vacante</strong>, necesitas acceder con tu cuenta de estudiante o egresado.
+        </p>
+        <div class="modal-actions" style="display:flex;flex-direction:column;gap:10px;">
+            <a id="btn-guest-login" href="{{ route('login') }}" class="modal-btn-pri" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:12px;font-size:15px;font-weight:700;">
+                <span class="material-symbols-outlined" style="font-size:20px">login</span>
                 Iniciar Sesión
             </a>
-            <button class="modal-btn-sec" onclick="closePostularModal()">Seguir explorando</button>
+            <a id="btn-guest-register-grad" href="{{ route('register.graduate') }}" class="modal-btn-sec" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;font-size:14px;font-weight:600;border:1.5px solid var(--bor);color:var(--txt);">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--sec)">school</span>
+                Registrarme como Egresado
+            </a>
+            <button type="button" class="modal-btn-sec" onclick="closePostularModal()" style="border:none;background:transparent;color:var(--tm);font-size:13px;padding:8px;cursor:pointer;margin-top:4px;">
+                Seguir explorando ofertas
+            </button>
         </div>
         @endif
     </div>
@@ -1310,7 +1696,52 @@ function refreshApplyFormCvs(){
 // ── Init ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     loadOffers(1, true);
+
+    @if(request()->has('apply'))
+    setTimeout(function() {
+        if (typeof openPostularModal === 'function') {
+            openPostularModal();
+        }
+    }, 700);
+    @endif
 });
+
+// ── Search & Filter Helpers ──────────────────────────────────────────────────
+function syncAndSearch() {
+    var hq = document.getElementById('hero-search-q');
+    var hloc = document.getElementById('hero-search-loc');
+    var nq = document.getElementById('nav-search-q');
+    var nloc = document.getElementById('nav-search-loc');
+    var mq = document.getElementById('mobile-search-q');
+    var mloc = document.getElementById('mobile-search-loc');
+
+    var qVal = hq ? hq.value.trim() : '';
+    var locVal = hloc ? hloc.value.trim() : '';
+
+    if (nq) nq.value = qVal;
+    if (mq) mq.value = qVal;
+    if (nloc) nloc.value = locVal;
+    if (mloc) mloc.value = locVal;
+
+    triggerSearch();
+
+    var mainEl = document.getElementById('main-content');
+    if (mainEl) {
+        mainEl.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function filterByCategory(catId, catName) {
+    var catSelect = document.getElementById('filter-category');
+    if (catSelect) {
+        catSelect.value = catId;
+        applyFilters();
+        var mainEl = document.getElementById('main-content');
+        if (mainEl) {
+            mainEl.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
 
 // ── Search ──────────────────────────────────────────────────────────────────
 function triggerSearch() {
@@ -1900,6 +2331,10 @@ var currentOfferId = null;
 
 function toggleSaveOffer(event){
     event.stopPropagation();
+    @if(!$authUser)
+        openPostularModal();
+        return;
+    @endif
     if(!activeItemId) return;
     var btn = document.getElementById('btn-save-offer');
     var icon = document.getElementById('save-icon');
@@ -1949,6 +2384,23 @@ function openPostularModal(){
     if(modal){
         modal.classList.add('open');
         document.body.style.overflow='hidden';
+
+        // Actualizar datos del modal para visitantes no autenticados
+        var activeOffer = loadedOffers.find(function(o){ return o.id == currentOfferId; }) || sharedOffer;
+        var guestTitle = document.getElementById('guest-modal-offer-title');
+        var guestLoginBtn = document.getElementById('btn-guest-login');
+        var guestGradBtn = document.getElementById('btn-guest-register-grad');
+
+        if(guestTitle && activeOffer){
+            guestTitle.textContent = activeOffer.title + (activeOffer.company ? ' (' + activeOffer.company.name + ')' : '');
+        }
+        if(guestLoginBtn && activeOffer){
+            guestLoginBtn.href = '{{ route("login") }}?redirect_offer=' + encodeURIComponent(activeOffer.id) + '&apply=1';
+        }
+        if(guestGradBtn && activeOffer){
+            guestGradBtn.href = '{{ route("register.graduate") }}?redirect_offer=' + encodeURIComponent(activeOffer.id);
+        }
+
         // Reset alert
         var al = document.getElementById('postular-alert');
         if(al){ al.style.display='none'; al.textContent=''; }
