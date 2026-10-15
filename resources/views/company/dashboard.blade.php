@@ -567,6 +567,51 @@
                         </div>
                     </div>
 
+                    <!-- Row 5: Banner Image for Landing Arch Carousel -->
+                    <div class="space-y-sm pt-md border-t border-outline-variant">
+                        <div>
+                            <label class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-[20px]">panorama</span>
+                                <span>Imagen destacada para portada (Carrusel en Arco)</span>
+                                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-semibold">Opcional</span>
+                            </label>
+                            <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                                Sube una imagen vertical para que tu vacante aparezca de manera destacada en el carrusel abovedado de la página de inicio.
+                                <strong>Dimensiones recomendadas: 800 × 950 px</strong> (proporción vertical 4:5, alta resolución). Formatos aceptados: JPG, PNG, WEBP (máx. 3MB).
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-start gap-4 pt-1">
+                            <!-- Upload Box / Dropzone -->
+                            <div class="flex-1 w-full border-2 border-dashed border-outline-variant hover:border-primary rounded-2xl p-5 text-center cursor-pointer transition-colors bg-surface-container-lowest"
+                                 onclick="document.getElementById('co-offer-banner-file').click()">
+                                <input type="file" id="co-offer-banner-file" accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden" onchange="handleBannerFileSelect(event)">
+                                <input type="hidden" id="co-offer-remove-banner" value="0">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <div class="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[24px]">cloud_upload</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-semibold text-primary">Haz clic para seleccionar o cambiar imagen</span>
+                                        <span class="text-xs text-on-surface-variant block mt-0.5">Dimensiones ideales: 800 × 950 px (4:5)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Box (Arched shape matching the landing page) -->
+                            <div id="co-banner-preview-wrap" class="w-32 h-40 rounded-t-full rounded-b-xl border-2 border-primary/30 bg-surface-container overflow-hidden relative shadow-md shrink-0 hidden group">
+                                <img id="co-banner-preview-img" src="" alt="Vista previa del arco" class="w-full h-full object-cover">
+                                <button type="button" onclick="removeBannerImage(event)" title="Quitar imagen"
+                                        class="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-md hover:bg-red-700 transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">close</span>
+                                </button>
+                                <div class="absolute bottom-0 inset-x-0 p-1 bg-gradient-to-t from-black/80 to-transparent text-[9px] text-white font-bold text-center">
+                                    Vista en portada
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Submit Actions -->
                     <div class="flex justify-end gap-md pt-lg border-t border-outline-variant">
                         <button type="button" onclick="hideCreateOfferForm()"
@@ -1376,6 +1421,15 @@
         document.getElementById('co-offer-pub-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('company-form-offer-title').textContent = 'Crear Oferta Laboral';
         document.getElementById('co-btn-save-offer').textContent = 'Crear Oferta Laboral';
+        
+        // Reset banner preview
+        document.getElementById('co-offer-remove-banner').value = '0';
+        document.getElementById('co-offer-banner-file').value = '';
+        const previewWrap = document.getElementById('co-banner-preview-wrap');
+        if (previewWrap) previewWrap.classList.add('hidden');
+        const previewImg = document.getElementById('co-banner-preview-img');
+        if (previewImg) previewImg.src = '';
+
         document.getElementById('company-offers-list-view').classList.add('hidden');
         document.getElementById('company-offers-form-view').classList.remove('hidden');
         loadCompanyOfferMeta();
@@ -1387,6 +1441,43 @@
         loadCompanyOffers();
     }
 
+    function handleBannerFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.match('image.*')) {
+            showToast('Por favor selecciona un archivo de imagen válido (JPG, PNG, WEBP).', 'error');
+            return;
+        }
+
+        if (file.size > 3 * 1024 * 1024) {
+            showToast('La imagen supera el límite máximo permitido de 3MB.', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewWrap = document.getElementById('co-banner-preview-wrap');
+            const previewImg = document.getElementById('co-banner-preview-img');
+            if (previewImg && previewWrap) {
+                previewImg.src = e.target.result;
+                previewWrap.classList.remove('hidden');
+            }
+            document.getElementById('co-offer-remove-banner').value = '0';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeBannerImage(event) {
+        if (event) event.stopPropagation();
+        document.getElementById('co-offer-banner-file').value = '';
+        document.getElementById('co-offer-remove-banner').value = '1';
+        const previewWrap = document.getElementById('co-banner-preview-wrap');
+        const previewImg = document.getElementById('co-banner-preview-img');
+        if (previewImg) previewImg.src = '';
+        if (previewWrap) previewWrap.classList.add('hidden');
+    }
+
     function handleCompanyOfferSubmit(event) {
         event.preventDefault();
         const id  = document.getElementById('company-form-offer-id').value;
@@ -1394,30 +1485,38 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px] leading-none align-middle mr-1">autorenew</span> Guardando...';
 
-        const payload = {
-            title:            document.getElementById('co-offer-title').value,
-            description:      document.getElementById('co-offer-description').value,
-            requirements:     document.getElementById('co-offer-requirements').value,
-            benefits:         document.getElementById('co-offer-benefits').value,
-            publication_date: document.getElementById('co-offer-pub-date').value,
-            salary:           document.getElementById('co-offer-salary').value,
-            salary_currency:  document.getElementById('co-offer-currency').value,
-            address:          document.getElementById('co-offer-address').value,
-            department:       document.getElementById('co-offer-department').value,
-            province:         document.getElementById('co-offer-province').value,
-            location_id:      document.getElementById('co-offer-location').value,
-            category_id:      document.getElementById('co-offer-category').value,
-            work_schedule_id: document.getElementById('co-offer-work-schedule').value,
-            contract_type_id: document.getElementById('co-offer-contract-type').value,
-        };
+        const formData = new FormData();
+        formData.append('title',            document.getElementById('co-offer-title').value);
+        formData.append('description',      document.getElementById('co-offer-description').value);
+        formData.append('requirements',     document.getElementById('co-offer-requirements').value);
+        formData.append('benefits',         document.getElementById('co-offer-benefits').value);
+        formData.append('publication_date', document.getElementById('co-offer-pub-date').value);
+        formData.append('salary',           document.getElementById('co-offer-salary').value);
+        formData.append('salary_currency',  document.getElementById('co-offer-currency').value);
+        formData.append('address',          document.getElementById('co-offer-address').value);
+        formData.append('department',       document.getElementById('co-offer-department').value);
+        formData.append('province',         document.getElementById('co-offer-province').value);
+        formData.append('location_id',      document.getElementById('co-offer-location').value);
+        formData.append('category_id',      document.getElementById('co-offer-category').value);
+        formData.append('work_schedule_id', document.getElementById('co-offer-work-schedule').value);
+        formData.append('contract_type_id', document.getElementById('co-offer-contract-type').value);
 
-        const url    = id ? `/company/offers/${id}` : '/company/offers';
-        const method = id ? 'PUT' : 'POST';
+        if (id) {
+            formData.append('_method', 'PUT');
+        }
+
+        const bannerFile = document.getElementById('co-offer-banner-file').files[0];
+        if (bannerFile) {
+            formData.append('banner_image', bannerFile);
+        }
+        formData.append('remove_banner_image', document.getElementById('co-offer-remove-banner').value);
+
+        const url = id ? `/company/offers/${id}` : '/company/offers';
 
         fetch(url, {
-            method,
-            body:    JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+            method: 'POST',
+            body:    formData,
+            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(r => r.json())
         .then(data => {
@@ -1461,6 +1560,20 @@
                 document.getElementById('co-offer-department').value = o.department || '';
                 handleCompanyDepartmentChange();
                 document.getElementById('co-offer-province').value = o.province || '';
+
+                // Banner image
+                document.getElementById('co-offer-remove-banner').value = '0';
+                document.getElementById('co-offer-banner-file').value = '';
+                const previewWrap = document.getElementById('co-banner-preview-wrap');
+                const previewImg  = document.getElementById('co-banner-preview-img');
+                if (o.banner_image) {
+                    previewImg.src = o.banner_image;
+                    previewWrap.classList.remove('hidden');
+                } else {
+                    previewImg.src = '';
+                    previewWrap.classList.add('hidden');
+                }
+
                 document.getElementById('company-form-offer-title').textContent = 'Editar Oferta Laboral';
                 document.getElementById('co-btn-save-offer').textContent = 'Guardar Cambios';
                 document.getElementById('company-offers-list-view').classList.add('hidden');

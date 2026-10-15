@@ -43,6 +43,7 @@ class JobOpportunityOffer extends Model
         'category_id',
         'work_schedule_id',
         'contract_type_id',
+        'banner_image',
     ];
 
     /**

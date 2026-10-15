@@ -361,6 +361,7 @@ class CompanyDashboardController extends Controller
             'category_id'      => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
+            'banner_image'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
         if ($validator->fails()) {
@@ -376,11 +377,24 @@ class CompanyDashboardController extends Controller
                 $slug .= '-' . time();
             }
 
-            $offer = new JobOpportunityOffer($request->except('company_id'));
+            $offer = new JobOpportunityOffer($request->except(['company_id', 'banner_image']));
             $offer->company_id = $company->id;   // always force company from auth
             $offer->slug       = $slug;
             $offer->country    = 'Perú';
             $offer->state_id   = 2;              // active by default
+
+            // Handle banner image upload for featured landing arch carousel
+            if ($request->hasFile('banner_image')) {
+                $file = $request->file('banner_image');
+                $fileName = 'banner_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                $uploadPath = public_path('uploads/offers/banners');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                $file->move($uploadPath, $fileName);
+                $offer->banner_image = '/uploads/offers/banners/' . $fileName;
+            }
+
             $offer->save();
 
             DB::table('job_opportunity_offer_state_detail')->insert([
@@ -484,6 +498,7 @@ class CompanyDashboardController extends Controller
             'category_id'      => 'required|integer',
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
+            'banner_image'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
         if ($validator->fails()) {
@@ -502,7 +517,22 @@ class CompanyDashboardController extends Controller
                 $offer->slug = $slug;
             }
 
-            $offer->fill($request->except(['company_id', 'state_id'])); // never allow company override
+            $offer->fill($request->except(['company_id', 'state_id', 'banner_image'])); // never allow company override
+
+            // Handle banner image upload or removal
+            if ($request->hasFile('banner_image')) {
+                $file = $request->file('banner_image');
+                $fileName = 'banner_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                $uploadPath = public_path('uploads/offers/banners');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                $file->move($uploadPath, $fileName);
+                $offer->banner_image = '/uploads/offers/banners/' . $fileName;
+            } elseif ($request->filled('remove_banner_image') && $request->remove_banner_image == '1') {
+                $offer->banner_image = null;
+            }
+
             $offer->save();
 
             DB::commit();

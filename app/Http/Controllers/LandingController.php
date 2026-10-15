@@ -42,6 +42,7 @@ class LandingController extends Controller
         $totalActiveOffers = 0;
         $totalCompanies    = 0;
         $featuredOffers    = collect();
+        $bannerOffers      = collect();
         $companies         = collect();
         $categories        = collect();
         $locations         = collect();
@@ -68,6 +69,15 @@ class LandingController extends Controller
                 ->whereHas('state', fn($q) => $q->where('key', 'active'))
                 ->orderBy('publication_date', 'desc')
                 ->take(9)
+                ->get();
+
+            // Ofertas activas con banner personalizado para el arco rotativo
+            $bannerOffers = JobOpportunityOffer::with(['company:id,name,logo'])
+                ->whereHas('state', fn($q) => $q->where('key', 'active'))
+                ->whereNotNull('banner_image')
+                ->where('banner_image', '!=', '')
+                ->orderBy('publication_date', 'desc')
+                ->take(6)
                 ->get();
 
             // Buscar oferta compartida por URL
@@ -202,8 +212,8 @@ class LandingController extends Controller
             $studentApplicationIds = [];
             $studentApplications = collect();
             $availableTitles   = collect();
-            $availableCompanies = collect();
-            $sharedOffer       = null;
+            $studentCompanies  = collect();
+            $bannerOffers      = collect();
             $studentSavedOfferIds = [];
         }
 
@@ -212,6 +222,7 @@ class LandingController extends Controller
             'totalActiveOffers',
             'totalCompanies',
             'featuredOffers',
+            'bannerOffers',
             'companies',
             'categories',
             'locations',

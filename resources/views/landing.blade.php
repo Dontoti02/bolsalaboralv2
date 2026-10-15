@@ -387,6 +387,46 @@
             box-shadow: 0 20px 45px rgba(30, 27, 75, 0.18);
             background: #1e1b4b;
         }
+        .hero-arch-slides-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .hero-arch-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hero-arch-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .arch-carousel-dots {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 10;
+        }
+        .arch-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .arch-dot.active {
+            background: #ffffff;
+            width: 22px;
+            border-radius: 10px;
+        }
         .hero-arch-img {
             width: 100%;
             height: 100%;
@@ -412,6 +452,18 @@
             margin-bottom: 14px;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             letter-spacing: -0.02em;
+        }
+        .companies-empty-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px 16px;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
         }
         .arch-company-pill {
             background: rgba(255, 255, 255, 0.12);
@@ -1322,11 +1374,11 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="nav-link">Mi espacio</a>
+                        <a href="{{ route('login') }}" class="nav-link">Iniciar Sesión</a>
                     @endif
 
                     <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
-                        <span>Mi empresa</span>
+                        <span>Registrarme como Empresa</span>
                         <span style="font-size:13px;">↗</span>
                     </a>
                 </div>
@@ -1343,7 +1395,7 @@
             <div class="hero-content-col">
                 <h1 class="hero-ct-title">
                     Hay <strong id="hero-count-number">{{ $totalActiveOffers > 0 ? number_format($totalActiveOffers) : '35,698' }}</strong> trabajos<br>
-                    esperándote en {{ $config['institution_country'] ?? 'Perú' }}
+                    esperándote en {{ $config['institution_country'] ?? 'Aqui' }}
                 </h1>
 
                 <div class="hero-search-box">
@@ -1376,29 +1428,81 @@
                 </div>
             </div>
 
-            {{-- Right Arch Visual Card (Pacasmayo / Top Employer Highlight) --}}
+            {{-- Right Arch Visual Card (Dynamic Carousel with Uploaded Banners & Fallback) --}}
             <div class="hero-arch-col">
-                <div class="hero-arch-frame">
-                    <img src="{{ asset('assets/hero_professionals.jpg') }}" alt="Profesionales en Perú" class="hero-arch-img">
-                    <div class="hero-arch-overlay">
-                        <div class="hero-arch-question">
-                            ¿Listo para tu próximo empleo?
+                <div class="hero-arch-frame" id="hero-arch-frame">
+                    @if($bannerOffers->count() > 1)
+                        <div class="arch-carousel-dots" id="arch-carousel-dots">
+                            @foreach($bannerOffers as $idx => $bo)
+                                <button type="button" class="arch-dot {{ $idx === 0 ? 'active' : '' }}" onclick="switchArchSlide({{ $idx }})" aria-label="Slide {{ $idx + 1 }}"></button>
+                            @endforeach
                         </div>
-                        <div class="arch-company-pill">
-                            <div class="arch-pill-brand">
-                                <span>Pacasmayo</span>
-                                <span class="arch-pacasmayo-sq"></span>
+                    @endif
+
+                    <div class="hero-arch-slides-container" id="hero-arch-slides">
+                        @forelse($bannerOffers as $index => $bOffer)
+                            <div class="hero-arch-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}">
+                                <img src="{{ asset($bOffer->banner_image) }}" alt="{{ $bOffer->title }}" class="hero-arch-img" onerror="this.onerror=null;this.src='{{ asset('assets/hero_professionals.jpg') }}';">
+                                <div class="hero-arch-overlay">
+                                    <div class="hero-arch-question">
+                                        ¿Listo para tu próximo empleo?
+                                    </div>
+                                    <div class="arch-company-pill" onclick="window.location.href='/ofertas/{{ $bOffer->id }}'" style="cursor:pointer;" title="{{ $bOffer->title }}">
+                                        <div class="arch-pill-brand">
+                                            @if($bOffer->company && $bOffer->company->logo)
+                                                <img src="{{ $bOffer->company->logo }}" alt="{{ $bOffer->company->name }}" style="max-height:24px;max-width:70px;object-fit:contain;filter:brightness(0) invert(1);">
+                                            @else
+                                                <span>{{ $bOffer->company ? Str::limit($bOffer->company->name, 12) : 'Empresa' }}</span>
+                                                <span class="arch-pacasmayo-sq"></span>
+                                            @endif
+                                        </div>
+                                        <div class="arch-pill-text">
+                                            <span>TIENE</span>
+                                            <strong>VACANTES</strong>
+                                            <span>PARA TI</span>
+                                        </div>
+                                    </div>
+                                    <a href="/ofertas/{{ $bOffer->id }}" class="arch-btn-more">
+                                        <span>Conoce más</span>
+                                        <span style="font-size:15px;line-height:1;">›</span>
+                                    </a>
+                                </div>
                             </div>
-                            <div class="arch-pill-text">
-                                <span>TIENE</span>
-                                <strong>VACANTES</strong>
-                                <span>PARA TI</span>
+                        @empty
+                            <div class="hero-arch-slide active" data-slide="0">
+                                <img src="{{ asset('assets/hero_professionals.jpg') }}" alt="Profesionales en Perú" class="hero-arch-img">
+                                <div class="hero-arch-overlay">
+                                    <div class="hero-arch-question">
+                                        ¿Listo para tu próximo empleo?
+                                    </div>
+                                    @php
+                                        $firstCompany = $companies->first();
+                                    @endphp
+                                    <div class="arch-company-pill" onclick="window.location.href='#oportunidades'" style="cursor:pointer;">
+                                        <div class="arch-pill-brand">
+                                            @if($firstCompany && $firstCompany->logo)
+                                                <img src="{{ $firstCompany->logo }}" alt="{{ $firstCompany->name }}" style="max-height:24px;max-width:70px;object-fit:contain;filter:brightness(0) invert(1);">
+                                            @elseif($firstCompany)
+                                                <span>{{ Str::limit($firstCompany->name, 12) }}</span>
+                                                <span class="arch-pacasmayo-sq"></span>
+                                            @else
+                                                <span>Bolsa Laboral</span>
+                                                <span class="arch-pacasmayo-sq"></span>
+                                            @endif
+                                        </div>
+                                        <div class="arch-pill-text">
+                                            <span>TIENE</span>
+                                            <strong>VACANTES</strong>
+                                            <span>PARA TI</span>
+                                        </div>
+                                    </div>
+                                    <a href="#oportunidades" class="arch-btn-more">
+                                        <span>Conoce más</span>
+                                        <span style="font-size:15px;line-height:1;">›</span>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        <a href="#oportunidades" class="arch-btn-more">
-                            <span>Conoce más</span>
-                            <span style="font-size:15px;line-height:1;">›</span>
-                        </a>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -1414,75 +1518,8 @@
                 </button>
 
                 <div class="companies-slider-track" id="companies-scroll-track">
-                    {{-- 1. Backus --}}
-                    <div class="company-card-item" onclick="filterByCompany('Backus')" title="Ver vacantes de Backus">
-                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="20" cy="20" r="14" fill="#FACC15" />
-                            <circle cx="20" cy="20" r="6" fill="#0F172A" />
-                            <path d="M20 7L23 13H17L20 7Z" fill="#FACC15"/>
-                            <text x="40" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="22" fill="#0F172A" letter-spacing="-0.5">Bac<tspan fill="#F59E0B">k</tspan>us</text>
-                        </svg>
-                    </div>
-
-                    {{-- 2. Grupo Bimbo --}}
-                    <div class="company-card-item" onclick="filterByCompany('Bimbo')" title="Ver vacantes de Grupo Bimbo">
-                        <svg viewBox="0 0 145 42" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="3" width="141" height="36" rx="18" fill="#FFFFFF" stroke="#003882" stroke-width="2.2"/>
-                            <text x="72" y="14" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="9" fill="#003882" text-anchor="middle" letter-spacing="1.5">GRUPO</text>
-                            <text x="72" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="18" fill="#DC2626" text-anchor="middle" letter-spacing="-0.5">BIMBO</text>
-                        </svg>
-                    </div>
-
-                    {{-- 3. BanBif --}}
-                    <div class="company-card-item" onclick="filterByCompany('BanBif')" title="Ver vacantes de BanBif">
-                        <svg viewBox="0 0 135 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <text x="8" y="28" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="26" fill="#0284C7" letter-spacing="-0.8">Ban<tspan fill="#0ea5e9">Bif</tspan></text>
-                            <circle cx="118" cy="18" r="4.5" fill="#38bdf8" />
-                        </svg>
-                    </div>
-
-                    {{-- 4. Verisure --}}
-                    <div class="company-card-item" onclick="filterByCompany('Verisure')" title="Ver vacantes de Verisure">
-                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g transform="translate(6, 6)">
-                                <circle cx="8" cy="14" r="5" fill="#94A3B8"/>
-                                <circle cx="18" cy="7" r="6" fill="#64748B"/>
-                                <circle cx="27" cy="16" r="5" fill="#CBD5E1"/>
-                            </g>
-                            <text x="46" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="19" fill="#DC2626" letter-spacing="-0.5">verisure</text>
-                        </svg>
-                    </div>
-
-                    {{-- 5. DECHINI --}}
-                    <div class="company-card-item" onclick="filterByCompany('Dechini')" title="Ver vacantes de DECHINI">
-                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="10" y="10" width="18" height="18" rx="4" transform="rotate(45 19 19)" fill="#15803D" />
-                            <circle cx="19" cy="19" r="4" fill="#FFFFFF"/>
-                            <text x="44" y="26" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="19" fill="#14532D" letter-spacing="1">DECHINI</text>
-                        </svg>
-                    </div>
-
-                    {{-- 6. LIMA EXPRESA --}}
-                    <div class="company-card-item" onclick="filterByCompany('Lima Expresa')" title="Ver vacantes de Lima Expresa">
-                        <svg viewBox="0 0 145 42" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 20C10 15 15 12 20 15C25 18 30 25 35 25C40 25 44 21 44 17" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M10 24C10 28 15 31 20 28C25 25 30 18 35 18C40 18 44 22 44 26" stroke="#0369A1" stroke-width="2.5" stroke-linecap="round"/>
-                            <text x="50" y="18" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="11" fill="#0C4A6E" letter-spacing="0.5">LIMA</text>
-                            <text x="50" y="29" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="11" fill="#0C4A6E" letter-spacing="0.5">EXPRESA</text>
-                            <text x="50" y="37" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="5.5" fill="#EA580C" letter-spacing="0.8">POWERED BY VINCI</text>
-                        </svg>
-                    </div>
-
-                    {{-- 7. Pacasmayo --}}
-                    <div class="company-card-item" onclick="filterByCompany('Pacasmayo')" title="Ver vacantes de Pacasmayo">
-                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="114" y="14" width="9" height="9" fill="#DC2626" rx="1.5" />
-                            <text x="8" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="19" fill="#0F172A" letter-spacing="-0.5">Pacasmayo</text>
-                        </svg>
-                    </div>
-
-                    {{-- Empresas registradas en BD (dinámicas) --}}
-                    @foreach($companies as $co)
+                    {{-- Empresas registradas en BD (únicamente las que existen en la bolsa laboral) --}}
+                    @forelse($companies as $co)
                         <div class="company-card-item" onclick="filterByCompany('{{ addslashes($co->name) }}')" title="Ver ofertas de {{ $co->name }}">
                             @if($co->logo)
                                 <img src="{{ $co->logo }}" alt="{{ $co->name }}" class="company-logo-svg" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\'company-card-fallback\'><span class=\'company-fallback-avatar\'>{{ strtoupper(substr($co->name, 0, 1)) }}</span><span class=\'company-fallback-name\'>{{ $co->name }}</span></div>';">
@@ -1493,7 +1530,12 @@
                                 </div>
                             @endif
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="companies-empty-message">
+                            <span class="material-symbols-outlined" style="font-size:24px;color:#94a3b8;">domain</span>
+                            <span>Próximamente nuevas empresas aliadas se sumarán a nuestra bolsa laboral.</span>
+                        </div>
+                    @endforelse
                 </div>
 
                 <button type="button" class="carousel-arrow-btn" onclick="scrollCompanies(1)" aria-label="Ver empresas siguientes">
@@ -2271,9 +2313,42 @@ document.addEventListener('click', function(e) {
     if (wrap && !wrap.contains(e.target)) closeProfileMenu();
 });
 
+// ── Carrusel en Arco ────────────────────────────────────────────────────────
+var currentArchSlide = 0;
+var archInterval = null;
+
+function switchArchSlide(idx) {
+    var slides = document.querySelectorAll('.hero-arch-slide');
+    var dots   = document.querySelectorAll('.arch-dot');
+    if (!slides.length) return;
+
+    slides.forEach(function(s) { s.classList.remove('active'); });
+    dots.forEach(function(d) { d.classList.remove('active'); });
+
+    currentArchSlide = (idx + slides.length) % slides.length;
+    if (slides[currentArchSlide]) slides[currentArchSlide].classList.add('active');
+    if (dots[currentArchSlide]) dots[currentArchSlide].classList.add('active');
+}
+
+function startArchAutoplay() {
+    var slides = document.querySelectorAll('.hero-arch-slide');
+    if (slides.length <= 1) return;
+    if (archInterval) clearInterval(archInterval);
+    archInterval = setInterval(function() {
+        switchArchSlide(currentArchSlide + 1);
+    }, 5000);
+}
+
 // ── Init on DOMContentLoaded ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     loadOffers(1, true);
+    startArchAutoplay();
+
+    var archFrame = document.getElementById('hero-arch-frame');
+    if (archFrame) {
+        archFrame.addEventListener('mouseenter', function() { if (archInterval) clearInterval(archInterval); });
+        archFrame.addEventListener('mouseleave', function() { startArchAutoplay(); });
+    }
 
     @if(request()->has('offer'))
         setTimeout(function() {
