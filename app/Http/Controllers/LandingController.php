@@ -232,6 +232,130 @@ class LandingController extends Controller
     }
 
     /**
+     * Show the public job offer detail page with similar offers.
+     */
+    public function showOffer($id)
+    {
+        try {
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        } catch (\Exception $e) {
+            $config = [];
+        }
+
+        $offer = JobOpportunityOffer::with([
+            'company:id,name,logo,address,website,description,email,phone',
+            'state',
+            'category',
+            'modality',
+            'workSchedule',
+            'contractType'
+        ])
+        ->whereNull('deleted_at')
+        ->findOrFail($id);
+
+        // Ofertas similares activas (excluyendo la actual)
+        $similarOffers = JobOpportunityOffer::with([
+            'company:id,name,logo,address,website,description',
+            'state',
+            'category',
+            'modality',
+            'workSchedule',
+            'contractType'
+        ])
+        ->whereNull('deleted_at')
+        ->where('id', '!=', $offer->id)
+        ->whereHas('state', fn($q) => $q->where('key', 'active'))
+        ->when($offer->category_id, function($q) use ($offer) {
+            $q->orderByRaw('CASE WHEN category_id = ? THEN 0 ELSE 1 END', [$offer->category_id]);
+        })
+        ->when($offer->modality_id, function($q) use ($offer) {
+            $q->orderByRaw('CASE WHEN modality_id = ? THEN 0 ELSE 1 END', [$offer->modality_id]);
+        })
+        ->orderBy('publication_date', 'desc')
+        ->take(4)
+        ->get();
+
+        // Datos del estudiante/egresado/docente autenticado
+        $authUser = null;
+        $studentCvs = collect();
+        $studentCvsJson = [];
+        $studentApplications = collect();
+        $studentSavedOfferIds = [];
+        $hasApplied = false;
+        $isSaved = false;
+
+        if (Auth::check()) {
+            $authUser = Auth::user()->load('person');
+            $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
+
+            if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
+                $studentCvs = DB::table('job_opportunity_user_cv')
+                    ->where('user_id', $authUser->id)
+                    ->whereNull('deleted_at')
+                    ->orderBy('version', 'desc')
+                    ->get()
+                    ->map(function ($cv) {
+                        $cv->filename = basename($cv->url);
+                        $cv->uploaded_at = $cv->created_at
+                            ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
+                        return $cv;
+                    });
+
+                $studentCvsJson = $studentCvs->map(function ($cv) {
+                    return ['id' => $cv->id, 'version' => $cv->version, 'filename' => $cv->filename, 'uploaded_at' => $cv->uploaded_at];
+                })->values();
+
+                $hasApplied = DB::table('job_opportunity_applications')
+                    ->where('user_id', $authUser->id)
+                    ->where('offer_id', $offer->id)
+                    ->whereNull('deleted_at')
+                    ->exists();
+
+                $isSaved = DB::table('saved_offers')
+                    ->where('user_id', $authUser->id)
+                    ->where('offer_id', $offer->id)
+                    ->whereNull('deleted_at')
+                    ->exists();
+
+                $studentSavedOfferIds = DB::table('saved_offers')
+                    ->where('user_id', $authUser->id)
+                    ->whereNull('deleted_at')
+                    ->pluck('offer_id')
+                    ->toArray();
+
+                $studentApplications = DB::table('job_opportunity_applications')
+                    ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
+                    ->join('job_opportunity_company', 'job_opportunity_offer.company_id', '=', 'job_opportunity_company.id')
+                    ->where('job_opportunity_applications.user_id', $authUser->id)
+                    ->whereNull('job_opportunity_applications.deleted_at')
+                    ->select(
+                        'job_opportunity_applications.id as app_id',
+                        'job_opportunity_applications.status as app_status',
+                        'job_opportunity_applications.created_at as app_date',
+                        'job_opportunity_offer.title as offer_title',
+                        'job_opportunity_company.name as company_name',
+                        'job_opportunity_company.logo as company_logo'
+                    )
+                    ->orderBy('job_opportunity_applications.created_at', 'desc')
+                    ->get();
+            }
+        }
+
+        return view('offers.show', compact(
+            'config',
+            'offer',
+            'similarOffers',
+            'authUser',
+            'studentCvs',
+            'studentCvsJson',
+            'studentApplications',
+            'studentSavedOfferIds',
+            'hasApplied',
+            'isSaved'
+        ));
+    }
+
+    /**
      * Public API: search job offers (JSON).
      */
     public function searchOffers(Request $request)

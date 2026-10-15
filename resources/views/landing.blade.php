@@ -1655,7 +1655,7 @@ function renderCard(o) {
         avatarHtml = '<span class="card-avatar-text">' + initial + '</span>';
     }
 
-    return '<div class="job-card ' + (isApplied ? 'card-applied' : '') + '" onclick="openOpportunityDetail(' + o.id + ')" data-id="' + o.id + '">' +
+    return '<div class="job-card ' + (isApplied ? 'card-applied' : '') + '" onclick="window.location.href=\'/ofertas/' + o.id + '\'" data-id="' + o.id + '">' +
         '<div class="card-header">' +
             '<div class="card-header-left">' +
                 '<div class="card-avatar" style="background:' + getAvatarBg(initial) + ';color:' + getAvatarColor(initial) + ';">' + avatarHtml + '</div>' +
@@ -1677,7 +1677,7 @@ function renderCard(o) {
         '</div>' +
         '<div class="card-footer">' +
             '<span class="card-close-date">' + esc(closeStr) + '</span>' +
-            '<span class="card-link-action">Ver oportunidad ↗</span>' +
+            '<a href="/ofertas/' + o.id + '" class="card-link-action" onclick="event.stopPropagation();">Ver oportunidad ↗</a>' +
         '</div>' +
     '</div>';
 }

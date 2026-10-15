@@ -22,4 +22,14 @@ class PublicLandingTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonStructure(['offers', 'total']);
     }
+
+    public function test_guest_cannot_view_nonexistent_offer(): void
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('job_opportunity_offer')) {
+            $this->markTestSkipped('La tabla "job_opportunity_offer" no existe en este entorno de pruebas sqlite.');
+        }
+
+        $response = $this->get('/ofertas/999999');
+        $response->assertStatus(404);
+    }
 }

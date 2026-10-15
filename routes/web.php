@@ -24,6 +24,7 @@ use App\Http\Controllers\JobOpportunityController;
 // Landing Page pública (acceso para visitantes y postulantes)
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
+Route::get('/ofertas/{id}', [LandingController::class, 'showOffer'])->name('landing.offer.show');
 
 Route::middleware(['auth'])->group(function () {
 
