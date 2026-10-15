@@ -127,6 +127,7 @@
                     <p class="text-xs sm:text-sm text-on-surface-variant">Bolsa Laboral - Accede al portal institucional.</p>
                 </div>
                 <!-- Form -->
+                <form action="{{ route('login') }}" method="POST" class="space-y-3.5 sm:space-y-4">
                     @csrf
                     @if(request()->has('redirect_offer'))
                         <input type="hidden" name="redirect_offer" value="{{ request('redirect_offer') }}">
