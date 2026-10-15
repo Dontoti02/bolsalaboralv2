@@ -78,17 +78,16 @@ class LandingController extends Controller
                     ->first();
             }
 
-            // Empresas verificadas con al menos 1 oferta activa
-            $companies = Company::where('is_verified', true)
-                ->where(function($q) {
+            // Empresas para el carrusel institucional
+            $companies = Company::where(function($q) {
                     $q->whereNull('deleted_at');
                 })
                 ->withCount(['offers as active_offers_count' => function ($q) {
                     $q->whereHas('state', fn($s) => $s->where('key', 'active'));
                 }])
-                ->having('active_offers_count', '>', 0)
                 ->orderByDesc('active_offers_count')
-                ->take(12)
+                ->orderBy('name')
+                ->take(16)
                 ->get();
 
             // Metadata para filtros
@@ -380,6 +379,10 @@ class LandingController extends Controller
                     $q->where('province',   'like', "%{$place}%")
                       ->orWhere('department', 'like', "%{$place}%");
                 });
+            }
+
+            if ($request->filled('company_id')) {
+                $query->where('company_id', $request->company_id);
             }
 
             if ($request->filled('category_id')) {

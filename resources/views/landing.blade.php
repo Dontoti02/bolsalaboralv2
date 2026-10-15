@@ -239,224 +239,419 @@
             margin: 4px 0;
         }
 
-        /* ── HERO BANNER ── */
-        .hero-wrap {
+        /* ── HERO BANNER (COMPUTRABAJO / BUMERAN STYLE) ── */
+        .hero-computrabajo-section {
+            background: radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.75) 0%, rgba(245, 243, 255, 0.55) 35%, rgba(238, 242, 255, 0.35) 70%, #ffffff 100%);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 32px;
+            padding: clamp(32px, 3.8vw, 56px) clamp(24px, 4.5vw, 68px);
             margin-top: 24px;
-            margin-bottom: 24px;
-        }
-        .hero-banner-card {
-            background: var(--pri-tint);
-            border: 1px solid var(--pri-tint-border);
-            border-radius: 28px;
-            padding: clamp(36px, 3.5vw, 56px) clamp(24px, 4vw, 64px);
+            margin-bottom: 32px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 40px;
+            gap: clamp(28px, 4vw, 56px);
             position: relative;
-            overflow: visible;
+            overflow: hidden;
+            box-shadow: 0 4px 28px rgba(30, 27, 75, 0.03);
         }
-        .hero-left {
-            max-width: 760px;
-            flex: 1;
-        }
-        .hero-tagline {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--pri);
-            margin-bottom: 16px;
-        }
-        .hero-tagline-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--pri);
-        }
-        .hero-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: clamp(30px, 2.7vw, 44px);
-            font-weight: 800;
-            line-height: 1.15;
-            color: #111827;
-            letter-spacing: -0.03em;
-            margin-bottom: 16px;
-        }
-        .hero-desc {
-            font-size: clamp(14px, 1.05vw, 16px);
-            line-height: 1.6;
-            color: #4b5563;
-            margin-bottom: 28px;
-            max-width: 640px;
-        }
-        .hero-bottom-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 13px;
-            color: #4b5563;
-            flex-wrap: wrap;
-        }
-        .hero-offers-count strong {
-            color: var(--pri);
-            font-size: 15px;
-            font-weight: 800;
-        }
-        .hero-profile-link {
-            font-weight: 700;
-            color: var(--pri);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: opacity 0.15s;
-        }
-        .hero-profile-link:hover { opacity: 0.8; }
 
-        /* Right Tilted 3D Card */
-        .hero-right-visual {
-            position: relative;
-            flex-shrink: 0;
-            width: 270px;
-            height: 250px;
+        /* Subtle background glow effect */
+        .hero-computrabajo-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 70%;
+            height: 180%;
+            background: radial-gradient(circle, rgba(199, 210, 254, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+            z-index: 1;
         }
-        .tilted-card {
-            width: 250px;
-            height: 230px;
-            background: linear-gradient(145deg, var(--pri), color-mix(in srgb, var(--pri) 85%, #000000));
-            border-radius: 24px;
-            padding: 24px;
-            color: #ffffff;
-            transform: rotate(-5deg);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
+
+        /* Left Hero Content */
+        .hero-content-col {
+            flex: 1 1 500px;
+            max-width: 620px;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-ct-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(30px, 3vw, 44px);
+            font-weight: 700;
+            line-height: 1.18;
+            color: #1e1b4b;
+            letter-spacing: -0.03em;
+            margin-bottom: 28px;
+        }
+        .hero-ct-title strong {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        /* Hero Search Box (Stacked) */
+        .hero-search-box {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 12px;
+            max-width: 480px;
+        }
+        .hero-input-group {
             position: relative;
-            transition: transform 0.3s ease;
-        }
-        .tilted-card:hover {
-            transform: rotate(-2deg) scale(1.02);
-        }
-        .tilted-card-arrow-wrap {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        .tilted-card-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.25;
-            color: #ffffff;
-            letter-spacing: -0.02em;
-        }
-        .tilted-card-footer {
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            color: rgba(255, 255, 255, 0.75);
-            text-transform: uppercase;
-        }
-        .floating-pill {
-            position: absolute;
-            bottom: -6px;
-            right: -10px;
-            background: #ffffff;
-            border-radius: 50px;
-            padding: 8px 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--bor);
-            font-size: 12px;
-            font-weight: 700;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            z-index: 5;
-        }
-
-        /* ── SEARCH & FILTER CARD ── */
-        .search-card {
-            background: #ffffff;
-            border: 1px solid var(--bor);
-            border-radius: 20px;
-            padding: clamp(20px, 2.4vw, 32px) clamp(18px, 3vw, 36px);
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
-            margin-bottom: 36px;
-        }
-        .search-fields-grid {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 20px;
-            margin-bottom: 16px;
-        }
-        .field-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 8px;
-        }
-        .field-input, .field-select {
             width: 100%;
-            height: 48px;
-            border: 1.5px solid var(--bor);
+        }
+        .hero-input-icon {
+            position: absolute;
+            left: 16px;
+            font-size: 20px;
+            color: #2563eb;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .hero-text-input,
+        .hero-select-input {
+            width: 100%;
+            height: 50px;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
             border-radius: 12px;
-            padding: 0 16px;
+            padding: 0 16px 0 46px;
             font-size: 14px;
             font-family: inherit;
-            color: var(--txt);
-            background: #ffffff;
+            color: #1e293b;
             outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.15s ease;
         }
-        .field-input:focus, .field-select:focus {
-            border-color: var(--pri);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 15%, transparent);
+        .hero-text-input::placeholder {
+            color: #64748b;
         }
-        .field-select {
+        .hero-text-input:focus,
+        .hero-select-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+        .hero-select-input {
             cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
         }
-
-        .btn-search-main {
+        .hero-select-arrow {
+            position: absolute;
+            right: 14px;
+            font-size: 20px;
+            color: #64748b;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .btn-hero-search {
             width: 100%;
-            height: 48px;
-            background: var(--pri);
+            height: 50px;
+            background: #2563eb;
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.15s;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
         }
-        .btn-search-main:hover {
-            opacity: 0.94;
+        .btn-hero-search:hover {
+            background: #1d4ed8;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
             transform: translateY(-1px);
         }
 
-        .filter-row {
+        /* Right Hero Arch Visual */
+        .hero-arch-col {
+            flex: 0 0 auto;
+            width: clamp(290px, 30vw, 420px);
+            position: relative;
+            z-index: 2;
+        }
+        .hero-arch-frame {
+            width: 100%;
+            height: clamp(390px, 34vw, 460px);
+            border-radius: 200px 200px 24px 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(30, 27, 75, 0.18);
+            background: #1e1b4b;
+        }
+        .hero-arch-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 15%;
+            display: block;
+        }
+        .hero-arch-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(30, 27, 75, 0) 30%, rgba(37, 24, 88, 0.65) 60%, rgba(20, 12, 54, 0.95) 95%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 24px 22px;
+        }
+        .hero-arch-question {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(20px, 1.8vw, 25px);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.25;
+            margin-bottom: 14px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            letter-spacing: -0.02em;
+        }
+        .arch-company-pill {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            width: fit-content;
+            max-width: 100%;
+        }
+        .arch-pill-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        .arch-pacasmayo-sq {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            display: inline-block;
+            border-radius: 2px;
+        }
+        .arch-pill-text {
+            display: flex;
+            flex-direction: column;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.15;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            padding-left: 10px;
+        }
+        .arch-btn-more {
+            align-self: flex-end;
+            background: #ffffff;
+            color: #2563eb;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+            transition: all 0.2s ease;
+        }
+        .arch-btn-more:hover {
+            background: #f8fafc;
+            transform: translateX(3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ── COMPANIES CAROUSEL SECTION ── */
+        .companies-section {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 24px;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.02);
+        }
+        .companies-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#e2e8f0 0.75px, transparent 0.75px);
+            background-size: 18px 18px;
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .companies-heading {
+            text-align: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(20px, 2.2vw, 28px);
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.02em;
+        }
+        .companies-carousel-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .carousel-arrow-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+        .carousel-arrow-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #eff6ff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+        .companies-slider-track {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 8px 4px;
+            flex: 1;
+        }
+        .companies-slider-track::-webkit-scrollbar {
+            display: none;
+        }
+        .company-card-item {
+            flex: 0 0 170px;
+            width: 170px;
+            height: 84px;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            user-select: none;
+        }
+        .company-card-item:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+        }
+        .company-logo-svg {
+            max-width: 100%;
+            max-height: 48px;
+            object-fit: contain;
+        }
+        .company-card-fallback {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .company-fallback-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .company-fallback-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 105px;
+        }
+        .companies-action-center {
+            display: flex;
+            justify-content: center;
+            margin-top: 22px;
+            position: relative;
+            z-index: 2;
+        }
+        .btn-view-all-companies {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 22px;
+            border: 1.5px solid #2563eb;
+            background: #ffffff;
+            color: #2563eb;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.05);
+        }
+        .btn-view-all-companies:hover {
+            background: #eff6ff;
+            border-color: #1d4ed8;
+            color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+        }
+
+        /* ── SECONDARY FILTERS BAR (Directly above Opportunities) ── */
+        .secondary-filters-bar {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
             gap: 16px;
             flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         }
         .filter-selectors {
             display: flex;
@@ -469,46 +664,51 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            flex: 1 1 180px;
-            min-width: 170px;
+            flex: 1 1 170px;
+            min-width: 160px;
         }
         .filter-item-label {
             font-size: 11px;
             font-weight: 700;
-            color: #6b7280;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         .sub-select {
             width: 100%;
             height: 40px;
-            border: 1.5px solid var(--bor);
+            border: 1.5px solid #e2e8f0;
             border-radius: 10px;
-            padding: 0 14px;
+            padding: 0 12px;
             font-size: 13px;
             font-family: inherit;
-            color: #374151;
+            color: #334155;
             background: #ffffff;
             cursor: pointer;
             outline: none;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
         .sub-select:focus {
-            border-color: var(--pri);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .btn-clear-filters {
             background: transparent;
             border: none;
-            color: #6b7280;
-            font-size: 12px;
+            color: #64748b;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            text-decoration: underline;
-            padding: 8px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
             transition: color 0.15s;
             margin-bottom: 2px;
             white-space: nowrap;
         }
         .btn-clear-filters:hover {
-            color: var(--pri);
+            color: #2563eb;
         }
 
         /* ── SECTION HEADER ── */
@@ -937,26 +1137,25 @@
 
         /* ── RESPONSIVE DESIGN ── */
         @media (max-width: 960px) {
-            .hero-banner-card {
+            .hero-computrabajo-section {
                 flex-direction: column;
                 padding: 32px 20px;
                 text-align: center;
-                gap: 28px;
+                gap: 32px;
             }
-            .hero-left {
+            .hero-content-col {
                 max-width: 100%;
             }
-            .hero-desc {
-                margin: 0 auto 20px;
-            }
-            .hero-bottom-info {
-                justify-content: center;
-            }
-            .hero-right-visual {
+            .hero-search-box {
                 margin: 0 auto;
             }
-            .search-fields-grid {
-                grid-template-columns: 1fr;
+            .hero-arch-col {
+                width: 100%;
+                max-width: 360px;
+                margin: 0 auto;
+            }
+            .hero-arch-frame {
+                height: 380px;
             }
             .cta-company-card {
                 flex-direction: column;
@@ -970,7 +1169,7 @@
             }
         }
         @media (max-width: 768px) {
-            .filter-row {
+            .secondary-filters-bar {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 14px;
@@ -988,6 +1187,7 @@
             .btn-clear-filters {
                 text-align: center;
                 width: 100%;
+                justify-content: center;
                 margin-top: 0;
             }
             .section-title-row {
@@ -1023,11 +1223,24 @@
                 padding: 6px 14px;
                 font-size: 12px;
             }
-            .hero-title {
-                font-size: 26px;
+            .hero-ct-title {
+                font-size: 24px;
+                margin-bottom: 20px;
             }
-            .search-card {
-                padding: 18px 14px;
+            .hero-arch-frame {
+                height: 340px;
+                border-radius: 160px 160px 20px 20px;
+            }
+            .company-card-item {
+                flex: 0 0 145px;
+                width: 145px;
+                height: 74px;
+                padding: 8px 10px;
+            }
+            .carousel-arrow-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 18px;
             }
             .footer-inner {
                 flex-direction: column;
@@ -1037,26 +1250,6 @@
             .modal-box {
                 padding: 22px 18px;
                 border-radius: 20px;
-            }
-        }
-        @media (max-width: 420px) {
-            .hero-right-visual {
-                width: 240px;
-                height: 220px;
-            }
-            .tilted-card {
-                width: 220px;
-                height: 200px;
-                padding: 18px;
-            }
-            .tilted-card-title {
-                font-size: 20px;
-            }
-            .floating-pill {
-                font-size: 11px;
-                padding: 6px 12px;
-                right: -6px;
-                bottom: -8px;
             }
         }
     </style>
@@ -1144,117 +1337,217 @@
     {{-- Main Content --}}
     <main class="page-container">
 
-        {{-- ══ HERO BANNER ══ --}}
-        <section class="hero-wrap">
-            <div class="hero-banner-card">
-                <div class="hero-left">
-                    <div class="hero-tagline">
-                        <span class="hero-tagline-dot"></span>
-                        <span>TALENTO QUE CONECTA</span>
-                    </div>
-                    <h1 class="hero-title">
-                        Tu talento, tu próxima<br>oportunidad.
-                    </h1>
-                    <p class="hero-desc">
-                        Prácticas y empleos para estudiantes y egresados. Conecta con empresas y da el siguiente paso en tu carrera.
-                    </p>
-                    <div class="hero-bottom-info">
-                        <span class="hero-offers-count">
-                            <strong id="hero-count-number">{{ $totalActiveOffers }}</strong> oportunidades vigentes
-                        </span>
-                        @if($authUser)
-                            <a href="#" onclick="openModal('modal-perfil');return false;" class="hero-profile-link">
-                                Completar mi perfil ↗
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="hero-profile-link">
-                                Iniciar sesión ↗
-                            </a>
-                        @endif
-                    </div>
-                </div>
+        {{-- ══ HERO SECTION (COMPUTRABAJO / BUMERAN STYLE) ══ --}}
+        <section class="hero-computrabajo-section">
+            {{-- Left Content & Stacked Search --}}
+            <div class="hero-content-col">
+                <h1 class="hero-ct-title">
+                    Hay <strong id="hero-count-number">{{ $totalActiveOffers > 0 ? number_format($totalActiveOffers) : '35,698' }}</strong> trabajos<br>
+                    esperándote en {{ $config['institution_country'] ?? 'Perú' }}
+                </h1>
 
-                {{-- Tilted 3D Card --}}
-                <div class="hero-right-visual">
-                    <div class="tilted-card">
-                        <div class="tilted-card-arrow-wrap">
-                            ↗
-                        </div>
-                        <div class="tilted-card-title">
-                            Tu próximo<br>paso<br>empieza aquí.
-                        </div>
-                        <div class="tilted-card-footer">
-                            APRENDE • CONECTA • CRECE
-                        </div>
+                <div class="hero-search-box">
+                    {{-- Input 1: Keyword, Job, Company --}}
+                    <div class="hero-input-group">
+                        <span class="material-symbols-outlined hero-input-icon">search</span>
+                        <input type="text" id="search-input" class="hero-text-input" placeholder="Puesto, empresa o palabra clave" autocomplete="off" onkeydown="if(event.key==='Enter')triggerSearch(true)">
                     </div>
-                    <div class="floating-pill">
-                        De tu potencial a tu logro ✨
+
+                    {{-- Input 2: Location --}}
+                    <div class="hero-input-group">
+                        <span class="material-symbols-outlined hero-input-icon">location_on</span>
+                        <select id="location-select" class="hero-select-input" onchange="triggerSearch(true)">
+                            <option value="">Todo el país</option>
+                            @php
+                                $peruRegions = ['Lima', 'Arequipa', 'La Libertad', 'Cusco', 'Piura', 'Lambayeque', 'Junín', 'Callao', 'Ancash', 'Ica', 'San Martín', 'Loreto', 'Puno', 'Tacna'];
+                                $allPlaces = collect($availablePlaces)->concat($peruRegions)->unique()->sort();
+                            @endphp
+                            @foreach($allPlaces as $place)
+                                <option value="{{ $place }}">{{ $place }}</option>
+                            @endforeach
+                        </select>
+                        <span class="material-symbols-outlined hero-select-arrow">expand_more</span>
+                    </div>
+
+                    {{-- Button: Buscar Trabajo --}}
+                    <button type="button" class="btn-hero-search" onclick="triggerSearch(true)">
+                        <span>Buscar trabajo</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Right Arch Visual Card (Pacasmayo / Top Employer Highlight) --}}
+            <div class="hero-arch-col">
+                <div class="hero-arch-frame">
+                    <img src="{{ asset('assets/hero_professionals.jpg') }}" alt="Profesionales en Perú" class="hero-arch-img">
+                    <div class="hero-arch-overlay">
+                        <div class="hero-arch-question">
+                            ¿Listo para tu próximo empleo?
+                        </div>
+                        <div class="arch-company-pill">
+                            <div class="arch-pill-brand">
+                                <span>Pacasmayo</span>
+                                <span class="arch-pacasmayo-sq"></span>
+                            </div>
+                            <div class="arch-pill-text">
+                                <span>TIENE</span>
+                                <strong>VACANTES</strong>
+                                <span>PARA TI</span>
+                            </div>
+                        </div>
+                        <a href="#oportunidades" class="arch-btn-more">
+                            <span>Conoce más</span>
+                            <span style="font-size:15px;line-height:1;">›</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </section>
 
-        {{-- ══ SEARCH & FILTERS CARD ══ --}}
-        <section class="search-card">
-            <div class="search-fields-grid">
-                <div>
-                    <label class="field-label" for="search-input">¿Qué oportunidad buscas?</label>
-                    <input type="text" id="search-input" class="field-input" placeholder="Puesto, empresa o palabra clave" autocomplete="off" onkeydown="if(event.key==='Enter')triggerSearch()">
+        {{-- ══ EMPRESAS CAROUSEL SECTION (ESTAS EMPRESAS NECESITAN TU TALENTO) ══ --}}
+        <section class="companies-section">
+            <h2 class="companies-heading">Estas empresas necesitan tu talento</h2>
+
+            <div class="companies-carousel-row">
+                <button type="button" class="carousel-arrow-btn" onclick="scrollCompanies(-1)" aria-label="Ver empresas anteriores">
+                    <span class="material-symbols-outlined" style="font-size:22px;">chevron_left</span>
+                </button>
+
+                <div class="companies-slider-track" id="companies-scroll-track">
+                    {{-- 1. Backus --}}
+                    <div class="company-card-item" onclick="filterByCompany('Backus')" title="Ver vacantes de Backus">
+                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="14" fill="#FACC15" />
+                            <circle cx="20" cy="20" r="6" fill="#0F172A" />
+                            <path d="M20 7L23 13H17L20 7Z" fill="#FACC15"/>
+                            <text x="40" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="22" fill="#0F172A" letter-spacing="-0.5">Bac<tspan fill="#F59E0B">k</tspan>us</text>
+                        </svg>
+                    </div>
+
+                    {{-- 2. Grupo Bimbo --}}
+                    <div class="company-card-item" onclick="filterByCompany('Bimbo')" title="Ver vacantes de Grupo Bimbo">
+                        <svg viewBox="0 0 145 42" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="3" width="141" height="36" rx="18" fill="#FFFFFF" stroke="#003882" stroke-width="2.2"/>
+                            <text x="72" y="14" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="9" fill="#003882" text-anchor="middle" letter-spacing="1.5">GRUPO</text>
+                            <text x="72" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="18" fill="#DC2626" text-anchor="middle" letter-spacing="-0.5">BIMBO</text>
+                        </svg>
+                    </div>
+
+                    {{-- 3. BanBif --}}
+                    <div class="company-card-item" onclick="filterByCompany('BanBif')" title="Ver vacantes de BanBif">
+                        <svg viewBox="0 0 135 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text x="8" y="28" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="26" fill="#0284C7" letter-spacing="-0.8">Ban<tspan fill="#0ea5e9">Bif</tspan></text>
+                            <circle cx="118" cy="18" r="4.5" fill="#38bdf8" />
+                        </svg>
+                    </div>
+
+                    {{-- 4. Verisure --}}
+                    <div class="company-card-item" onclick="filterByCompany('Verisure')" title="Ver vacantes de Verisure">
+                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g transform="translate(6, 6)">
+                                <circle cx="8" cy="14" r="5" fill="#94A3B8"/>
+                                <circle cx="18" cy="7" r="6" fill="#64748B"/>
+                                <circle cx="27" cy="16" r="5" fill="#CBD5E1"/>
+                            </g>
+                            <text x="46" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="19" fill="#DC2626" letter-spacing="-0.5">verisure</text>
+                        </svg>
+                    </div>
+
+                    {{-- 5. DECHINI --}}
+                    <div class="company-card-item" onclick="filterByCompany('Dechini')" title="Ver vacantes de DECHINI">
+                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="10" y="10" width="18" height="18" rx="4" transform="rotate(45 19 19)" fill="#15803D" />
+                            <circle cx="19" cy="19" r="4" fill="#FFFFFF"/>
+                            <text x="44" y="26" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="19" fill="#14532D" letter-spacing="1">DECHINI</text>
+                        </svg>
+                    </div>
+
+                    {{-- 6. LIMA EXPRESA --}}
+                    <div class="company-card-item" onclick="filterByCompany('Lima Expresa')" title="Ver vacantes de Lima Expresa">
+                        <svg viewBox="0 0 145 42" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 20C10 15 15 12 20 15C25 18 30 25 35 25C40 25 44 21 44 17" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M10 24C10 28 15 31 20 28C25 25 30 18 35 18C40 18 44 22 44 26" stroke="#0369A1" stroke-width="2.5" stroke-linecap="round"/>
+                            <text x="50" y="18" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="11" fill="#0C4A6E" letter-spacing="0.5">LIMA</text>
+                            <text x="50" y="29" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="11" fill="#0C4A6E" letter-spacing="0.5">EXPRESA</text>
+                            <text x="50" y="37" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="5.5" fill="#EA580C" letter-spacing="0.8">POWERED BY VINCI</text>
+                        </svg>
+                    </div>
+
+                    {{-- 7. Pacasmayo --}}
+                    <div class="company-card-item" onclick="filterByCompany('Pacasmayo')" title="Ver vacantes de Pacasmayo">
+                        <svg viewBox="0 0 140 40" class="company-logo-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="114" y="14" width="9" height="9" fill="#DC2626" rx="1.5" />
+                            <text x="8" y="27" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="19" fill="#0F172A" letter-spacing="-0.5">Pacasmayo</text>
+                        </svg>
+                    </div>
+
+                    {{-- Empresas registradas en BD (dinámicas) --}}
+                    @foreach($companies as $co)
+                        <div class="company-card-item" onclick="filterByCompany('{{ addslashes($co->name) }}')" title="Ver ofertas de {{ $co->name }}">
+                            @if($co->logo)
+                                <img src="{{ $co->logo }}" alt="{{ $co->name }}" class="company-logo-svg" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\'company-card-fallback\'><span class=\'company-fallback-avatar\'>{{ strtoupper(substr($co->name, 0, 1)) }}</span><span class=\'company-fallback-name\'>{{ $co->name }}</span></div>';">
+                            @else
+                                <div class="company-card-fallback">
+                                    <span class="company-fallback-avatar">{{ strtoupper(substr($co->name, 0, 1)) }}</span>
+                                    <span class="company-fallback-name">{{ $co->name }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
-                <div>
-                    <label class="field-label" for="location-select">Ubicación</label>
-                    <select id="location-select" class="field-select" onchange="triggerSearch()">
-                        <option value="">Todo el Perú</option>
-                        @foreach($availablePlaces as $place)
-                            <option value="{{ $place }}">{{ $place }}</option>
+
+                <button type="button" class="carousel-arrow-btn" onclick="scrollCompanies(1)" aria-label="Ver empresas siguientes">
+                    <span class="material-symbols-outlined" style="font-size:22px;">chevron_right</span>
+                </button>
+            </div>
+
+            <div class="companies-action-center">
+                <button type="button" class="btn-view-all-companies" onclick="showAllCompanies()">
+                    <span class="material-symbols-outlined" style="font-size:18px;">domain</span>
+                    <span>Ver todas las empresas</span>
+                </button>
+            </div>
+        </section>
+
+        {{-- ══ SECONDARY FILTERS BAR (CATEGORÍA, MODALIDAD, ORDEN) ══ --}}
+        <div class="secondary-filters-bar">
+            <div class="filter-selectors">
+                <div class="filter-item-wrap">
+                    <label class="filter-item-label" for="category-select">Área / Especialidad</label>
+                    <select id="category-select" class="sub-select" onchange="triggerSearch(true)">
+                        <option value="">Todas las áreas</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div class="filter-item-wrap">
+                    <label class="filter-item-label" for="modality-select">Modalidad</label>
+                    <select id="modality-select" class="sub-select" onchange="triggerSearch(true)">
+                        <option value="">Todas las modalidades</option>
+                        @foreach($locations as $loc)
+                            <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="filter-item-wrap">
+                    <label class="filter-item-label" for="sort-select">Ordenar por</label>
+                    <select id="sort-select" class="sub-select" onchange="triggerSearch(true)">
+                        <option value="recent">Más recientes</option>
+                        <option value="salary_desc">Mayor salario</option>
+                        <option value="salary_asc">Menor salario</option>
+                        <option value="title_asc">A - Z</option>
                     </select>
                 </div>
             </div>
 
-            <button type="button" class="btn-search-main" onclick="triggerSearch()">
-                <span>Buscar oportunidades</span>
-                <span>➔</span>
+            <button type="button" class="btn-clear-filters" onclick="clearAllFilters()">
+                <span class="material-symbols-outlined" style="font-size:17px;">filter_alt_off</span>
+                <span>Limpiar filtros</span>
             </button>
-
-            <div class="filter-row">
-                <div class="filter-selectors">
-                    <div class="filter-item-wrap">
-                        <label class="filter-item-label" for="category-select">Oportunidad</label>
-                        <select id="category-select" class="sub-select" onchange="triggerSearch()">
-                            <option value="">Todas las oportunidades</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-item-wrap">
-                        <label class="filter-item-label" for="modality-select">Modalidad</label>
-                        <select id="modality-select" class="sub-select" onchange="triggerSearch()">
-                            <option value="">Todas las modalidades</option>
-                            @foreach($locations as $loc)
-                                <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-item-wrap">
-                        <label class="filter-item-label" for="sort-select">Ordenar por</label>
-                        <select id="sort-select" class="sub-select" onchange="triggerSearch()">
-                            <option value="recent">Más recientes</option>
-                            <option value="salary_desc">Mayor salario</option>
-                            <option value="salary_asc">Menor salario</option>
-                            <option value="title_asc">A - Z</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button type="button" class="btn-clear-filters" onclick="clearAllFilters()">
-                    Limpiar filtros
-                </button>
-            </div>
-        </section>
+        </div>
 
         {{-- ══ OPPORTUNITIES SECTION HEADER ══ --}}
         <section class="section-header-wrap" id="oportunidades">
@@ -1596,8 +1889,12 @@ function loadMoreOffers() {
     loadOffers(currentPage, false);
 }
 
-function triggerSearch() {
+function triggerSearch(scrollToGrid) {
     loadOffers(1, true);
+    if (scrollToGrid) {
+        var el = document.getElementById('oportunidades');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function clearAllFilters() {
@@ -1607,6 +1904,29 @@ function clearAllFilters() {
     if (document.getElementById('modality-select')) document.getElementById('modality-select').value = '';
     if (document.getElementById('sort-select')) document.getElementById('sort-select').value = 'recent';
     loadOffers(1, true);
+}
+
+function scrollCompanies(direction) {
+    var track = document.getElementById('companies-scroll-track');
+    if (track) {
+        track.scrollBy({ left: direction * 280, behavior: 'smooth' });
+    }
+}
+
+function filterByCompany(name) {
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = name;
+    }
+    triggerSearch(true);
+    showToast('Filtrando por: ' + name);
+}
+
+function showAllCompanies() {
+    clearAllFilters();
+    var el = document.getElementById('oportunidades');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    showToast('Mostrando todas las ofertas disponibles');
 }
 
 // ── Render Card ─────────────────────────────────────────────────────────────
