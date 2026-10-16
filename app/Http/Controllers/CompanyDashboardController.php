@@ -110,6 +110,78 @@ class CompanyDashboardController extends Controller
                 ->get();
             $recentOffers = $offers->take(5);
 
+            // Chart Data Calculations
+            $chartMonths = [];
+            $chartApplicationsTrend = [];
+            $chartAcceptedTrend = [];
+
+            for ($i = 5; $i >= 0; $i--) {
+                $d = now()->subMonths($i);
+                $chartMonths[] = ucfirst($d->translatedFormat('M Y'));
+                
+                $totalMonth = 0;
+                $acceptedMonth = 0;
+                if (!empty($offerIds)) {
+                    $totalMonth = DB::table('job_opportunity_applications')
+                        ->whereIn('offer_id', $offerIds)
+                        ->whereNull('deleted_at')
+                        ->whereYear('created_at', $d->year)
+                        ->whereMonth('created_at', $d->month)
+                        ->count();
+
+                    $acceptedMonth = DB::table('job_opportunity_applications')
+                        ->whereIn('offer_id', $offerIds)
+                        ->whereNull('deleted_at')
+                        ->where('status', 'accepted')
+                        ->whereYear('created_at', $d->year)
+                        ->whereMonth('created_at', $d->month)
+                        ->count();
+                }
+                $chartApplicationsTrend[] = $totalMonth;
+                $chartAcceptedTrend[] = $acceptedMonth;
+            }
+
+            $chartStatusDistribution = [
+                'postulated' => 0,
+                'reviewing' => 0,
+                'evaluating' => 0,
+                'accepted' => 0,
+                'rejected' => 0,
+            ];
+            if (!empty($offerIds)) {
+                $rawStatuses = DB::table('job_opportunity_applications')
+                    ->whereIn('offer_id', $offerIds)
+                    ->whereNull('deleted_at')
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray();
+
+                foreach ($chartStatusDistribution as $st => $val) {
+                    $chartStatusDistribution[$st] = (int)($rawStatuses[$st] ?? 0);
+                }
+            }
+
+            $acceptedApplicantsCount = $chartStatusDistribution['accepted'] ?? 0;
+            $hireRate = $applicantsCount > 0 ? round(($acceptedApplicantsCount / $applicantsCount) * 100, 1) : 0;
+
+            $chartTopOffers = JobOpportunityOffer::where('company_id', $company->id)
+                ->withCount(['applications as applicants_count' => function ($q) {
+                    $q->whereNull('deleted_at');
+                }])
+                ->orderByDesc('applicants_count')
+                ->take(5)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'title' => Str::limit($item->title, 26),
+                        'full_title' => $item->title,
+                        'count' => (int)$item->applicants_count,
+                        'state' => $item->state->name ?? 'Activa',
+                    ];
+                });
+
             // Load options for publishing modal
             $categories = DB::table('job_opportunity_offer_category')->get();
             $locations = DB::table('job_opportunity_modalities')->get();
@@ -137,6 +209,19 @@ class CompanyDashboardController extends Controller
             $locations = collect();
             $schedules = collect();
             $contracts = collect();
+            $chartMonths = ['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct'];
+            $chartApplicationsTrend = [0, 0, 0, 0, 0, 0];
+            $chartAcceptedTrend = [0, 0, 0, 0, 0, 0];
+            $chartStatusDistribution = [
+                'postulated' => 0,
+                'reviewing' => 0,
+                'evaluating' => 0,
+                'accepted' => 0,
+                'rejected' => 0,
+            ];
+            $acceptedApplicantsCount = 0;
+            $hireRate = 0;
+            $chartTopOffers = collect();
         }
 
         try {
@@ -151,6 +236,13 @@ class CompanyDashboardController extends Controller
             'activeOffersCount',
             'applicantsCount',
             'pendingApplicantsCount',
+            'acceptedApplicantsCount',
+            'hireRate',
+            'chartMonths',
+            'chartApplicationsTrend',
+            'chartAcceptedTrend',
+            'chartStatusDistribution',
+            'chartTopOffers',
             'recentOffers',
             'offers',
             'recentApplicants',

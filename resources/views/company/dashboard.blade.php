@@ -156,47 +156,301 @@
             </div>
             @endif
             
-            <!-- Metrics Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
-                <!-- Metric 1 -->
-                <div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant shadow-sm flex flex-col">
-                    <div class="flex items-center justify-between mb-md">
-                        <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined">publish</span>
+            <!-- Enhanced Metrics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+                <!-- Metric 1: Total Ofertas -->
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[26px]">work_outline</span>
                         </div>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            {{ $activeOffersCount }} activas
+                        </span>
                     </div>
-                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Ofertas Publicadas</p>
-                    <h3 class="font-display-lg text-display-lg text-on-surface">{{ $offersCount }}</h3>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Ofertas Publicadas</p>
+                        <h3 class="text-3xl font-extrabold text-on-surface tracking-tight">{{ number_format($offersCount) }}</h3>
+                    </div>
                 </div>
-                <!-- Metric 2 -->
-                <div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant shadow-sm flex flex-col">
-                    <div class="flex items-center justify-between mb-md">
-                        <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
-                            <span class="material-symbols-outlined">check_circle</span>
+
+                <!-- Metric 2: Postulantes Totales -->
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[26px]">groups</span>
                         </div>
+                        @if($pendingApplicantsCount > 0)
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            {{ $pendingApplicantsCount }} por revisar
+                        </span>
+                        @else
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                            Al día
+                        </span>
+                        @endif
                     </div>
-                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Ofertas Activas</p>
-                    <h3 class="font-display-lg text-display-lg text-on-surface">{{ $activeOffersCount }}</h3>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Total Postulantes</p>
+                        <h3 class="text-3xl font-extrabold text-on-surface tracking-tight">{{ number_format($applicantsCount) }}</h3>
+                    </div>
                 </div>
-                <!-- Metric 3 -->
-                <div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant shadow-sm flex flex-col">
-                    <div class="flex items-center justify-between mb-md">
-                        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
-                            <span class="material-symbols-outlined">groups</span>
+
+                <!-- Metric 3: Candidatos Seleccionados -->
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[26px]">verified</span>
                         </div>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                            {{ $hireRate }}% contratación
+                        </span>
                     </div>
-                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Postulantes Recibidos</p>
-                    <h3 class="font-display-lg text-display-lg text-on-surface">{{ $applicantsCount }}</h3>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Seleccionados</p>
+                        <h3 class="text-3xl font-extrabold text-on-surface tracking-tight">{{ number_format($acceptedApplicantsCount) }}</h3>
+                    </div>
                 </div>
-                <!-- Metric 4 -->
-                <div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant shadow-sm flex flex-col">
-                    <div class="flex items-center justify-between mb-md">
-                        <div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-on-error-container">
-                            <span class="material-symbols-outlined">pending_actions</span>
+
+                <!-- Metric 4: En Revisión / Evaluación -->
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[26px]">speed</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700">
+                            En proceso
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">En Evaluación</p>
+                        <h3 class="text-3xl font-extrabold text-on-surface tracking-tight">
+                            {{ number_format(($chartStatusDistribution['reviewing'] ?? 0) + ($chartStatusDistribution['evaluating'] ?? 0)) }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= EXECUTIVE CHARTS SECTION ================= -->
+            <div class="space-y-lg mt-2">
+                <!-- Section Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant/60 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+                            <span class="material-symbols-outlined text-[22px]">analytics</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-on-surface">Analítica y Métricas de Reclutamiento</h2>
+                            <p class="text-xs text-on-surface-variant">Monitorea el rendimiento de atracción y el estado de tu embudo de selección.</p>
                         </div>
                     </div>
-                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Pendientes</p>
-                    <h3 class="font-display-lg text-display-lg text-on-surface">{{ $pendingApplicantsCount }}</h3>
+                    <div class="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-outline-variant self-start sm:self-auto">
+                        <span class="material-symbols-outlined text-[16px] text-emerald-600">sync</span>
+                        <span>Datos actualizados</span>
+                    </div>
+                </div>
+
+                <!-- Row 1: Chart 1 (Area/Line) & Chart 2 (Doughnut Pipeline) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+                    <!-- Chart 1: Tendencia Mensual de Postulaciones (8 cols) -->
+                    <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-headline-sm text-base md:text-lg font-bold text-on-surface">Evolución de Postulaciones</h3>
+                                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Semestre Activo</span>
+                                </div>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Postulantes recibidos vs contratados por mes.</p>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs font-semibold">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+                                    <span class="text-on-surface-variant">Postulaciones</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                    <span class="text-on-surface-variant">Seleccionados</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Container -->
+                        <div class="relative w-full h-[270px]">
+                            <canvas id="companyTrendChart"></canvas>
+                        </div>
+
+                        <!-- Footer stats of Chart 1 -->
+                        <div class="grid grid-cols-3 gap-3 pt-4 mt-3 border-t border-outline-variant/60 text-center">
+                            <div class="bg-surface-bright p-2.5 rounded-xl border border-outline-variant/50">
+                                <p class="text-[11px] text-on-surface-variant uppercase font-medium">Total Semestre</p>
+                                <p class="text-base font-bold text-on-surface mt-0.5">{{ array_sum($chartApplicationsTrend) }}</p>
+                            </div>
+                            <div class="bg-surface-bright p-2.5 rounded-xl border border-outline-variant/50">
+                                <p class="text-[11px] text-on-surface-variant uppercase font-medium">Aceptados</p>
+                                <p class="text-base font-bold text-emerald-600 mt-0.5">{{ array_sum($chartAcceptedTrend) }}</p>
+                            </div>
+                            <div class="bg-surface-bright p-2.5 rounded-xl border border-outline-variant/50">
+                                <p class="text-[11px] text-on-surface-variant uppercase font-medium">Tasa Efectividad</p>
+                                <p class="text-base font-bold text-blue-600 mt-0.5">{{ $hireRate }}%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Embudo / Estado de Postulantes (4 cols) -->
+                    <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-headline-sm text-base md:text-lg font-bold text-on-surface">Embudo de Selección</h3>
+                                <span class="material-symbols-outlined text-outline text-[20px]">filter_alt</span>
+                            </div>
+                            <p class="text-xs text-on-surface-variant mb-2">Distribución por etapa de los postulantes.</p>
+                        </div>
+
+                        <!-- Doughnut Container -->
+                        <div class="relative w-full h-[200px] flex items-center justify-center my-1">
+                            <canvas id="companyStatusChart"></canvas>
+                        </div>
+
+                        <!-- Stage Legend Cards -->
+                        <div class="space-y-1 mt-2 pt-3 border-t border-outline-variant/60 text-xs">
+                            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-bright transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                    <span class="text-on-surface font-medium">Nuevos / Postulados</span>
+                                </span>
+                                <span class="font-bold text-on-surface">{{ $chartStatusDistribution['postulated'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-bright transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                    <span class="text-on-surface font-medium">En Revisión</span>
+                                </span>
+                                <span class="font-bold text-on-surface">{{ $chartStatusDistribution['reviewing'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-bright transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                                    <span class="text-on-surface font-medium">En Evaluación</span>
+                                </span>
+                                <span class="font-bold text-on-surface">{{ $chartStatusDistribution['evaluating'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-bright transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span class="text-on-surface font-medium">Seleccionados</span>
+                                </span>
+                                <span class="font-bold text-emerald-700">{{ $chartStatusDistribution['accepted'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-bright transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                                    <span class="text-on-surface font-medium">Descartados</span>
+                                </span>
+                                <span class="font-bold text-red-600">{{ $chartStatusDistribution['rejected'] ?? 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Chart 3 (Horizontal Bars: Top Offers) & Side Intelligence Card -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+                    <!-- Chart 3: Top Convocatorias con Mayor Demanda (7 cols) -->
+                    <div class="lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-headline-sm text-base md:text-lg font-bold text-on-surface">Top Ofertas con Mayor Interés</h3>
+                                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Demanda</span>
+                                </div>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Vacantes que han atraído el mayor volumen de postulantes.</p>
+                            </div>
+                            <button onclick="switchTab('offers')" class="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto">
+                                <span>Ver todas</span>
+                                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                            </button>
+                        </div>
+
+                        <!-- Canvas Container -->
+                        <div class="relative w-full h-[250px]">
+                            <canvas id="companyTopOffersChart"></canvas>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-outline-variant/60 flex items-center justify-between text-xs text-on-surface-variant">
+                            <span class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-primary text-[16px]">insights</span>
+                                Convocatorias con descripción detallada y beneficios atraen hasta un 40% más postulaciones.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Side Intelligence Card (5 cols) -->
+                    <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                        <!-- Glow effects -->
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/30 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-white/10 text-white border border-white/15 backdrop-blur-sm">
+                                    Rendimiento Corporativo
+                                </span>
+                                <span class="material-symbols-outlined text-white/70">hub</span>
+                            </div>
+
+                            <h3 class="text-xl font-extrabold text-white leading-tight mb-2">
+                                Maximiza tu impacto en la Bolsa Laboral
+                            </h3>
+                            <p class="text-xs text-white/75 leading-relaxed mb-5">
+                                Conecta directamente con talentos destacados de carreras técnicas y profesionales de nuestra institución educativa.
+                            </p>
+
+                            <!-- Progress & Metrics -->
+                            <div class="space-y-3.5 bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm mb-5">
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                        <span class="text-white/80">Tasa de Conversión a Contratación</span>
+                                        <span class="text-emerald-400 font-bold">{{ $hireRate }}%</span>
+                                    </div>
+                                    <div class="w-full h-2 rounded-full bg-white/20 overflow-hidden">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-1000" style="width: {{ min(100, max(5, $hireRate)) }}%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 pt-2 text-xs border-t border-white/10">
+                                    <div>
+                                        <span class="block text-white/60 text-[11px]">Estado Empresa</span>
+                                        <span class="font-bold text-white flex items-center gap-1 mt-0.5">
+                                            @if($company->is_verified)
+                                                <span class="material-symbols-outlined text-emerald-400 text-[16px] filled">verified</span> Verificada
+                                            @else
+                                                <span class="material-symbols-outlined text-amber-400 text-[16px]">pending</span> En Aprobación
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-white/60 text-[11px]">Convocatorias</span>
+                                        <span class="font-bold text-white mt-0.5 block">{{ $activeOffersCount }} activas / {{ $offersCount }} total</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA Actions -->
+                        <div class="relative z-10 flex flex-col sm:flex-row gap-2.5">
+                            @if($company->is_verified)
+                            <button onclick="switchTab('offers'); showCreateOfferForm()" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                                Publicar Oferta
+                            </button>
+                            @endif
+                            <button onclick="switchTab('applicants')" class="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center justify-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">group</span>
+                                Ver Postulantes
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -2108,6 +2362,262 @@
         document.getElementById('confirm-modal').addEventListener('click', function(e) {
             if (e.target === this) closeConfirmModal();
         });
+    });
+
+    // ========================================================================
+    // INICIALIZACIÓN DE LOS 3 GRÁFICOS ANALÍTICOS DE EMPRESA (Chart.js)
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js no está disponible en la página.');
+            return;
+        }
+
+        const chartMonths = @json($chartMonths);
+        const chartAppsTrend = @json($chartApplicationsTrend);
+        const chartAcceptedTrend = @json($chartAcceptedTrend);
+        const chartStatusDist = @json($chartStatusDistribution);
+        const chartTopOffers = @json($chartTopOffers);
+
+        // --- GRÁFICO 1: EVOLUCIÓN MENSUAL DE POSTULACIONES (Área Suave) ---
+        const trendCanvas = document.getElementById('companyTrendChart');
+        if (trendCanvas) {
+            const ctxTrend = trendCanvas.getContext('2d');
+
+            const gradBlue = ctxTrend.createLinearGradient(0, 0, 0, 260);
+            gradBlue.addColorStop(0, 'rgba(37, 99, 235, 0.28)');
+            gradBlue.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+            const gradEmerald = ctxTrend.createLinearGradient(0, 0, 0, 260);
+            gradEmerald.addColorStop(0, 'rgba(16, 185, 129, 0.24)');
+            gradEmerald.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+
+            new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: chartMonths,
+                    datasets: [
+                        {
+                            label: 'Postulaciones Recibidas',
+                            data: chartAppsTrend,
+                            borderColor: '#2563eb',
+                            backgroundColor: gradBlue,
+                            fill: true,
+                            tension: 0.38,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#2563eb',
+                            pointBorderWidth: 2,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                        },
+                        {
+                            label: 'Candidatos Seleccionados',
+                            data: chartAcceptedTrend,
+                            borderColor: '#10b981',
+                            backgroundColor: gradEmerald,
+                            fill: true,
+                            tension: 0.38,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#10b981',
+                            pointBorderWidth: 2,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            padding: 12,
+                            cornerRadius: 10,
+                            usePointStyle: true,
+                            boxPadding: 6,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'Inter', size: 12, weight: '500' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.7)',
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                precision: 0,
+                                color: '#64748b',
+                                font: { family: 'Inter', size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- GRÁFICO 2: EMBUDO DE SELECCIÓN (Doughnut Funnel con Total Central) ---
+        const statusCanvas = document.getElementById('companyStatusChart');
+        if (statusCanvas) {
+            const ctxStatus = statusCanvas.getContext('2d');
+            const statusValues = [
+                chartStatusDist.postulated || 0,
+                chartStatusDist.reviewing || 0,
+                chartStatusDist.evaluating || 0,
+                chartStatusDist.accepted || 0,
+                chartStatusDist.rejected || 0
+            ];
+            const totalStatusCount = statusValues.reduce((a, b) => a + b, 0);
+
+            const isDataEmpty = totalStatusCount === 0;
+            const chartData = isDataEmpty ? [1] : statusValues;
+            const chartColors = isDataEmpty 
+                ? ['#e2e8f0'] 
+                : ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444'];
+
+            const centerTextPlugin = {
+                id: 'centerTextPlugin',
+                afterDraw(chart) {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+
+                    ctx.font = 'bold 22px Inter, sans-serif';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillText(totalStatusCount.toString(), centerX, centerY - 6);
+
+                    ctx.font = '500 11px Inter, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('Postulantes', centerX, centerY + 14);
+
+                    ctx.restore();
+                }
+            };
+
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: isDataEmpty ? ['Sin postulantes'] : ['Postulados', 'En Revisión', 'En Evaluación', 'Aceptados', 'Descartados'],
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: isDataEmpty ? 0 : 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: !isDataEmpty,
+                            backgroundColor: '#0f172a',
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.raw || 0;
+                                    const pct = totalStatusCount > 0 ? ((val / totalStatusCount) * 100).toFixed(1) : 0;
+                                    return ` ${context.label}: ${val} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+        }
+
+        // --- GRÁFICO 3: TOP OFERTAS CON MAYOR DEMANDA (Barras Horizontales) ---
+        const topOffersCanvas = document.getElementById('companyTopOffersChart');
+        if (topOffersCanvas) {
+            const ctxTopOffers = topOffersCanvas.getContext('2d');
+            const hasOffers = chartTopOffers && chartTopOffers.length > 0;
+
+            const labels = hasOffers 
+                ? chartTopOffers.map(o => o.title)
+                : ['Sin convocatorias registradas'];
+            const dataValues = hasOffers 
+                ? chartTopOffers.map(o => o.count)
+                : [0];
+
+            new Chart(ctxTopOffers, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Postulantes',
+                        data: dataValues,
+                        backgroundColor: '#0284c7',
+                        borderRadius: 6,
+                        barThickness: 18,
+                        maxBarThickness: 22
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    const idx = items[0].dataIndex;
+                                    return (hasOffers && chartTopOffers[idx]) ? chartTopOffers[idx].full_title : items[0].label;
+                                },
+                                label: function(context) {
+                                    return ` Postulantes: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.7)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                precision: 0,
+                                color: '#64748b',
+                                font: { family: 'Inter', size: 11 }
+                            }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#334155',
+                                font: { family: 'Inter', size: 12, weight: '500' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 
