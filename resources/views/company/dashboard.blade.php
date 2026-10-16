@@ -386,66 +386,64 @@
                     </div>
 
                     <!-- Side Intelligence Card (5 cols) -->
-                    <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                        <!-- Glow effects -->
-                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/30 rounded-full blur-3xl pointer-events-none"></div>
-                        <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-                        <div class="relative z-10">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-white/10 text-white border border-white/15 backdrop-blur-sm">
+                    <div class="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-primary/10 text-primary border border-primary/20">
                                     Rendimiento Corporativo
                                 </span>
-                                <span class="material-symbols-outlined text-white/70">hub</span>
+                                <span class="material-symbols-outlined text-primary text-[22px]">hub</span>
                             </div>
 
-                            <h3 class="text-xl font-extrabold text-white leading-tight mb-2">
+                            <h3 class="text-lg font-bold text-on-surface leading-tight mb-2">
                                 Maximiza tu impacto en la Bolsa Laboral
                             </h3>
-                            <p class="text-xs text-white/75 leading-relaxed mb-5">
+                            <p class="text-xs text-on-surface-variant leading-relaxed mb-4">
                                 Conecta directamente con talentos destacados de carreras técnicas y profesionales de nuestra institución educativa.
                             </p>
 
-                            <!-- Progress & Metrics -->
-                            <div class="space-y-3.5 bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm mb-5">
+                            <!-- Progress & Metrics Box -->
+                            <div class="space-y-3.5 bg-surface-bright border border-outline-variant/70 rounded-xl p-4 mb-4">
                                 <div>
-                                    <div class="flex justify-between text-xs font-semibold mb-1.5">
-                                        <span class="text-white/80">Tasa de Conversión a Contratación</span>
-                                        <span class="text-emerald-400 font-bold">{{ $hireRate }}%</span>
+                                    <div class="flex justify-between items-center text-xs font-semibold mb-1.5">
+                                        <span class="text-on-surface font-medium">Tasa de Conversión a Contratación</span>
+                                        <span class="text-emerald-700 font-bold text-sm">{{ $hireRate }}%</span>
                                     </div>
-                                    <div class="w-full h-2 rounded-full bg-white/20 overflow-hidden">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-1000" style="width: {{ min(100, max(5, $hireRate)) }}%;"></div>
+                                    <div class="w-full h-2.5 rounded-full bg-surface-container-high border border-outline-variant/40 overflow-hidden">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-1000" style="width: {{ min(100, max(5, $hireRate)) }}%;"></div>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3 pt-2 text-xs border-t border-white/10">
+                                <div class="grid grid-cols-2 gap-3 pt-2 text-xs border-t border-outline-variant/60">
                                     <div>
-                                        <span class="block text-white/60 text-[11px]">Estado Empresa</span>
-                                        <span class="font-bold text-white flex items-center gap-1 mt-0.5">
+                                        <span class="block text-on-surface-variant text-[11px] font-medium">Estado Empresa</span>
+                                        <span class="font-bold text-on-surface flex items-center gap-1 mt-0.5">
                                             @if($company->is_verified)
-                                                <span class="material-symbols-outlined text-emerald-400 text-[16px] filled">verified</span> Verificada
+                                                <span class="material-symbols-outlined text-emerald-600 text-[18px] filled">verified</span>
+                                                <span class="text-emerald-800">Verificada</span>
                                             @else
-                                                <span class="material-symbols-outlined text-amber-400 text-[16px]">pending</span> En Aprobación
+                                                <span class="material-symbols-outlined text-amber-600 text-[18px]">pending</span>
+                                                <span class="text-amber-800">En Aprobación</span>
                                             @endif
                                         </span>
                                     </div>
                                     <div>
-                                        <span class="block text-white/60 text-[11px]">Convocatorias</span>
-                                        <span class="font-bold text-white mt-0.5 block">{{ $activeOffersCount }} activas / {{ $offersCount }} total</span>
+                                        <span class="block text-on-surface-variant text-[11px] font-medium">Convocatorias</span>
+                                        <span class="font-bold text-on-surface mt-0.5 block">{{ $activeOffersCount }} activas / {{ $offersCount }} total</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- CTA Actions -->
-                        <div class="relative z-10 flex flex-col sm:flex-row gap-2.5">
+                        <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
                             @if($company->is_verified)
-                            <button onclick="switchTab('offers'); showCreateOfferForm()" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                            <button onclick="switchTab('offers'); showCreateOfferForm()" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs bg-primary hover:opacity-90 text-on-primary transition-opacity flex items-center justify-center gap-1.5 shadow-sm">
                                 <span class="material-symbols-outlined text-[16px]">add_circle</span>
                                 Publicar Oferta
                             </button>
                             @endif
-                            <button onclick="switchTab('applicants')" class="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center justify-center gap-1.5">
+                            <button onclick="switchTab('applicants')" class="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs bg-surface-container-lowest border border-outline-variant hover:bg-surface-container text-on-surface transition-colors flex items-center justify-center gap-1.5">
                                 <span class="material-symbols-outlined text-[16px]">group</span>
                                 Ver Postulantes
                             </button>
