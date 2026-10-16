@@ -755,7 +755,7 @@ class CompanyDashboardController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status'   => 'required|string|in:accepted,rejected,postulated',
+            'status'   => 'required|string|in:accepted,rejected,postulated,under_review',
             'feedback' => 'nullable|string|max:1000',
         ]);
 
@@ -794,6 +794,8 @@ class CompanyDashboardController extends Controller
                     $statusText = match($request->status) {
                         'accepted' => 'aceptada',
                         'rejected' => 'rechazada',
+                        'postulated' => 'reabierta en estado postulado',
+                        'under_review' => 'puesta en revisión',
                         default => 'actualizada',
                     };
                     UserNotification::create([

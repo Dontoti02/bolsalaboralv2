@@ -534,6 +534,8 @@
                                             data-avatar="{{ htmlspecialchars($app->user_avatar ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
                                             data-about="{{ htmlspecialchars($app->person_about_me ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-id="{{ $app->id }}"
+                                            data-status="{{ $app->status ?? 'postulated' }}"
                                             onclick="openApplicantModal(this)"
                                             style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     </td>
@@ -970,7 +972,7 @@
                                 <td class="px-lg py-md font-body-sm text-body-sm text-on-surface-variant">
                                     <span class="font-semibold text-xs py-0.5 px-2 rounded @if($app->status == 'accepted') bg-green-100 text-green-800 @elseif($app->status == 'rejected') bg-red-100 text-red-800 @elseif($app->status == 'under_review') bg-blue-100 text-blue-800 @else bg-yellow-100 text-yellow-800 @endif">{{ ['postulated'=>'POSTULADO','under_review'=>'EN REVISIÓN','accepted'=>'ACEPTADO','rejected'=>'RECHAZADO','selected'=>'SELECCIONADO','finished'=>'FINALIZADO'][$app->status] ?? strtoupper($app->status) }}</span>
                                 </td>
-                                <td class="px-lg py-md text-right flex justify-end gap-3 items-center">
+                                <td class="px-lg py-md text-right flex justify-end gap-2.5 items-center">
                                     <button type="button" data-name="{{ htmlspecialchars($app->fullname ?? 'Candidato', ENT_QUOTES, 'UTF-8') }}"
                                             data-career="{{ htmlspecialchars($app->person_career ?? $app->program_study ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             data-msg="{{ htmlspecialchars($app->message ?? '', ENT_QUOTES, 'UTF-8') }}"
@@ -978,12 +980,24 @@
                                             data-avatar="{{ htmlspecialchars($app->user_avatar ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             data-skills="{{ htmlspecialchars(json_encode($app->person_skills ?? []), ENT_QUOTES, 'UTF-8') }}"
                                             data-about="{{ htmlspecialchars($app->person_about_me ?? '', ENT_QUOTES, 'UTF-8') }}"
+                                            data-id="{{ $app->id }}"
+                                            data-status="{{ $app->status ?? 'postulated' }}"
                                             onclick="openApplicantModal(this)"
                                             style="color:#002741; font-weight:600; font-size:13px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'">Ver Perfil</button>
                                     @if($app->cv)
                                     <a href="{{ $app->cv }}" target="_blank" style="color:#002741; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#006b60'" onmouseout="this.style.color='#002741'"><span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span> CV</a>
                                     @endif
-                                    @if(in_array($app->status, ['postulated', 'under_review']))
+                                    @if($app->status === 'accepted')
+                                    <button onclick="updateStatus({{ $app->id }}, 'rejected', 'accepted')" class="px-2.5 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 shadow-xs" title="Rectificar o cambiar estado a Rechazado">
+                                        <span class="material-symbols-outlined text-[15px]">swap_horiz</span>
+                                        <span>Cambiar a Rechazado</span>
+                                    </button>
+                                    @elseif($app->status === 'rejected')
+                                    <button onclick="updateStatus({{ $app->id }}, 'accepted', 'rejected')" class="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 shadow-xs" title="Rectificar o cambiar estado a Aceptado">
+                                        <span class="material-symbols-outlined text-[15px]">swap_horiz</span>
+                                        <span>Cambiar a Aprobado</span>
+                                    </button>
+                                    @else
                                     <button onclick="updateStatus({{ $app->id }}, 'accepted')" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 font-label-sm text-label-sm font-semibold rounded-lg transition-colors flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[14px]">check</span>
                                         Aprobar
@@ -1241,15 +1255,20 @@
         </div>
 
         <!-- Actions -->
-        <div style="padding:0 24px 24px;display:flex;gap:12px;">
-            <button onclick="closeApplicantModal()" style="flex:1;padding:12px;border:2px solid #e5e7eb;background:#fff;color:#4b5563;font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
-                <span class="material-symbols-outlined" style="font-size:18px;">close</span>
-                Cerrar
-            </button>
-            <a id="applicant-modal-cv-link" href="#" target="_blank" style="flex:1;padding:12px;background:linear-gradient(135deg,#002741,#004d45);color:#fff;font-weight:600;font-size:14px;border-radius:12px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(0,39,65,0.3);transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                <span class="material-symbols-outlined" style="font-size:18px;">picture_as_pdf</span>
-                Ver CV PDF
-            </a>
+        <div style="padding:0 24px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:12px;">
+                <button onclick="closeApplicantModal()" style="flex:1;padding:12px;border:2px solid #e5e7eb;background:#fff;color:#4b5563;font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+                    <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                    Cerrar
+                </button>
+                <a id="applicant-modal-cv-link" href="#" target="_blank" style="flex:1;padding:12px;background:linear-gradient(135deg,#002741,#004d45);color:#fff;font-weight:600;font-size:14px;border-radius:12px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(0,39,65,0.3);transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <span class="material-symbols-outlined" style="font-size:18px;">picture_as_pdf</span>
+                    Ver CV PDF
+                </a>
+            </div>
+            <!-- Quick status change buttons in modal -->
+            <div id="applicant-modal-status-buttons" style="display:flex;gap:8px;padding-top:8px;border-top:1px solid #f1f5f9;">
+            </div>
         </div>
     </div>
 </div>
@@ -1999,7 +2018,7 @@
     let pendingFeedbackAppId = null;
     let pendingFeedbackStatus = null;
 
-    function updateStatus(appId, status) {
+    function updateStatus(appId, status, fromStatus) {
         pendingFeedbackAppId = appId;
         pendingFeedbackStatus = status;
         
@@ -2019,20 +2038,32 @@
         // Configure based on status
         if (status === 'accepted') {
             header.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
-            title.textContent = 'Aprobar Postulante';
-            subtitle.textContent = 'Candidato seleccionado';
-            description.textContent = '¿Deseas aprobar a este candidato? Puedes agregar un mensaje de felicitación.';
+            title.textContent = (fromStatus === 'rejected') ? 'Rectificar y Aprobar Postulante' : 'Aprobar Postulante';
+            subtitle.textContent = 'Cambiar estado a: Aceptado';
+            description.textContent = (fromStatus === 'rejected')
+                ? 'El postulante estaba marcado como rechazado. ¿Deseas rectificar y cambiar su estado a Aprobado? Puedes agregar un mensaje.'
+                : '¿Deseas aprobar a este candidato? Puedes agregar un mensaje de felicitación.';
             icon.innerHTML = '<span class="material-symbols-outlined text-[24px] text-white">check_circle</span>';
             submitBtn.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
-            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Aprobar';
-        } else {
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Guardar como Aprobado';
+        } else if (status === 'rejected') {
             header.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
-            title.textContent = 'Rechazar Postulante';
-            subtitle.textContent = 'Candidato no seleccionado';
-            description.textContent = '¿Deseas rechazar a este candidato? Puedes agregar un comentario constructivo.';
+            title.textContent = (fromStatus === 'accepted') ? 'Rectificar y Rechazar Postulante' : 'Rechazar Postulante';
+            subtitle.textContent = 'Cambiar estado a: Rechazado';
+            description.textContent = (fromStatus === 'accepted')
+                ? 'El postulante estaba marcado como aceptado. ¿Deseas rectificar y cambiar su estado a Rechazado? Puedes agregar un comentario explicativo.'
+                : '¿Deseas rechazar a este candidato? Puedes agregar un comentario constructivo.';
             icon.innerHTML = '<span class="material-symbols-outlined text-[24px] text-white">cancel</span>';
             submitBtn.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
-            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span> Rechazar';
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span> Guardar como Rechazado';
+        } else {
+            header.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
+            title.textContent = 'Reabrir Postulación';
+            subtitle.textContent = 'Cambiar estado a: Postulado';
+            description.textContent = '¿Deseas restablecer este postulante a la etapa inicial de evaluación?';
+            icon.innerHTML = '<span class="material-symbols-outlined text-[24px] text-white">restart_alt</span>';
+            submitBtn.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Reabrir Postulación';
         }
         
         // Show modal
@@ -2252,6 +2283,38 @@
             cvLink.style.display = 'flex';
         } else {
             cvLink.style.display = 'none';
+        }
+
+        // Status Actions in Modal
+        const appId     = btn.dataset.id      || null;
+        const appStatus = btn.dataset.status  || 'postulated';
+        const statusBtnsContainer = document.getElementById('applicant-modal-status-buttons');
+        if (statusBtnsContainer) {
+            statusBtnsContainer.innerHTML = '';
+            if (appId) {
+                if (appStatus === 'accepted') {
+                    statusBtnsContainer.innerHTML = `
+                        <button type="button" onclick="closeApplicantModal(); updateStatus(${appId}, 'rejected', 'accepted')" style="flex:1;padding:10px 14px;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">swap_horiz</span> Cambiar a Rechazado
+                        </button>
+                    `;
+                } else if (appStatus === 'rejected') {
+                    statusBtnsContainer.innerHTML = `
+                        <button type="button" onclick="closeApplicantModal(); updateStatus(${appId}, 'accepted', 'rejected')" style="flex:1;padding:10px 14px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">swap_horiz</span> Cambiar a Aprobado
+                        </button>
+                    `;
+                } else {
+                    statusBtnsContainer.innerHTML = `
+                        <button type="button" onclick="closeApplicantModal(); updateStatus(${appId}, 'accepted')" style="flex:1;padding:10px;background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">check</span> Aprobar Candidato
+                        </button>
+                        <button type="button" onclick="closeApplicantModal(); updateStatus(${appId}, 'rejected')" style="flex:1;padding:10px;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">close</span> Rechazar Candidato
+                        </button>
+                    `;
+                }
+            }
         }
 
         // Open modal
