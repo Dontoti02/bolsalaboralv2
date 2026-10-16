@@ -450,5 +450,90 @@ class LandingController extends Controller
         session()->forget('show_password_warning');
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Show dedicated public company profile page with horizontal cover,
+     * complete company description, active job offers, and application flow.
+     */
+    public function showCompany($id)
+    {
+        try {
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+        } catch (\Exception $e) {
+            $config = [];
+        }
+
+        $company = Company::where('is_verified', true)
+            ->whereNull('deleted_at')
+            ->findOrFail($id);
+
+        // Ofertas activas de esta empresa
+        $companyOffers = JobOpportunityOffer::with([
+            'category',
+            'modality',
+            'workSchedule',
+            'contractType',
+            'state'
+        ])
+        ->where('company_id', $company->id)
+        ->whereNull('deleted_at')
+        ->whereHas('state', fn($q) => $q->where('key', 'active'))
+        ->orderBy('publication_date', 'desc')
+        ->get();
+
+        // Datos del usuario logueado para postulación directa
+        $authUser = null;
+        $studentCvs = collect();
+        $studentCvsJson = [];
+        $studentSavedOfferIds = [];
+        $appliedOfferIds = [];
+
+        if (Auth::check()) {
+            $authUser = Auth::user()->load('person');
+            $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
+
+            if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
+                $studentCvs = DB::table('job_opportunity_user_cv')
+                    ->where('user_id', $authUser->id)
+                    ->whereNull('deleted_at')
+                    ->orderBy('version', 'desc')
+                    ->get()
+                    ->map(function ($cv) {
+                        $cv->filename = basename($cv->url);
+                        $cv->uploaded_at = $cv->created_at
+                            ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
+                        return $cv;
+                    });
+
+                $studentCvsJson = $studentCvs->map(function ($cv) {
+                    return ['id' => $cv->id, 'version' => $cv->version, 'filename' => $cv->filename, 'uploaded_at' => $cv->uploaded_at];
+                })->values();
+
+                $studentSavedOfferIds = DB::table('saved_offers')
+                    ->where('user_id', $authUser->id)
+                    ->whereNull('deleted_at')
+                    ->pluck('offer_id')
+                    ->toArray();
+
+                $appliedOfferIds = DB::table('job_opportunity_applications')
+                    ->where('user_id', $authUser->id)
+                    ->whereNull('deleted_at')
+                    ->pluck('offer_id')
+                    ->toArray();
+            }
+        }
+
+        return view('company.public-profile', compact(
+            'config',
+            'company',
+            'companyOffers',
+            'authUser',
+            'studentCvs',
+            'studentCvsJson',
+            'studentSavedOfferIds',
+            'appliedOfferIds'
+        ));
+    }
 }
+
 

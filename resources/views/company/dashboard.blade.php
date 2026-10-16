@@ -827,9 +827,45 @@
                                 <input type="file" id="logo-file-input" name="logo" class="hidden" accept="image/*" onchange="previewLogoImage(this)">
                                 <button type="button" onclick="document.getElementById('logo-file-input').click()" class="px-4 py-2 bg-secondary text-on-secondary rounded-lg font-label-sm text-label-sm hover:opacity-90 flex items-center gap-1 shadow-sm transition-all font-semibold">
                                     <span class="material-symbols-outlined text-sm">cloud_upload</span>
-                                    Subir Imagen
+                                    Subir Logo
                                 </button>
-                                <p class="text-[11px] text-on-surface-variant">Formatos permitidos: JPG, PNG, GIF. Máximo 2MB.</p>
+                                <p class="text-[11px] text-on-surface-variant">Formatos permitidos: JPG, PNG, GIF, WEBP. Máximo 2MB.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Imagen de Portada Horizontal (Encabezado para perfil público) -->
+                    <div class="space-y-sm md:col-span-2 border-t border-outline-variant pt-lg">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">panorama</span>
+                            <span class="font-bold text-on-surface">Imagen horizontal de portada / encabezado (Perfil público)</span>
+                            <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-semibold">Opcional</span>
+                        </label>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">
+                            Esta imagen se mostrará en el encabezado cuando los postulantes abran el perfil y vacantes de tu empresa desde <em>"Estas empresas necesitan tu talento"</em>.
+                            <strong>Dimensiones recomendadas: 1200 × 350 px</strong> (proporción panorámica ~16:5). Formatos aceptados: JPG, PNG, WEBP (máx. 4MB).
+                        </p>
+
+                        <div class="space-y-3 pt-1">
+                            <!-- Preview Box -->
+                            <div id="cover-preview-container" class="w-full h-44 rounded-2xl overflow-hidden border border-outline-variant bg-surface-container relative shadow-inner {{ !empty($company->cover_image) ? '' : 'hidden' }}">
+                                <img id="cover-preview-image" src="{{ $company->cover_image ?? '' }}" alt="Vista previa de portada" class="w-full h-full object-cover">
+                                <button type="button" onclick="removeCoverImage(event)" title="Quitar imagen de portada"
+                                        class="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-red-600/90 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-1 shadow-md transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">close</span>
+                                    <span>Quitar portada</span>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <input type="file" id="cover-file-input" name="cover_image" class="hidden" accept="image/jpeg,image/png,image/webp,image/jpg" onchange="previewCoverImage(this)">
+                                <input type="hidden" id="remove-cover-input" name="remove_cover_image" value="0">
+                                <button type="button" onclick="document.getElementById('cover-file-input').click()"
+                                        class="px-4 py-2 bg-secondary text-on-secondary rounded-lg font-label-sm text-label-sm hover:opacity-90 flex items-center gap-2 shadow-sm transition-all font-semibold">
+                                    <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                                    <span>{{ !empty($company->cover_image) ? 'Cambiar imagen de portada' : 'Subir imagen horizontal de portada' }}</span>
+                                </button>
+                                <span class="text-xs text-on-surface-variant">Ideal: 1200 × 350 px</span>
                             </div>
                         </div>
                     </div>
@@ -1090,6 +1126,35 @@
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function previewCoverImage(input) {
+        const file = input.files[0];
+        if (file) {
+            if (!file.type.match('image.*')) {
+                showToast('Por favor selecciona un formato de imagen válido (JPG, PNG, WEBP).', 'error');
+                return;
+            }
+            if (file.size > 4 * 1024 * 1024) {
+                showToast('La imagen supera el límite de 4MB.', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('cover-preview-image').src = e.target.result;
+                document.getElementById('cover-preview-container').classList.remove('hidden');
+                document.getElementById('remove-cover-input').value = '0';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeCoverImage(event) {
+        if (event) event.stopPropagation();
+        document.getElementById('cover-file-input').value = '';
+        document.getElementById('remove-cover-input').value = '1';
+        document.getElementById('cover-preview-image').src = '';
+        document.getElementById('cover-preview-container').classList.add('hidden');
     }
 
     function showToast(message, type = 'success') {

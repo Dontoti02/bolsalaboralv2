@@ -549,19 +549,24 @@
         .arch-pill-brand {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 900;
-            font-size: 18px;
-            color: #ffffff;
-            letter-spacing: -0.02em;
+            justify-content: center;
+            min-height: 28px;
         }
-        .arch-pacasmayo-sq {
-            width: 10px;
-            height: 10px;
-            background: #ef4444;
-            display: inline-block;
-            border-radius: 2px;
+        .arch-pill-logo-img {
+            max-height: 32px;
+            max-width: 95px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+        .arch-pill-logo-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .arch-pill-text {
             display: flex;
@@ -1525,10 +1530,11 @@
                                     <div class="arch-company-pill" onclick="window.location.href='/ofertas/{{ $bOffer->id }}'" style="cursor:pointer;" title="{{ $bOffer->title }}">
                                         <div class="arch-pill-brand">
                                             @if($bOffer->company && $bOffer->company->logo)
-                                                <img src="{{ $bOffer->company->logo }}" alt="{{ $bOffer->company->name }}" style="max-height:24px;max-width:70px;object-fit:contain;filter:brightness(0) invert(1);">
+                                                <img src="{{ $bOffer->company->logo }}" alt="{{ $bOffer->company->name }}" class="arch-pill-logo-img">
                                             @else
-                                                <span>{{ $bOffer->company ? Str::limit($bOffer->company->name, 12) : 'Empresa' }}</span>
-                                                <span class="arch-pacasmayo-sq"></span>
+                                                <div class="arch-pill-logo-badge" title="{{ $bOffer->company->name ?? 'Empresa' }}">
+                                                    <span class="material-symbols-outlined" style="font-size:20px;color:#ffffff;">apartment</span>
+                                                </div>
                                             @endif
                                         </div>
                                         <div class="arch-pill-text">
@@ -1556,13 +1562,11 @@
                                     <div class="arch-company-pill" onclick="window.location.href='#oportunidades'" style="cursor:pointer;">
                                         <div class="arch-pill-brand">
                                             @if($firstCompany && $firstCompany->logo)
-                                                <img src="{{ $firstCompany->logo }}" alt="{{ $firstCompany->name }}" style="max-height:24px;max-width:70px;object-fit:contain;filter:brightness(0) invert(1);">
-                                            @elseif($firstCompany)
-                                                <span>{{ Str::limit($firstCompany->name, 12) }}</span>
-                                                <span class="arch-pacasmayo-sq"></span>
+                                                <img src="{{ $firstCompany->logo }}" alt="{{ $firstCompany->name }}" class="arch-pill-logo-img">
                                             @else
-                                                <span>Bolsa Laboral</span>
-                                                <span class="arch-pacasmayo-sq"></span>
+                                                <div class="arch-pill-logo-badge">
+                                                    <span class="material-symbols-outlined" style="font-size:20px;color:#ffffff;">apartment</span>
+                                                </div>
                                             @endif
                                         </div>
                                         <div class="arch-pill-text">
@@ -1595,7 +1599,7 @@
                 <div class="companies-slider-track" id="companies-scroll-track">
                     {{-- Empresas registradas en BD (únicamente las que existen en la bolsa laboral) --}}
                     @forelse($companies as $co)
-                        <div class="company-card-item" onclick="filterByCompany('{{ addslashes($co->name) }}')" title="Ver ofertas de {{ $co->name }}">
+                        <div class="company-card-item" onclick="window.location.href='/empresas/{{ $co->id }}'" title="Ver perfil y vacantes de {{ $co->name }}">
                             @if($co->logo)
                                 <img src="{{ $co->logo }}" alt="{{ $co->name }}" class="company-logo-svg" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\'company-card-fallback\'><span class=\'company-fallback-avatar\'>{{ strtoupper(substr($co->name, 0, 1)) }}</span><span class=\'company-fallback-name\'>{{ $co->name }}</span></div>';">
                             @else

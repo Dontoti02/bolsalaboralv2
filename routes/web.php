@@ -25,6 +25,7 @@ use App\Http\Controllers\JobOpportunityController;
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/buscar-ofertas', [LandingController::class, 'searchOffers'])->name('landing.search');
 Route::get('/ofertas/{id}', [LandingController::class, 'showOffer'])->name('landing.offer.show');
+Route::get('/empresas/{id}', [LandingController::class, 'showCompany'])->name('landing.company.show');
 
 Route::middleware(['auth'])->group(function () {
 

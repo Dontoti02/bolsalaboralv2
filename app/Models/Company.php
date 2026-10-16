@@ -33,6 +33,7 @@ class Company extends Model
         'website',
         'address',
         'logo',
+        'cover_image',
     ];
 
     /**

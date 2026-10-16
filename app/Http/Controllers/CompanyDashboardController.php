@@ -187,6 +187,7 @@ class CompanyDashboardController extends Controller
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ], [
             'name.required' => 'El nombre de la empresa es obligatorio.',
             'email.required' => 'El correo electrónico es obligatorio.',
@@ -197,6 +198,9 @@ class CompanyDashboardController extends Controller
             'logo.image' => 'El archivo del logo debe ser una imagen.',
             'logo.mimes' => 'El logo debe estar en formato jpeg, png, jpg o gif.',
             'logo.max' => 'El logo no debe pesar más de 2MB.',
+            'cover_image.image' => 'El encabezado debe ser una imagen válida.',
+            'cover_image.mimes' => 'El encabezado debe estar en formato jpeg, png, jpg o webp.',
+            'cover_image.max' => 'La imagen de encabezado no debe pesar más de 4MB.',
         ]);
 
         if ($validator->fails()) {
@@ -230,6 +234,20 @@ class CompanyDashboardController extends Controller
 
                 $file->move($uploadPath, $fileName);
                 $company->logo = '/uploads/logos/' . $fileName;
+            }
+
+            // Handle cover/header banner image upload
+            if ($request->hasFile('cover_image')) {
+                $coverFile = $request->file('cover_image');
+                $coverName = 'cover_' . time() . '_' . Str::random(8) . '.' . $coverFile->getClientOriginalExtension();
+                $coverPath = public_path('uploads/companies/covers');
+                if (!file_exists($coverPath)) {
+                    mkdir($coverPath, 0755, true);
+                }
+                $coverFile->move($coverPath, $coverName);
+                $company->cover_image = '/uploads/companies/covers/' . $coverName;
+            } elseif ($request->filled('remove_cover_image') && $request->remove_cover_image == '1') {
+                $company->cover_image = null;
             }
 
             $company->save();
