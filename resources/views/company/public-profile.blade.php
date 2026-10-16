@@ -762,12 +762,11 @@
                         <a href="{{ route('login') }}" class="btn-login-nav">
                             <span>Iniciar Sesión</span>
                         </a>
+                        <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
+                            <span>Registrarme como Empresa</span>
+                            <span>↗</span>
+                        </a>
                     @endif
-
-                    <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
-                        <span>Registrarme como Empresa</span>
-                        <span>↗</span>
-                    </a>
                 </div>
             </div>
         </div>

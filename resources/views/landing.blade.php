@@ -1473,12 +1473,11 @@
                         <a href="{{ route('login') }}" class="btn-login-nav">
                             <span>Iniciar Sesión</span>
                         </a>
+                        <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
+                            <span>Registrarme como Empresa</span>
+                            <span class="btn-arrow-icon">↗</span>
+                        </a>
                     @endif
-
-                    <a href="{{ route('login') }}#empresa" class="btn-empresa-nav">
-                        <span>Registrarme como Empresa</span>
-                        <span class="btn-arrow-icon">↗</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -1736,6 +1735,7 @@
         </div>
 
         {{-- ══ CALL TO ACTION: EMPRESAS ══ --}}
+        @if(!$authUser || !in_array($authUser->rol_id, [2, 3, 5]))
         <section class="cta-company-card">
             <div class="cta-company-left">
                 <span class="cta-company-tagline">EMPRESAS QUE IMPULSAN EL FUTURO</span>
@@ -1747,6 +1747,7 @@
                 <span>↗</span>
             </a>
         </section>
+        @endif
 
     </main>
 
