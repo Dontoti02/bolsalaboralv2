@@ -642,17 +642,28 @@
                 <form id="company-offer-form" onsubmit="handleCompanyOfferSubmit(event)" class="space-y-lg">
                     <input type="hidden" id="company-form-offer-id" value="">
 
-                    <!-- Row 1: Title and Date -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-lg">
-                        <div class="md:col-span-3 space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-title">Título</label>
+                    <!-- Row 1: Title, Publication Date and Deadline -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+                        <div class="md:col-span-6 space-y-xs">
+                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-title">Título de la vacante</label>
                             <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                id="co-offer-title" placeholder="Aa" type="text" required />
+                                id="co-offer-title" placeholder="Ej. Ingeniero de Software Junior" type="text" required />
                         </div>
-                        <div class="space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-pub-date">Fecha de publicación</label>
+                        <div class="md:col-span-3 space-y-xs">
+                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-pub-date">
+                                Fecha de publicación
+                            </label>
                             <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
                                 id="co-offer-pub-date" type="date" required />
+                            <span class="text-[11px] text-on-surface-variant block">Si es futura, la oferta se programará</span>
+                        </div>
+                        <div class="md:col-span-3 space-y-xs">
+                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-deadline">
+                                Fecha límite (Vencimiento)
+                            </label>
+                            <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                id="co-offer-deadline" type="date" />
+                            <span class="text-[11px] text-on-surface-variant block">Al vencer, se cierra la postulación</span>
                         </div>
                     </div>
 
@@ -818,6 +829,25 @@
                                     <option value="">Seleccionar departamento primero...</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4.5: External Application Link -->
+                    <div class="p-md bg-surface-container-low rounded-2xl border border-outline-variant/70 space-y-xs">
+                        <div class="flex items-center justify-between">
+                            <label class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2" for="co-offer-external-url">
+                                <span class="material-symbols-outlined text-[20px] text-primary">link</span>
+                                <span>Enlace de postulación externa</span>
+                                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold">Opcional</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">
+                            Si la oferta laboral o el proceso de postulación se gestiona fuera de esta bolsa de trabajo (por ejemplo, en el sitio web de tu empresa, LinkedIn o un formulario externo), ingresa aquí el link directo. Los postulantes verán el botón para postular directamente en dicho enlace externo.
+                        </p>
+                        <div class="relative pt-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">public</span>
+                            <input class="w-full pl-10 pr-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                id="co-offer-external-url" placeholder="https://empresa.com/postulaciones/vacante-123" type="url" />
                         </div>
                     </div>
 
@@ -1719,6 +1749,37 @@
                     const contractTypeName = o.contract_type?.name || '-';
                     const appCount = o.applicants_count ?? 0;
 
+                    // Evaluation of expiration and schedule
+                    const now = new Date();
+                    let isExpired = (stateId === 3);
+                    if (!isExpired && o.deadline) {
+                        const d = new Date(o.deadline);
+                        // If it has no time or midnight, consider end of that day
+                        const deadlineDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+                        if (deadlineDate < now) isExpired = true;
+                    }
+
+                    let isScheduled = false;
+                    if (o.publication_date) {
+                        const p = new Date(o.publication_date);
+                        if (p > now) isScheduled = true;
+                    }
+
+                    let displayStateLbl = stateLbl;
+                    let displayStateClr = stateClr;
+
+                    if (isExpired) {
+                        displayStateLbl = 'Convocatoria Finalizada';
+                        displayStateClr = 'bg-red-100 text-red-800 border border-red-200';
+                    } else if (isScheduled) {
+                        displayStateLbl = 'Programada';
+                        displayStateClr = 'bg-blue-100 text-blue-800 border border-blue-200';
+                    }
+
+                    const externalBadge = o.external_url
+                        ? `<a href="${o.external_url}" target="_blank" onclick="event.stopPropagation();" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 hover:bg-purple-200 border border-purple-200 transition-colors ml-1.5" title="Oferta externa: ${o.external_url}">Externa <span class="material-symbols-outlined text-[12px]">open_in_new</span></a>`
+                        : '';
+
                     return `
                     <tr class="hover:bg-surface-container-low transition-colors">
                         <td class="px-4 py-3">
@@ -1726,11 +1787,16 @@
                                 <button onclick="editCompanyOffer(${o.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
                                 <button onclick="deleteCompanyOffer(${o.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                                 <button onclick="toggleCompanyOfferState(${o.id})" title="${toggleLbl}" class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">${stateId === 2 ? 'pause' : 'play_arrow'}</span></button>
-                                <button onclick="window.open('/?offer=${o.id}', '_blank')" title="Ver publicación de oferta" class="p-1.5 rounded-lg hover:bg-surface-container-high text-secondary"><span class="material-symbols-outlined text-[18px]">visibility</span></button>
+                                <button onclick="window.open('/ofertas/${o.id}', '_blank')" title="Ver publicación de oferta" class="p-1.5 rounded-lg hover:bg-surface-container-high text-secondary"><span class="material-symbols-outlined text-[18px]">visibility</span></button>
                             </div>
                         </td>
-                        <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${stateClr}">${stateLbl}</span></td>
-                        <td class="px-4 py-3 font-semibold">${safeTitle}</td>
+                        <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${displayStateClr}">${displayStateLbl}</span></td>
+                        <td class="px-4 py-3 font-semibold">
+                            <div class="flex items-center flex-wrap gap-1">
+                                <span>${safeTitle}</span>
+                                ${externalBadge}
+                            </div>
+                        </td>
                         <td class="px-4 py-3 text-center">
                             <button onclick="filterApplicantsByOffer(${o.id}, '${safeTitle.replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-container/40 text-primary hover:bg-primary hover:text-on-primary transition-all cursor-pointer" title="Ver ${appCount} postulante(s)">
                                 <span class="material-symbols-outlined text-[15px]">group</span>
@@ -1755,6 +1821,8 @@
         document.getElementById('company-form-offer-id').value = '';
         document.getElementById('company-offer-form').reset();
         document.getElementById('co-offer-pub-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('co-offer-deadline').value = '';
+        document.getElementById('co-offer-external-url').value = '';
         document.getElementById('company-form-offer-title').textContent = 'Crear Oferta Laboral';
         document.getElementById('co-btn-save-offer').textContent = 'Crear Oferta Laboral';
         
@@ -1827,6 +1895,8 @@
         formData.append('requirements',     document.getElementById('co-offer-requirements').value);
         formData.append('benefits',         document.getElementById('co-offer-benefits').value);
         formData.append('publication_date', document.getElementById('co-offer-pub-date').value);
+        formData.append('deadline',         document.getElementById('co-offer-deadline').value);
+        formData.append('external_url',     document.getElementById('co-offer-external-url').value);
         formData.append('salary',           document.getElementById('co-offer-salary').value);
         formData.append('salary_currency',  document.getElementById('co-offer-currency').value);
         formData.append('address',          document.getElementById('co-offer-address').value);
@@ -1884,7 +1954,9 @@
                 document.getElementById('co-offer-description').value   = o.description || '';
                 document.getElementById('co-offer-requirements').value  = o.requirements || '';
                 document.getElementById('co-offer-benefits').value      = o.benefits || '';
-                document.getElementById('co-offer-pub-date').value      = o.publication_date || '';
+                document.getElementById('co-offer-pub-date').value      = o.publication_date ? o.publication_date.split('T')[0] : '';
+                document.getElementById('co-offer-deadline').value      = o.deadline ? o.deadline.split('T')[0] : '';
+                document.getElementById('co-offer-external-url').value  = o.external_url || '';
                 document.getElementById('co-offer-salary').value        = o.salary || 0;
                 document.getElementById('co-offer-currency').value      = o.salary_currency || 'SOLES';
                 document.getElementById('co-offer-address').value       = o.address || '';

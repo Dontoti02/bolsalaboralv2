@@ -472,6 +472,7 @@ class CompanyDashboardController extends Controller
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
             'banner_image'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'external_url'     => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -609,6 +610,7 @@ class CompanyDashboardController extends Controller
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
             'banner_image'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'external_url'     => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {

@@ -64,9 +64,12 @@ class LandingController extends Controller
             $totalActiveOffers = JobOpportunityOffer::whereHas('state', fn($q) => $q->where('key', 'active'))->count();
             $totalCompanies    = Company::where('is_verified', true)->where(function($q){ $q->whereNull('deleted_at'); })->count();
 
-            // Ofertas destacadas (últimas activas)
+            // Ofertas destacadas (últimas activas ya publicadas)
             $featuredOffers = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'))
+                ->where(function($q) {
+                    $q->whereNull('publication_date')->orWhere('publication_date', '<=', now());
+                })
                 ->orderBy('publication_date', 'desc')
                 ->take(9)
                 ->get();
@@ -74,6 +77,9 @@ class LandingController extends Controller
             // Ofertas activas con banner personalizado para el arco rotativo
             $bannerOffers = JobOpportunityOffer::with(['company:id,name,logo'])
                 ->whereHas('state', fn($q) => $q->where('key', 'active'))
+                ->where(function($q) {
+                    $q->whereNull('publication_date')->orWhere('publication_date', '<=', now());
+                })
                 ->whereNotNull('banner_image')
                 ->where('banner_image', '!=', '')
                 ->orderBy('publication_date', 'desc')
@@ -374,7 +380,10 @@ class LandingController extends Controller
     {
         try {
             $query = JobOpportunityOffer::with(['company:id,name,logo,address,website,description', 'state', 'category', 'modality', 'workSchedule', 'contractType'])
-                ->whereHas('state', fn($q) => $q->where('key', 'active'));
+                ->whereHas('state', fn($q) => $q->where('key', 'active'))
+                ->where(function($q) {
+                    $q->whereNull('publication_date')->orWhere('publication_date', '<=', now());
+                });
 
             if ($request->filled('search')) {
                 $search = $request->search;

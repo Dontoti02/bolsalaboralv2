@@ -853,6 +853,15 @@
                     </div>
 
                     <div>
+                        @if($offer->isExpired())
+                            <span class="job-type-pill" style="background:#fee2e2;color:#b91c1c;font-weight:700;">
+                                Convocatoria Finalizada
+                            </span>
+                        @elseif($offer->isExternal())
+                            <span class="job-type-pill" style="background:#f3e8ff;color:#7e22ce;font-weight:700;">
+                                Convocatoria Externa ↗
+                            </span>
+                        @endif
                         <span class="job-type-pill {{ $isPractice ? 'badge-practica' : 'badge-empleo' }}">
                             {{ $isPractice ? 'Prácticas' : 'Empleo' }}
                         </span>
@@ -888,10 +897,22 @@
                             <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;display:block;">Remuneración</span>
                             <span class="salary-label">{{ $salaryStr }}</span>
                         </div>
-                        <button type="button" class="btn-apply-fast" onclick="openApplyModal({{ $offer->id }}, '{{ addslashes($offer->title) }}')">
-                            <span>Postularme</span>
-                            <span class="material-symbols-outlined" style="font-size:16px;">send</span>
-                        </button>
+                        @if($offer->isExpired())
+                            <button type="button" class="btn-apply-fast" disabled style="background:#94a3b8;cursor:not-allowed;box-shadow:none;opacity:0.8;">
+                                <span>Finalizada</span>
+                                <span class="material-symbols-outlined" style="font-size:16px;">block</span>
+                            </button>
+                        @elseif($offer->isExternal())
+                            <a href="{{ $offer->external_url }}" target="_blank" rel="noopener noreferrer" class="btn-apply-fast" style="text-decoration:none;background:linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+                                <span>Postular ↗</span>
+                                <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                            </a>
+                        @else
+                            <button type="button" class="btn-apply-fast" onclick="openApplyModal({{ $offer->id }}, '{{ addslashes($offer->title) }}')">
+                                <span>Postularme</span>
+                                <span class="material-symbols-outlined" style="font-size:16px;">send</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
                 @endforeach

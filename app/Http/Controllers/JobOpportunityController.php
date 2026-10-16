@@ -160,6 +160,7 @@ class JobOpportunityController extends Controller
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
             'state_id' => 'nullable|integer',
+            'external_url' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -266,6 +267,7 @@ class JobOpportunityController extends Controller
             'work_schedule_id' => 'required|integer',
             'contract_type_id' => 'required|integer',
             'state_id' => 'nullable|integer',
+            'external_url' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {

@@ -1784,11 +1784,14 @@
                 </div>
             </div>
 
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
                 <span id="m-badge-type" class="card-type-badge badge-practica">Prácticas</span>
                 <span id="m-badge-schedule" class="card-type-badge" style="background:#f1f5f9;color:#334155;">Tiempo Completo</span>
                 <span id="m-badge-category" class="card-type-badge" style="background:#e0f2fe;color:#0369a1;">Categoría</span>
+                <span id="m-badge-external" class="card-type-badge" style="background:#f3e8ff;color:#7e22ce;display:none;">Externa ↗</span>
             </div>
+
+            <div id="m-status-banner" style="display:none;padding:12px 16px;border-radius:12px;margin-bottom:16px;font-size:13px;font-weight:600;align-items:center;gap:10px;"></div>
 
             <div style="background:#f8fafc;border:1px solid var(--bor);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
                 <div>
@@ -2215,13 +2218,25 @@ function renderCard(o) {
         salaryStr = 'S/ ' + Number(o.salary).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    // Cierre
+    // Cierre / Vencimiento
+    var now = new Date();
+    var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
+    if (!isExpired && o.deadline) {
+        var dDeadline = new Date(o.deadline);
+        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
+        if (deadlineEnd < now) isExpired = true;
+    }
+
     var closeStr = 'Convocatoria abierta';
-    if (o.deadline) {
+    if (isExpired) {
+        closeStr = '<span style="background:#fee2e2;color:#b91c1c;padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;">Convocatoria Finalizada</span>';
+    } else if (o.deadline) {
         var d = new Date(o.deadline);
         var months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'];
         closeStr = 'Cierra ' + String(d.getDate()).padStart(2, '0') + ' ' + (months[d.getMonth()] || '');
     }
+
+    var externalBadgeHtml = o.external_url ? '<span class="card-type-badge" style="background:#f3e8ff;color:#7e22ce;font-size:11px;margin-left:4px;">Externa ↗</span>' : '';
 
     // Avatar
     var avatarHtml = '';
@@ -2236,6 +2251,7 @@ function renderCard(o) {
             '<div class="card-header-left">' +
                 '<div class="card-avatar" style="background:' + getAvatarBg(initial) + ';color:' + getAvatarColor(initial) + ';">' + avatarHtml + '</div>' +
                 '<span class="card-type-badge ' + badgeClass + '">' + esc(typeBadge) + '</span>' +
+                externalBadgeHtml +
             '</div>' +
             '<button type="button" class="btn-card-star ' + (isSaved ? 'active' : '') + '" onclick="handleStarClick(event, ' + o.id + ')" title="' + (isSaved ? 'Quitar de guardadas' : 'Guardar oportunidad') + '">' +
                 '<span class="material-symbols-outlined ' + (isSaved ? 'filled' : '') + '">' + (isSaved ? 'bookmark' : 'bookmark_border') + '</span>' +
@@ -2336,14 +2352,77 @@ function openOpportunityDetail(id) {
         saveIcon.className = 'material-symbols-outlined ' + (isSaved ? 'filled' : '');
     }
 
+    // Cierre / Vencimiento
+    var now = new Date();
+    var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
+    if (!isExpired && o.deadline) {
+        var dDeadline = new Date(o.deadline);
+        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
+        if (deadlineEnd < now) isExpired = true;
+    }
+
+    // Status banner & badge
+    var statusBanner = document.getElementById('m-status-banner');
+    var extBadge = document.getElementById('m-badge-external');
+    if (extBadge) {
+        extBadge.style.display = o.external_url ? 'inline-flex' : 'none';
+    }
+
+    if (isExpired) {
+        if (statusBanner) {
+            statusBanner.style.display = 'flex';
+            statusBanner.style.background = '#fef2f2';
+            statusBanner.style.border = '1px solid #fecaca';
+            statusBanner.style.color = '#991b1b';
+            statusBanner.innerHTML = '<span class="material-symbols-outlined" style="font-size:22px;color:#dc2626;flex-shrink:0;">event_busy</span><div><strong style="display:block;font-size:14px;">Convocatoria Finalizada</strong>Esta oferta laboral ya cumplió su fecha límite de postulación y no recibe nuevas solicitudes.</div>';
+        }
+    } else if (o.external_url) {
+        if (statusBanner) {
+            statusBanner.style.display = 'flex';
+            statusBanner.style.background = '#f5f3ff';
+            statusBanner.style.border = '1px solid #ddd6fe';
+            statusBanner.style.color = '#5b21b6';
+            statusBanner.innerHTML = '<span class="material-symbols-outlined" style="font-size:22px;color:#7c3aed;flex-shrink:0;">open_in_new</span><div><strong style="display:block;font-size:14px;">Convocatoria Externa</strong>Esta vacante se gestiona fuera de la bolsa laboral. Al postular serás redirigido al portal oficial de la empresa.</div>';
+        }
+    } else {
+        if (statusBanner) {
+            statusBanner.style.display = 'none';
+            statusBanner.innerHTML = '';
+        }
+    }
+
     // Botón postular estado
     var applyBtn = document.getElementById('m-btn-apply');
-    if (appliedOffers.has(o.id)) {
+    if (isExpired) {
+        applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">block</span> Convocatoria finalizada';
+        applyBtn.disabled = true;
+        applyBtn.style.background = '#9ca3af';
+        applyBtn.style.cursor = 'not-allowed';
+        applyBtn.style.opacity = '0.8';
+        applyBtn.onclick = null;
+    } else if (o.external_url) {
+        applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span> Postular en sitio externo ↗';
+        applyBtn.disabled = false;
+        applyBtn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)';
+        applyBtn.style.cursor = 'pointer';
+        applyBtn.style.opacity = '1';
+        applyBtn.onclick = function() {
+            window.open(o.external_url, '_blank');
+        };
+    } else if (appliedOffers.has(o.id)) {
         applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">check_circle</span> Ya has postulado';
+        applyBtn.disabled = true;
+        applyBtn.style.background = 'var(--pri)';
+        applyBtn.style.cursor = 'default';
         applyBtn.style.opacity = '0.7';
+        applyBtn.onclick = null;
     } else {
         applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">send</span> Postularme ahora';
+        applyBtn.disabled = false;
+        applyBtn.style.background = 'var(--pri)';
+        applyBtn.style.cursor = 'pointer';
         applyBtn.style.opacity = '1';
+        applyBtn.onclick = handleModalApplyClick;
     }
 
     document.getElementById('detail-modal').classList.add('open');
@@ -2366,6 +2445,23 @@ function openPostularModal(offer) {
     var o = offer || currentSelectedOffer;
     if (!o) return;
     currentSelectedOffer = o;
+
+    // Check expiration
+    var now = new Date();
+    var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
+    if (!isExpired && o.deadline) {
+        var dDeadline = new Date(o.deadline);
+        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
+        if (deadlineEnd < now) isExpired = true;
+    }
+    if (isExpired) {
+        showToast('Esta convocatoria ha finalizado y ya no recibe postulaciones.');
+        return;
+    }
+    if (o.external_url) {
+        window.open(o.external_url, '_blank');
+        return;
+    }
 
     var modal = document.getElementById('postular-modal');
     if (!modal) return;

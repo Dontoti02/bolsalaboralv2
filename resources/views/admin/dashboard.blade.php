@@ -1708,21 +1708,30 @@
                     <form id="offer-form" onsubmit="handleOfferFormSubmit(event)" class="space-y-lg">
                         <input type="hidden" id="form-offer-id" value="">
 
-                        <!-- Row 1: Title and Date -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-lg">
-                            <div class="md:col-span-3 space-y-xs">
+                        <!-- Row 1: Title, Publication Date and Deadline -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+                            <div class="md:col-span-6 space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                    for="offer-title">Título</label>
+                                    for="offer-title">Título de la vacante</label>
                                 <input
                                     class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                    id="offer-title" placeholder="Aa" type="text" required />
+                                    id="offer-title" placeholder="Ej. Especialista en Ciberseguridad" type="text" required />
                             </div>
-                            <div class="space-y-xs">
+                            <div class="md:col-span-3 space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block"
                                     for="offer-pub-date">Fecha de publicación</label>
                                 <input
                                     class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
                                     id="offer-pub-date" type="date" required />
+                                <span class="text-[11px] text-on-surface-variant block">Si es futura, la oferta se programará</span>
+                            </div>
+                            <div class="md:col-span-3 space-y-xs">
+                                <label class="font-label-sm text-label-sm text-on-surface-variant block"
+                                    for="offer-deadline">Fecha límite (Vencimiento)</label>
+                                <input
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                    id="offer-deadline" type="date" />
+                                <span class="text-[11px] text-on-surface-variant block">Al vencer, se finaliza la convocatoria</span>
                             </div>
                         </div>
 
@@ -1969,6 +1978,25 @@
                                         <option value="">Seleccionar...</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- External Application Link -->
+                        <div class="p-md bg-surface-container-low rounded-2xl border border-outline-variant/70 space-y-xs">
+                            <div class="flex items-center justify-between">
+                                <label class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2" for="offer-external-url">
+                                    <span class="material-symbols-outlined text-[20px] text-primary">link</span>
+                                    <span>Enlace de postulación externa</span>
+                                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold">Opcional</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-on-surface-variant leading-relaxed">
+                                Si la oferta o postulación se gestiona fuera de esta bolsa laboral (página corporativa, LinkedIn o un portal externo), ingresa el enlace URL aquí. Los postulantes podrán postular directamente en dicho enlace externo.
+                            </p>
+                            <div class="relative pt-1">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">public</span>
+                                <input class="w-full pl-10 pr-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                    id="offer-external-url" placeholder="https://empresa.com/convocatorias/puesto-123" type="url" />
                             </div>
                         </div>
 
@@ -5892,7 +5920,19 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-surface-container-low transition-colors duration-150 border-b border-outline-variant/60';
 
-                // State Chip formatting
+                // State Chip formatting and Expiration / Scheduled status
+                const now = new Date();
+                let isExpired = (offer.state && offer.state.key === 'finished') || (offer.state_id == 3);
+                if (!isExpired && offer.deadline) {
+                    const d = new Date(offer.deadline);
+                    const deadlineDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+                    if (deadlineDate < now) isExpired = true;
+                }
+                let isScheduled = false;
+                if (offer.publication_date) {
+                    if (new Date(offer.publication_date) > now) isScheduled = true;
+                }
+
                 let stateClass = 'bg-surface-container-high text-on-surface-variant';
                 let stateName = 'Desconocido';
                 if (offer.state) {
@@ -5906,6 +5946,18 @@
                         stateClass = 'bg-red-100 text-red-800 border border-red-200';
                     }
                 }
+
+                if (isExpired) {
+                    stateName = 'Finalizada';
+                    stateClass = 'bg-red-100 text-red-800 border border-red-200';
+                } else if (isScheduled) {
+                    stateName = 'Programada';
+                    stateClass = 'bg-blue-100 text-blue-800 border border-blue-200';
+                }
+
+                const externalBadge = offer.external_url
+                    ? `<a href="${offer.external_url}" target="_blank" onclick="event.stopPropagation();" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 hover:bg-purple-200 border border-purple-200 transition-colors ml-1.5" title="Oferta externa: ${offer.external_url}">Externa <span class="material-symbols-outlined text-[12px]">open_in_new</span></a>`
+                    : '';
 
                 const salaryText = offer.salary ? `${parseFloat(offer.salary).toFixed(2)} ${offer.salary_currency === 'DOLARES' ? 'USD' : 'SOL'}` : 'Sin especificar';
                 const categoryText = offer.category ? offer.category.name : 'General';
@@ -5923,7 +5975,10 @@
                     </span>
                 </td>
                 <td class="px-4 py-3 font-semibold text-primary hover:underline cursor-pointer" onclick="handleOfferAction('preview', ${offer.id})">
-                    ${offer.title}
+                    <div class="flex items-center flex-wrap gap-1">
+                        <span>${offer.title}</span>
+                        ${externalBadge}
+                    </div>
                 </td>
                 <td class="px-4 py-3">${salaryText}</td>
                 <td class="px-4 py-3">${categoryText}</td>
@@ -5965,6 +6020,8 @@
             // Default publication date to today
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('offer-pub-date').value = todayStr;
+            document.getElementById('offer-deadline').value = '';
+            document.getElementById('offer-external-url').value = '';
 
             document.getElementById('offers-list-view').classList.add('hidden');
             document.getElementById('offers-form-view').classList.remove('hidden');
@@ -5985,6 +6042,8 @@
             const payload = {
                 title: document.getElementById('offer-title').value,
                 publication_date: document.getElementById('offer-pub-date').value,
+                deadline: document.getElementById('offer-deadline').value,
+                external_url: document.getElementById('offer-external-url').value,
                 description: document.getElementById('offer-description').value,
                 requirements: document.getElementById('offer-requirements').value,
                 benefits: document.getElementById('offer-benefits').value,
@@ -6402,7 +6461,9 @@
                         const offer = data.offer;
                         document.getElementById('form-offer-id').value = offer.id;
                         document.getElementById('offer-title').value = offer.title;
-                        document.getElementById('offer-pub-date').value = offer.publication_date.split('T')[0];
+                        document.getElementById('offer-pub-date').value = offer.publication_date ? offer.publication_date.split('T')[0] : '';
+                        document.getElementById('offer-deadline').value = offer.deadline ? offer.deadline.split('T')[0] : '';
+                        document.getElementById('offer-external-url').value = offer.external_url || '';
                         document.getElementById('offer-description').value = offer.description;
                         document.getElementById('offer-requirements').value = offer.requirements;
                         document.getElementById('offer-benefits').value = offer.benefits || '';
@@ -6489,7 +6550,7 @@
                         </div>
 
                         <!-- Info Badges Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-md">
                             <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
                                 <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Jornada</span>
                                 <span class="font-bold text-body-sm text-on-surface">${scheduleName}</span>
@@ -6504,9 +6565,27 @@
                             </div>
                             <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
                                 <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Publicación</span>
-                                <span class="font-bold text-body-sm text-on-surface">${new Date(offer.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                <span class="font-bold text-body-sm text-on-surface">${offer.publication_date ? new Date(offer.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</span>
+                            </div>
+                            <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Vencimiento</span>
+                                <span class="font-bold text-body-sm text-on-surface">${offer.deadline ? new Date(offer.deadline).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Abierta'}</span>
                             </div>
                         </div>
+
+                        ${offer.external_url ? `
+                        <div class="p-md bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-purple-700">open_in_new</span>
+                                <div>
+                                    <span class="font-bold text-sm text-purple-900 block">Convocatoria con enlace externo</span>
+                                    <span class="text-xs text-purple-700">${offer.external_url}</span>
+                                </div>
+                            </div>
+                            <a href="${offer.external_url}" target="_blank" class="px-4 py-2 bg-purple-700 text-white font-bold text-xs rounded-lg hover:bg-purple-800 transition-colors shrink-0">
+                                Abrir enlace externo ↗
+                            </a>
+                        </div>` : ''}
 
                         <!-- Details Section -->
                         <div class="space-y-md">

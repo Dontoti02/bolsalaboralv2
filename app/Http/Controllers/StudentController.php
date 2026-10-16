@@ -292,6 +292,44 @@ class StudentController extends Controller
                 ], 400);
             }
 
+            // Validate offer exists and is open for applications
+            $offer = JobOpportunityOffer::find($offer_id);
+            if (!$offer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La oferta laboral no existe o ha sido eliminada.'
+                ], 404);
+            }
+
+            if ($offer->isExpired()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta convocatoria ha finalizado y ya no recibe postulaciones.'
+                ], 400);
+            }
+
+            if ($offer->isScheduled()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta oferta se encuentra programada y aún no ha abierto su convocatoria para postulaciones.'
+                ], 400);
+            }
+
+            if ($offer->state_id != 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta convocatoria no se encuentra activa para postulaciones.'
+                ], 400);
+            }
+
+            if (!empty($offer->external_url)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta convocatoria se gestiona externamente. Debe postular a través del enlace oficial proporcionado por la empresa.',
+                    'external_url' => $offer->external_url
+                ], 400);
+            }
+
             // Check if already applied
             $alreadyApplied = JobOpportunityApplication::where('user_id', $user->id)
                 ->where('offer_id', $offer_id)

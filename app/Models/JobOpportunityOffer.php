@@ -44,6 +44,7 @@ class JobOpportunityOffer extends Model
         'work_schedule_id',
         'contract_type_id',
         'banner_image',
+        'external_url',
     ];
 
     /**
@@ -56,6 +57,47 @@ class JobOpportunityOffer extends Model
         'deadline' => 'datetime',
         'salary' => 'decimal:2',
     ];
+
+    /**
+     * Determine if the offer has expired or is finished.
+     */
+    public function isExpired(): bool
+    {
+        if ($this->state_id == 3) {
+            return true;
+        }
+        if ($this->deadline) {
+            $d = $this->deadline->format('H:i:s') === '00:00:00'
+                ? $this->deadline->copy()->endOfDay()
+                : $this->deadline;
+            return $d->isPast();
+        }
+        return false;
+    }
+
+    /**
+     * Determine if the offer publication is scheduled for the future.
+     */
+    public function isScheduled(): bool
+    {
+        return $this->publication_date && $this->publication_date->isFuture();
+    }
+
+    /**
+     * Determine if candidates can apply internally.
+     */
+    public function canApply(): bool
+    {
+        return !$this->isExpired() && !$this->isScheduled() && $this->state_id == 2 && empty($this->external_url);
+    }
+
+    /**
+     * Determine if the offer is an external job post.
+     */
+    public function isExternal(): bool
+    {
+        return !empty($this->external_url);
+    }
 
     public function company()
     {

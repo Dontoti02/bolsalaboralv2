@@ -1223,6 +1223,9 @@
                         $initial = strtoupper(substr($coName, 0, 1));
                         $isPractica = Str::contains(Str::lower($offer->title), ['practicante', 'práctica']) 
                             || Str::contains(Str::lower($offer->category->name ?? ''), ['práctica']);
+                        $isOfferExpired = $offer->isExpired();
+                        $isOfferScheduled = $offer->isScheduled();
+                        $isOfferExternal = $offer->isExternal();
                     @endphp
 
                     <div class="company-large-avatar" style="background: {{ $offer->company->logo ? 'transparent' : 'var(--pri)' }};">
@@ -1235,6 +1238,25 @@
 
                     <div class="offer-title-wrap">
                         <div class="offer-badges-row">
+                            @if($isOfferExpired)
+                                <span class="badge-sub" style="background:#fee2e2;color:#b91c1c;font-weight:700;border:1px solid #fca5a5;">
+                                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;">event_busy</span>
+                                    Convocatoria Finalizada
+                                </span>
+                            @elseif($isOfferScheduled)
+                                <span class="badge-sub" style="background:#fef3c7;color:#92400e;font-weight:700;border:1px solid #fde68a;">
+                                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;">schedule</span>
+                                    Programada
+                                </span>
+                            @endif
+
+                            @if($isOfferExternal)
+                                <span class="badge-sub" style="background:#f3e8ff;color:#7e22ce;font-weight:700;border:1px solid #e9d5ff;">
+                                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;">open_in_new</span>
+                                    Convocatoria Externa
+                                </span>
+                            @endif
+
                             <span class="card-type-badge {{ $isPractica ? 'badge-practica' : 'badge-empleo' }}">
                                 {{ $isPractica ? 'Prácticas profesionales' : ($offer->contractType->name ?? 'Empleo') }}
                             </span>
@@ -1360,7 +1382,36 @@
             {{-- ── RIGHT: STICKY APPLICATION SIDEBAR ── --}}
             <aside class="offer-sidebar-card">
                 
-                @if($hasApplied)
+                @if($isOfferExpired)
+                    <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
+                        <span class="material-symbols-outlined" style="font-size:32px;color:#dc2626;display:block;margin:0 auto 6px;">event_busy</span>
+                        <div style="font-size:15px;font-weight:800;color:#991b1b;">Convocatoria Finalizada</div>
+                        <div style="font-size:12.5px;color:#b91c1c;margin-top:4px;line-height:1.4;">Esta oferta laboral ya cumplió su fecha límite de postulación y no recibe nuevas solicitudes.</div>
+                    </div>
+                    <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
+                        <span class="material-symbols-outlined">block</span>
+                        <span>Convocatoria finalizada</span>
+                    </button>
+                @elseif($isOfferScheduled)
+                    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
+                        <span class="material-symbols-outlined" style="font-size:32px;color:#d97706;display:block;margin:0 auto 6px;">schedule</span>
+                        <div style="font-size:15px;font-weight:800;color:#92400e;">Oferta Programada</div>
+                        <div style="font-size:12.5px;color:#b45309;margin-top:4px;line-height:1.4;">La convocatoria abrirá el {{ $offer->publication_date ? $offer->publication_date->format('d/m/Y') : '' }}.</div>
+                    </div>
+                    <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
+                        <span class="material-symbols-outlined">schedule</span>
+                        <span>Convocatoria programada</span>
+                    </button>
+                @elseif($isOfferExternal)
+                    <a href="{{ $offer->external_url }}" target="_blank" rel="noopener noreferrer" class="btn-apply-main" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);box-shadow:0 8px 24px -4px rgba(124, 58, 237, 0.4);">
+                        <span class="material-symbols-outlined" style="font-size:20px;">open_in_new</span>
+                        <span>Postular en sitio externo ↗</span>
+                    </a>
+                    <div style="font-size:12px;color:#6b7280;text-align:center;margin-top:8px;line-height:1.4;">
+                        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;color:#7c3aed;">info</span>
+                        Esta vacante se gestiona fuera de la bolsa laboral.
+                    </div>
+                @elseif($hasApplied)
                     <div class="applied-status-banner">
                         <span class="material-symbols-outlined" style="font-size:28px;">check_circle</span>
                         <div>
@@ -1662,7 +1713,23 @@ function showToast(text, icon) {
     setTimeout(function() { t.style.display = 'none'; }, 3500);
 }
 
+var isOfferExpired = {{ $isOfferExpired ? 'true' : 'false' }};
+var isOfferScheduled = {{ $isOfferScheduled ? 'true' : 'false' }};
+var isOfferExternal = {{ $isOfferExternal ? 'true' : 'false' }};
+
 function openApplyFlow() {
+    if (isOfferExpired) {
+        showToast('Esta convocatoria ha finalizado y ya no recibe postulaciones.', 'event_busy');
+        return;
+    }
+    if (isOfferScheduled) {
+        showToast('Esta convocatoria se encuentra programada y aún no recibe postulaciones.', 'schedule');
+        return;
+    }
+    if (isOfferExternal) {
+        window.open('{{ $offer->external_url }}', '_blank');
+        return;
+    }
     var m = document.getElementById('postular-modal');
     if (m) m.classList.add('open');
 }
@@ -1811,7 +1878,7 @@ function submitApplication(e) {
 // Auto abrir modal de postulación si viene con query param ?apply=1
 window.addEventListener('DOMContentLoaded', function() {
     var params = new URLSearchParams(window.location.search);
-    if (params.get('apply') === '1') {
+    if (params.get('apply') === '1' && !isOfferExpired && !isOfferScheduled && !isOfferExternal) {
         openApplyFlow();
     }
 });
