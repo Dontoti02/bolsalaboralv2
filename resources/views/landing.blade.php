@@ -1900,6 +1900,8 @@
                         Seguir explorando
                     </button>
                 </div>
+            @endif
+        </div>
     </div>
 
     {{-- ══ MODAL CAMBIAR CONTRASEÑA ══ --}}
