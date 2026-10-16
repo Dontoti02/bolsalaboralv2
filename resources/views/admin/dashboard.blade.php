@@ -1708,30 +1708,61 @@
                     <form id="offer-form" onsubmit="handleOfferFormSubmit(event)" class="space-y-lg">
                         <input type="hidden" id="form-offer-id" value="">
 
-                        <!-- Row 1: Title, Publication Date and Deadline -->
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
-                            <div class="md:col-span-6 space-y-xs">
-                                <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                    for="offer-title">Título de la vacante</label>
-                                <input
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                    id="offer-title" placeholder="Ej. Especialista en Ciberseguridad" type="text" required />
+                        <!-- Row 1: Titulo de la vacante (Destacado y amplio) -->
+                        <div class="space-y-xs">
+                            <div class="flex items-center justify-between">
+                                <label class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2"
+                                    for="offer-title">
+                                    <span class="material-symbols-outlined text-[20px] text-primary">badge</span>
+                                    <span>Título de la vacante</span>
+                                    <span class="text-error font-bold">*</span>
+                                </label>
+                                <span class="text-[11px] text-on-surface-variant font-medium">Nombre oficial del cargo o puesto</span>
                             </div>
-                            <div class="md:col-span-3 space-y-xs">
-                                <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                    for="offer-pub-date">Fecha de publicación</label>
-                                <input
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                    id="offer-pub-date" type="date" required />
-                                <span class="text-[11px] text-on-surface-variant block">Si es futura, la oferta se programará</span>
+                            <input
+                                class="w-full px-4 py-3 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-md text-[15px] text-on-surface placeholder:text-on-surface-variant/40 shadow-xs"
+                                id="offer-title" placeholder="Ej. Especialista en Ciberseguridad / Desarrollador Web Full Stack" type="text" required />
+                        </div>
+
+                        <!-- Row 1.5: Programación y Vigencia de la Oferta (Debajo del título) -->
+                        <div class="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/70 space-y-3">
+                            <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                                <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                                <span class="text-on-surface">Programación y Vigencia de la Convocatoria</span>
                             </div>
-                            <div class="md:col-span-3 space-y-xs">
-                                <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                    for="offer-deadline">Fecha límite (Vencimiento)</label>
-                                <input
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                    id="offer-deadline" type="date" />
-                                <span class="text-[11px] text-on-surface-variant block">Al vencer, se finaliza la convocatoria</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Fecha de publicación -->
+                                <div class="space-y-1">
+                                    <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5"
+                                        for="offer-pub-date">
+                                        <span class="material-symbols-outlined text-[16px] text-primary">schedule_send</span>
+                                        <span>Fecha de publicación</span>
+                                        <span class="text-error font-bold">*</span>
+                                    </label>
+                                    <input
+                                        class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                        id="offer-pub-date" type="date" required />
+                                    <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px] text-primary shrink-0">info</span>
+                                        <span>Si es futura, la oferta quedará <strong>programada</strong> y se publicará ese día.</span>
+                                    </p>
+                                </div>
+                                <!-- Fecha límite (Vencimiento) -->
+                                <div class="space-y-1">
+                                    <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5"
+                                        for="offer-deadline">
+                                        <span class="material-symbols-outlined text-[16px] text-primary">event_busy</span>
+                                        <span>Fecha límite (Vencimiento)</span>
+                                        <span class="text-[11px] text-on-surface-variant font-normal">(Opcional)</span>
+                                    </label>
+                                    <input
+                                        class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                        id="offer-deadline" type="date" />
+                                    <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px] text-amber-600 shrink-0">alarm</span>
+                                        <span>Al cumplirse la fecha, la convocatoria se <strong>finaliza</strong> y cierra postulaciones.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

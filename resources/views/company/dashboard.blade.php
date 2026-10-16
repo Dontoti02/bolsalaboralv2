@@ -642,28 +642,55 @@
                 <form id="company-offer-form" onsubmit="handleCompanyOfferSubmit(event)" class="space-y-lg">
                     <input type="hidden" id="company-form-offer-id" value="">
 
-                    <!-- Row 1: Title, Publication Date and Deadline -->
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
-                        <div class="md:col-span-6 space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-title">Título de la vacante</label>
-                            <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                id="co-offer-title" placeholder="Ej. Ingeniero de Software Junior" type="text" required />
-                        </div>
-                        <div class="md:col-span-3 space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-pub-date">
-                                Fecha de publicación
+                    <!-- Row 1: Titulo de la vacante (Destacado y amplio) -->
+                    <div class="space-y-xs">
+                        <div class="flex items-center justify-between">
+                            <label class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2" for="co-offer-title">
+                                <span class="material-symbols-outlined text-[20px] text-primary">badge</span>
+                                <span>Título de la vacante</span>
+                                <span class="text-error font-bold">*</span>
                             </label>
-                            <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                id="co-offer-pub-date" type="date" required />
-                            <span class="text-[11px] text-on-surface-variant block">Si es futura, la oferta se programará</span>
+                            <span class="text-[11px] text-on-surface-variant font-medium">Nombre oficial del puesto que busca tu empresa</span>
                         </div>
-                        <div class="md:col-span-3 space-y-xs">
-                            <label class="font-label-sm text-label-sm text-on-surface-variant block" for="co-offer-deadline">
-                                Fecha límite (Vencimiento)
-                            </label>
-                            <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                id="co-offer-deadline" type="date" />
-                            <span class="text-[11px] text-on-surface-variant block">Al vencer, se cierra la postulación</span>
+                        <input class="w-full px-4 py-3 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-md text-[15px] text-on-surface placeholder:text-on-surface-variant/40 shadow-xs"
+                            id="co-offer-title" placeholder="Ej. Desarrollador Web Full Stack / Ingeniero de Software Junior" type="text" required />
+                    </div>
+
+                    <!-- Row 1.5: Programación y Vigencia de la Oferta (Debajo del título) -->
+                    <div class="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/70 space-y-3">
+                        <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                            <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                            <span class="text-on-surface">Programación y Vigencia de la Convocatoria</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Fecha de publicación -->
+                            <div class="space-y-1">
+                                <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5" for="co-offer-pub-date">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">schedule_send</span>
+                                    <span>Fecha de publicación</span>
+                                    <span class="text-error font-bold">*</span>
+                                </label>
+                                <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                    id="co-offer-pub-date" type="date" required />
+                                <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-primary shrink-0">info</span>
+                                    <span>Si es fecha futura, la oferta se mantendrá <strong>programada</strong> hasta ese día.</span>
+                                </p>
+                            </div>
+                            <!-- Fecha límite (Vencimiento) -->
+                            <div class="space-y-1">
+                                <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5" for="co-offer-deadline">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">event_busy</span>
+                                    <span>Fecha límite (Vencimiento)</span>
+                                    <span class="text-[11px] text-on-surface-variant font-normal">(Opcional)</span>
+                                </label>
+                                <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                    id="co-offer-deadline" type="date" />
+                                <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-amber-600 shrink-0">alarm</span>
+                                    <span>Al llegar la fecha, la vacante se dará por <strong>finalizada</strong> automáticamente.</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
 
