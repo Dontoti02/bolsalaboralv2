@@ -385,22 +385,25 @@ class StudentController extends Controller
         $validator = Validator::make($request->all(), [
             'names' => 'required|string|max:255',
             'career' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:9',
+            'study_program_id' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
             'document_type' => 'required|string|in:DNI,CE,PASAPORTE',
             'document_number' => 'required|string|max:20',
             'sex' => 'nullable|string|in:M,F,O',
             'birth_date' => 'nullable|date|before:today',
             'native_language' => 'nullable|string|max:100',
-            'about_me' => 'nullable|string|max:1000',
-            'skills' => 'nullable|array',
-            'hobbies' => 'nullable|array',
+            'about_me' => 'nullable|string|max:2000',
+            'skills' => 'nullable',
+            'hobbies' => 'nullable',
             'education' => 'nullable|array',
             'experience' => 'nullable|array',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:3072',
         ], [
             'names.required' => 'El nombre completo es obligatorio.',
             'document_type.required' => 'El tipo de documento es obligatorio.',
             'document_number.required' => 'El número de documento es obligatorio.',
             'birth_date.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
+            'avatar.image' => 'El archivo debe ser una imagen válida (JPG, PNG o WEBP).',
         ]);
 
         if ($validator->fails()) {
@@ -413,35 +416,76 @@ class StudentController extends Controller
         try {
             DB::beginTransaction();
 
+            // Procesar habilidades si vienen como string delimitado por comas
+            $skills = $request->skills;
+            if (is_string($skills)) {
+                $skills = array_values(array_filter(array_map('trim', explode(',', $skills))));
+            } elseif (!is_array($skills)) {
+                $skills = [];
+            }
+
+            // Carrera o programa de estudios
+            $career = $request->career ? trim($request->career) : null;
+            $studyProgramId = $request->study_program_id ? (int)$request->study_program_id : null;
+            if ($studyProgramId && empty($career)) {
+                $prog = DB::table('study_programs')->where('id', $studyProgramId)->first();
+                if ($prog) {
+                    $career = $prog->name;
+                }
+            }
+
             $person = $user->person ?: new \App\Models\Person();
             $person->fill([
                 'names' => trim($request->names),
-                'career' => $request->career ?: null,
-                'phone' => $request->phone ?: '',
+                'career' => $career,
+                'study_program_id' => $studyProgramId,
+                'phone' => $request->phone ? trim($request->phone) : '',
                 'document_type' => $request->document_type,
-                'document_number' => $request->document_number,
+                'document_number' => trim($request->document_number),
                 'sex' => $request->sex ?: null,
                 'birth_date' => $request->birth_date ?: null,
-                'native_language' => $request->native_language ?: null,
-                'about_me' => $request->about_me ?: null,
-                'skills' => $request->skills ?: [],
-                'hobbies' => $request->hobbies ?: [],
-                'education' => $request->education ?: [],
-                'experience' => $request->experience ?: [],
+                'native_language' => $request->native_language ? trim($request->native_language) : null,
+                'about_me' => $request->about_me ? trim($request->about_me) : null,
+                'skills' => $skills,
+                'hobbies' => is_array($request->hobbies) ? $request->hobbies : [],
+                'education' => is_array($request->education) ? $request->education : [],
+                'experience' => is_array($request->experience) ? $request->experience : [],
             ]);
             $person->save();
 
-            // Associate person with user if not already set
+            // Asociar person con user si no estaba establecida
             if (!$user->person_id) {
                 $user->person_id = $person->id;
-                $user->save();
             }
+
+            // Si se subió avatar en la misma petición
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $uploadPath = public_path('uploads/avatars');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                    $oldPath = public_path($user->avatar);
+                    if (file_exists($oldPath)) {
+                        @unlink($oldPath);
+                    }
+                }
+                $file->move($uploadPath, $filename);
+                $user->avatar = '/uploads/avatars/' . $filename;
+            }
+
+            $user->save();
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Perfil actualizado exitosamente.'
+                'message' => 'Perfil actualizado exitosamente.',
+                'avatar_url' => $user->avatar,
+                'names' => $person->names,
+                'career' => $person->career
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -451,35 +495,53 @@ class StudentController extends Controller
             ], 500);
         }
     }
+
     /**
-     * Change student password.
+     * Change student / teacher / graduate password.
      */
     public function changePassword(Request $request)
     {
         $user = Auth::user();
 
-        $validator = Validator::make($request->all(), [
+        // Normalizar los nombres de campos para soportar new_password o password
+        $newPassword = $request->input('new_password') ?? $request->input('password');
+        $newPasswordConfirmation = $request->input('new_password_confirmation') ?? $request->input('password_confirmation');
+        $currentPassword = $request->input('current_password');
+
+        $validator = Validator::make([
+            'current_password' => $currentPassword,
+            'new_password'     => $newPassword,
+            'new_password_confirmation' => $newPasswordConfirmation,
+        ], [
             'current_password' => 'required|string',
-            'new_password'     => 'required|string|min:8|confirmed',
+            'new_password'     => 'required|string|min:8|same:new_password_confirmation',
         ], [
             'current_password.required' => 'Ingrese su contraseña actual.',
             'new_password.required'     => 'Ingrese la nueva contraseña.',
-            'new_password.min'          => 'La contraseña debe tener al menos 8 caracteres.',
-            'new_password.confirmed'    => 'Las contraseñas no coinciden.',
+            'new_password.min'          => 'La nueva contraseña debe tener al menos 8 caracteres.',
+            'new_password.same'         => 'La confirmación de la contraseña no coincide.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+        if (!\Illuminate\Support\Facades\Hash::check($currentPassword, $user->password)) {
             return response()->json(['success' => false, 'message' => 'La contraseña actual no es correcta.'], 400);
         }
 
-        $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
         $user->save();
 
-        return response()->json(['success' => true, 'message' => 'Contraseña actualizada exitosamente.']);
+        return response()->json(['success' => true, 'message' => '¡Contraseña actualizada exitosamente!']);
+    }
+
+    /**
+     * Redirect to student profile tab.
+     */
+    public function showProfile()
+    {
+        return redirect()->route('student.applications', ['tab' => 'profile']);
     }
 
     /**
@@ -555,7 +617,13 @@ class StudentController extends Controller
             ->where('user_id', $authUser->id)
             ->whereNull('deleted_at')
             ->orderBy('version', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($cv) {
+                $cv->filename = basename($cv->url);
+                $cv->uploaded_at = $cv->created_at 
+                    ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
+                return $cv;
+            });
 
         $studentApplications = DB::table('job_opportunity_applications')
             ->join('job_opportunity_offer', 'job_opportunity_applications.offer_id', '=', 'job_opportunity_offer.id')
@@ -569,6 +637,7 @@ class StudentController extends Controller
                 'job_opportunity_applications.feedback as app_feedback',
                 'job_opportunity_offer.id as offer_id',
                 'job_opportunity_offer.title as offer_title',
+                'job_opportunity_company.id as company_id',
                 'job_opportunity_company.name as company_name',
                 'job_opportunity_company.logo as company_logo'
             )
@@ -580,11 +649,27 @@ class StudentController extends Controller
                 return $app;
             });
 
+        $totalApplications = $studentApplications->count();
+        $pendingApplications = $studentApplications->whereIn('app_status', ['postulated', 'under_review', 'reviewed'])->count();
+        $acceptedApplications = $studentApplications->where('app_status', 'accepted')->count();
+        $rejectedApplications = $studentApplications->where('app_status', 'rejected')->count();
+
+        $savedOffersCount = DB::table('saved_offers')->where('user_id', $authUser->id)->count();
+        $studyPrograms = DB::table('study_programs')->orderBy('name')->get();
+        $activeTab = request('tab', 'applications');
+
         return view('student.applications', compact(
             'config',
             'authUser',
             'studentCvs',
-            'studentApplications'
+            'studentApplications',
+            'totalApplications',
+            'pendingApplications',
+            'acceptedApplications',
+            'rejectedApplications',
+            'savedOffersCount',
+            'studyPrograms',
+            'activeTab'
         ));
     }
 
@@ -657,10 +742,32 @@ class StudentController extends Controller
             })
             ->values();
 
+        $studentCvs = DB::table('job_opportunity_user_cv')
+            ->where('user_id', $authUser->id)
+            ->whereNull('deleted_at')
+            ->orderBy('version', 'desc')
+            ->get()
+            ->map(function ($cv) {
+                $cv->filename = basename($cv->url);
+                $cv->uploaded_at = $cv->created_at 
+                    ? \Carbon\Carbon::parse($cv->created_at)->format('d M Y') : '-';
+                return $cv;
+            });
+
+        $totalApplications = DB::table('job_opportunity_applications')
+            ->where('user_id', $authUser->id)
+            ->whereNull('deleted_at')
+            ->count();
+
+        $studyPrograms = DB::table('study_programs')->orderBy('name')->get();
+
         return view('student.saved-offers', compact(
             'config',
             'authUser',
-            'savedOffers'
+            'savedOffers',
+            'studentCvs',
+            'totalApplications',
+            'studyPrograms'
         ));
     }
 }

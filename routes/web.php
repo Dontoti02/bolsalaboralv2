@@ -100,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Dashboard y postulaciones
         Route::get('/student/dashboard', fn() => redirect('/'))->name('student.dashboard');
+        Route::get('/student/profile', [\App\Http\Controllers\StudentController::class, 'showProfile'])->name('student.profile');
         Route::get('/student/applications', [\App\Http\Controllers\StudentController::class, 'myApplications'])->name('student.applications');
         Route::post('/student/cv/upload', [\App\Http\Controllers\StudentController::class, 'uploadCv'])->name('student.cv.upload');
         Route::post('/student/cv/delete/{id}', [\App\Http\Controllers\StudentController::class, 'deleteCv'])->name('student.cv.delete');

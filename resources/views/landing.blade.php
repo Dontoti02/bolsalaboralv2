@@ -1410,6 +1410,16 @@
                     <a href="#oportunidades" class="nav-link nav-link-opportunities">Oportunidades</a>
 
                     @if($authUser)
+                        @php
+                            $roleLabel = match((int)($authUser->rol_id ?? 0)) {
+                                1 => 'Administrador',
+                                2 => 'Docente',
+                                3 => 'Estudiante',
+                                4 => 'Empresa',
+                                5 => 'Egresado',
+                                default => 'Usuario'
+                            };
+                        @endphp
                         {{-- Perfil Logueado --}}
                         <div class="profile-menu-wrap" id="profile-menu-wrap">
                             <button class="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true">
@@ -1426,10 +1436,18 @@
                                     <span class="profile-avatar">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
                                     <div>
                                         <p style="font-size:13px;font-weight:700;color:var(--txt);">{{ $authUser->person->names ?? $authUser->email }}</p>
-                                        <p style="font-size:11px;color:var(--tv);">{{ $authUser->email }}</p>
+                                        <span style="font-size:10px;font-weight:700;background:#01143c;color:#fff;padding:2px 8px;border-radius:50px;display:inline-block;margin-top:2px;">{{ $roleLabel }}</span>
                                     </div>
                                 </div>
-                                @if($authUser->rol_id == 3 || $authUser->rol_id == 5)
+                                @if(in_array($authUser->rol_id, [2, 3, 5]))
+                                <a href="{{ route('student.applications') }}?tab=profile" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">badge</span>
+                                    Mi Perfil Profesional
+                                </a>
+                                <button type="button" class="profile-dropdown-item" onclick="openCvModal();closeProfileMenu()">
+                                    <span class="material-symbols-outlined">upload_file</span>
+                                    Gestionar / Subir CV
+                                </button>
                                 <a href="{{ route('student.applications') }}" class="profile-dropdown-item">
                                     <span class="material-symbols-outlined">assignment_turned_in</span>
                                     Mis postulaciones ({{ $studentApplications->count() }})
@@ -1439,7 +1457,7 @@
                                     Ofertas guardadas ({{ count($studentSavedOfferIds ?? []) }})
                                 </a>
                                 @endif
-                                <button class="profile-dropdown-item" onclick="openModal('modal-password');closeProfileMenu()">
+                                <button type="button" class="profile-dropdown-item" onclick="openPasswordModal();closeProfileMenu()">
                                     <span class="material-symbols-outlined">lock</span> Cambiar contraseña
                                 </button>
                                 <div class="profile-dropdown-divider"></div>
@@ -1882,7 +1900,121 @@
                         Seguir explorando
                     </button>
                 </div>
-            @endif
+    </div>
+
+    {{-- ══ MODAL CAMBIAR CONTRASEÑA ══ --}}
+    <div id="modal-password" class="modal-overlay" onclick="if(event.target===this)closePasswordModal()">
+        <div class="modal-box" style="max-width:440px;">
+            <button type="button" class="modal-close-btn" onclick="closePasswordModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div style="width:52px;height:52px;border-radius:16px;background:var(--pri-tint);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <span class="material-symbols-outlined filled" style="font-size:26px;">lock_reset</span>
+            </div>
+            <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#111827;text-align:center;margin-bottom:6px;">Cambiar Contraseña</h3>
+            <p style="font-size:13px;color:#6b7280;text-align:center;margin-bottom:20px;">Ingresa tu clave actual y define una nueva contraseña de al menos 8 caracteres.</p>
+
+            <form id="form-landing-password" onsubmit="event.preventDefault();submitChangePassword()">
+                @csrf
+                <div style="text-align:left;margin-bottom:14px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Contraseña Actual</label>
+                    <input type="password" id="lpwd-current" class="field-input" required placeholder="Tu contraseña actual">
+                </div>
+                <div style="text-align:left;margin-bottom:14px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Nueva Contraseña</label>
+                    <input type="password" id="lpwd-new" class="field-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+                </div>
+                <div style="text-align:left;margin-bottom:18px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="lpwd-confirm" class="field-input" required minlength="8" placeholder="Repite la nueva contraseña">
+                </div>
+
+                <div id="lpwd-alert" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:left;"></div>
+
+                <div class="modal-actions">
+                    <button type="submit" id="btn-lpwd-submit" class="modal-btn-pri">
+                        <span class="material-symbols-outlined" style="font-size:18px;">check</span>
+                        <span id="btn-lpwd-text">Actualizar Contraseña</span>
+                    </button>
+                    <button type="button" class="modal-btn-sec" onclick="closePasswordModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ══ MODAL GESTIONAR / SUBIR CV ══ --}}
+    <div id="modal-cvs" class="modal-overlay" onclick="if(event.target===this)closeCvModal()">
+        <div class="modal-box" style="max-width:540px;">
+            <button type="button" class="modal-close-btn" onclick="closeCvModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div style="width:52px;height:52px;border-radius:16px;background:var(--pri-tint);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <span class="material-symbols-outlined filled" style="font-size:26px;">picture_as_pdf</span>
+            </div>
+            <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#111827;text-align:center;margin-bottom:6px;">Mi Currículum Vitae (PDF)</h3>
+            <p style="font-size:13px;color:#6b7280;text-align:center;margin-bottom:20px;">Sube o actualiza tu CV para que las empresas conozcan tu talento.</p>
+
+            {{-- Uploader --}}
+            <div style="border:2px dashed #cbd5e1;border-radius:16px;padding:24px 16px;text-align:center;background:#f8fafc;cursor:pointer;margin-bottom:18px;" onclick="document.getElementById('input-landing-cv').click()" id="landing-cv-dropzone">
+                <span class="material-symbols-outlined" style="font-size:40px;color:#3b82f6;display:block;margin-bottom:6px;">upload_file</span>
+                <p style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:2px;">Haz clic para seleccionar tu CV en PDF</p>
+                <span style="font-size:11px;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:50px;font-weight:600;">Máximo 5 MB • Formato PDF</span>
+                <input type="file" id="input-landing-cv" accept=".pdf,application/pdf" style="display:none;" onchange="handleLandingCvFile(this)">
+            </div>
+
+            <div id="landing-cv-selected" style="display:none;align-items:center;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 14px;margin-bottom:18px;">
+                <span class="material-symbols-outlined" style="color:#ef4444;font-size:24px;">description</span>
+                <div style="flex:1;min-width:0;text-align:left;">
+                    <p id="landing-cv-name" style="font-size:13px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">archivo.pdf</p>
+                    <span id="landing-cv-size" style="font-size:11px;color:#64748b;">0 KB</span>
+                </div>
+                <button type="button" onclick="submitLandingCvUpload()" id="btn-upload-landing-cv" class="modal-btn-pri" style="width:auto;padding:6px 14px;font-size:12px;">
+                    Subir ahora
+                </button>
+            </div>
+
+            {{-- List of Registered CVs --}}
+            <h4 style="font-size:12px;font-weight:800;text-transform:uppercase;color:#64748b;letter-spacing:0.04em;text-align:left;margin-bottom:10px;">Mis CVs Registrados</h4>
+            <div id="landing-cvs-list" style="max-height:200px;overflow-y:auto;text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+                @if(isset($studentCvs) && $studentCvs->count() > 0)
+                    @foreach($studentCvs as $cv)
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border:1px solid var(--bor);border-radius:12px;background:#ffffff;">
+                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                            <span class="material-symbols-outlined" style="color:#ef4444;font-size:22px;">picture_as_pdf</span>
+                            <div style="min-width:0;">
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <span style="font-size:10px;font-weight:800;background:#01143c;color:#fff;padding:1px 6px;border-radius:4px;">v{{ $cv->version }}</span>
+                                    <p style="font-size:13px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">{{ $cv->filename }}</p>
+                                </div>
+                                <span style="font-size:11px;color:#94a3b8;">{{ $cv->uploaded_at }}</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <a href="/student/cv/download/{{ $cv->id }}" class="modal-btn-sec" style="padding:4px 10px;font-size:12px;" title="Descargar">
+                                <span class="material-symbols-outlined" style="font-size:15px;">download</span>
+                            </a>
+                            <button type="button" onclick="deleteLandingCv({{ $cv->id }})" class="modal-btn-sec" style="padding:4px 8px;font-size:12px;color:#dc2626;border-color:#fee2e2;" title="Eliminar">
+                                <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                @else
+                    <div style="padding:16px;background:#f8fafc;border-radius:12px;text-align:center;color:#64748b;font-size:13px;">
+                        Aún no tienes ningún currículum registrado.
+                    </div>
+                @endif
+            </div>
+
+            <div class="modal-actions">
+                <a href="{{ route('student.applications') }}?tab=profile" class="modal-btn-sec" style="font-size:13px;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">edit</span>
+                    Editar mis datos completos
+                </a>
+                <button type="button" class="modal-btn-pri" onclick="closeCvModal()">Listo</button>
+            </div>
         </div>
     </div>
 
@@ -2445,10 +2577,200 @@ document.addEventListener('DOMContentLoaded', function() {
     @endif
 });
 
+// ── Password Modal Handlers ────────────────────────────────────────────────
+function openPasswordModal() {
+    var m = document.getElementById('modal-password');
+    var alertBox = document.getElementById('lpwd-alert');
+    if (alertBox) alertBox.style.display = 'none';
+    var form = document.getElementById('form-landing-password');
+    if (form) form.reset();
+    if (m) m.classList.add('open');
+}
+function closePasswordModal() {
+    var m = document.getElementById('modal-password');
+    if (m) m.classList.remove('open');
+}
+
+function submitChangePassword() {
+    var cur = document.getElementById('lpwd-current').value;
+    var np  = document.getElementById('lpwd-new').value;
+    var conf = document.getElementById('lpwd-confirm').value;
+    var alertBox = document.getElementById('lpwd-alert');
+
+    if (!cur || !np || !conf) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'Todos los campos son obligatorios.';
+        return;
+    }
+    if (np !== conf) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'La nueva contraseña y su confirmación no coinciden.';
+        return;
+    }
+    if (np.length < 8) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'La nueva contraseña debe tener al menos 8 caracteres.';
+        return;
+    }
+
+    var btn = document.getElementById('btn-lpwd-submit');
+    var txt = document.getElementById('btn-lpwd-text');
+    btn.disabled = true;
+    txt.textContent = 'Actualizando...';
+
+    fetch('{{ route("student.password.change") }}', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            current_password: cur,
+            new_password: np,
+            new_password_confirmation: conf
+        })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        txt.textContent = 'Actualizar Contraseña';
+        if (data.success) {
+            closePasswordModal();
+            showToast('¡Contraseña actualizada exitosamente!');
+        } else {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fee2e2';
+            alertBox.style.color = '#991b1b';
+            alertBox.textContent = data.message || 'Error al cambiar contraseña.';
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        txt.textContent = 'Actualizar Contraseña';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'Error de conexión con el servidor.';
+    });
+}
+
+// ── CV Modal Handlers ──────────────────────────────────────────────────────
+var selectedLandingCvFile = null;
+function openCvModal() {
+    var m = document.getElementById('modal-cvs');
+    if (m) m.classList.add('open');
+}
+function closeCvModal() {
+    var m = document.getElementById('modal-cvs');
+    if (m) m.classList.remove('open');
+}
+
+function handleLandingCvFile(input) {
+    if (input.files && input.files[0]) {
+        var file = input.files[0];
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+            showToast('Solo se permiten archivos en formato PDF.', false);
+            input.value = '';
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('El archivo no debe exceder los 5MB.', false);
+            input.value = '';
+            return;
+        }
+        selectedLandingCvFile = file;
+        var prev = document.getElementById('landing-cv-selected');
+        var name = document.getElementById('landing-cv-name');
+        var size = document.getElementById('landing-cv-size');
+        if (prev) {
+            name.textContent = file.name;
+            size.textContent = (file.size / 1024).toFixed(1) + ' KB';
+            prev.style.display = 'flex';
+        }
+    }
+}
+
+function submitLandingCvUpload() {
+    if (!selectedLandingCvFile) return;
+
+    var btn = document.getElementById('btn-upload-landing-cv');
+    btn.disabled = true;
+    btn.textContent = 'Subiendo...';
+
+    var formData = new FormData();
+    formData.append('cv', selectedLandingCvFile);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+    fetch('{{ route("student.cv.upload") }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        btn.textContent = 'Subir ahora';
+        if (data.success) {
+            showToast(data.message || 'CV subido exitosamente.');
+            setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+            showToast(data.message || 'Error al subir CV.', false);
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        btn.textContent = 'Subir ahora';
+        showToast('Error de conexión al subir CV.', false);
+    });
+}
+
+function deleteLandingCv(id) {
+    if (!confirm('¿Estás seguro de eliminar este currículum?')) return;
+
+    fetch('/student/cv/delete/' + id, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message || 'Currículum eliminado.');
+            setTimeout(function() { window.location.reload(); }, 700);
+        } else {
+            showToast(data.message || 'Error al eliminar CV.', false);
+        }
+    })
+    .catch(function() {
+        showToast('Error de conexión al eliminar CV.', false);
+    });
+}
+
+function openModal(id) {
+    if (id === 'modal-password') openPasswordModal();
+    else if (id === 'modal-cvs') openCvModal();
+    else {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('open');
+    }
+}
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDetailModal();
         closePostularModal();
+        closePasswordModal();
+        closeCvModal();
     }
 });
 </script>

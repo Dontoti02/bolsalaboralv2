@@ -142,11 +142,12 @@ class LandingController extends Controller
             $studentApplicationIds = [];
             $studentApplications = collect();
 
+            $studyPrograms = DB::table('study_programs')->orderBy('name')->get();
+
             if (Auth::check()) {
                 $authUser = Auth::user()->load('person');
                 
-                $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
-                if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
+                if (in_array($authUser->rol_id, [2, 3, 5])) {
                     $studentCvs = DB::table('job_opportunity_user_cv')
                         ->where('user_id', $authUser->id)
                         ->whereNull('deleted_at')
@@ -159,7 +160,7 @@ class LandingController extends Controller
                             return $cv;
                         });
                     $studentCvsJson = $studentCvs->map(function ($cv) {
-                        return ['id' => $cv->id, 'version' => $cv->version, 'filename' => $cv->filename, 'uploaded_at' => $cv->uploaded_at];
+                        return ['id' => $cv->id, 'version' => $cv->version, 'filename' => $cv->filename, 'uploaded_at' => $cv->uploaded_at, 'url' => $cv->url];
                     })->values();
                     $studentApplicationIds = DB::table('job_opportunity_applications')
                         ->where('user_id', $authUser->id)
@@ -215,6 +216,7 @@ class LandingController extends Controller
             $studentCompanies  = collect();
             $bannerOffers      = collect();
             $studentSavedOfferIds = [];
+            $studyPrograms     = collect();
         }
 
         return view('landing', compact(
@@ -237,7 +239,8 @@ class LandingController extends Controller
             'studentCvsJson',
             'studentApplicationIds',
             'studentApplications',
-            'studentSavedOfferIds'
+            'studentSavedOfferIds',
+            'studyPrograms'
         ));
     }
 
@@ -296,9 +299,8 @@ class LandingController extends Controller
 
         if (Auth::check()) {
             $authUser = Auth::user()->load('person');
-            $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
 
-            if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
+            if (in_array($authUser->rol_id, [2, 3, 5])) {
                 $studentCvs = DB::table('job_opportunity_user_cv')
                     ->where('user_id', $authUser->id)
                     ->whereNull('deleted_at')
@@ -490,9 +492,8 @@ class LandingController extends Controller
 
         if (Auth::check()) {
             $authUser = Auth::user()->load('person');
-            $allowTeacher = ($config['allow_teacher_applications'] ?? '0') === '1';
 
-            if ($authUser->rol_id == 3 || $authUser->rol_id == 5 || ($authUser->rol_id == 2 && $allowTeacher)) {
+            if (in_array($authUser->rol_id, [2, 3, 5])) {
                 $studentCvs = DB::table('job_opportunity_user_cv')
                     ->where('user_id', $authUser->id)
                     ->whereNull('deleted_at')

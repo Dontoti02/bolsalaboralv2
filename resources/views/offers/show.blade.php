@@ -1119,6 +1119,16 @@
                     <a href="{{ route('landing') }}#oportunidades" class="nav-link nav-link-opportunities">Oportunidades</a>
 
                     @if($authUser)
+                        @php
+                            $roleLabel = match((int)($authUser->rol_id ?? 0)) {
+                                1 => 'Administrador',
+                                2 => 'Docente',
+                                3 => 'Estudiante',
+                                4 => 'Empresa',
+                                5 => 'Egresado',
+                                default => 'Usuario'
+                            };
+                        @endphp
                         {{-- Perfil Logueado --}}
                         <div class="profile-menu-wrap" id="profile-menu-wrap">
                             <button class="profile-trigger" onclick="toggleProfileMenu()" aria-haspopup="true">
@@ -1135,10 +1145,18 @@
                                     <span class="profile-avatar">{{ strtoupper(substr($authUser->person->names ?? $authUser->email, 0, 2)) }}</span>
                                     <div>
                                         <p style="font-size:13px;font-weight:700;color:var(--txt);">{{ $authUser->person->names ?? $authUser->email }}</p>
-                                        <p style="font-size:11px;color:var(--tv);">{{ $authUser->email }}</p>
+                                        <span style="font-size:10px;font-weight:700;background:#01143c;color:#fff;padding:2px 8px;border-radius:50px;display:inline-block;margin-top:2px;">{{ $roleLabel }}</span>
                                     </div>
                                 </div>
-                                @if($authUser->rol_id == 3 || $authUser->rol_id == 5)
+                                @if(in_array($authUser->rol_id, [2, 3, 5]))
+                                <a href="{{ route('student.applications') }}?tab=profile" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">badge</span>
+                                    Mi Perfil Profesional
+                                </a>
+                                <a href="{{ route('student.applications') }}?tab=cvs" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">description</span>
+                                    Gestionar mi CV
+                                </a>
                                 <a href="{{ route('student.applications') }}" class="profile-dropdown-item">
                                     <span class="material-symbols-outlined">assignment_turned_in</span>
                                     Mis postulaciones ({{ count($studentApplications ?? []) }})
@@ -1148,6 +1166,10 @@
                                     Ofertas guardadas ({{ count($studentSavedOfferIds ?? []) }})
                                 </a>
                                 @endif
+                                <button type="button" class="profile-dropdown-item" onclick="openPasswordModal();closeProfileMenu()">
+                                    <span class="material-symbols-outlined">lock</span>
+                                    Cambiar contraseña
+                                </button>
                                 <div class="profile-dropdown-divider"></div>
                                 <form method="POST" action="{{ route('logout') }}" style="margin:0">
                                     @csrf
@@ -1792,7 +1814,139 @@ window.addEventListener('DOMContentLoaded', function() {
         openApplyFlow();
     }
 });
+
+// ── Password Modal Handlers ────────────────────────────────────────────────
+function openPasswordModal() {
+    var m = document.getElementById('modal-password');
+    var alertBox = document.getElementById('lpwd-alert');
+    if (alertBox) alertBox.style.display = 'none';
+    var form = document.getElementById('form-landing-password');
+    if (form) form.reset();
+    if (m) m.classList.add('open');
+}
+function closePasswordModal() {
+    var m = document.getElementById('modal-password');
+    if (m) m.classList.remove('open');
+}
+
+function submitChangePassword() {
+    var cur = document.getElementById('lpwd-current').value;
+    var np  = document.getElementById('lpwd-new').value;
+    var conf = document.getElementById('lpwd-confirm').value;
+    var alertBox = document.getElementById('lpwd-alert');
+
+    if (!cur || !np || !conf) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'Todos los campos son obligatorios.';
+        return;
+    }
+    if (np !== conf) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'La nueva contraseña y su confirmación no coinciden.';
+        return;
+    }
+    if (np.length < 8) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'La nueva contraseña debe tener al menos 8 caracteres.';
+        return;
+    }
+
+    var btn = document.getElementById('btn-lpwd-submit');
+    var txt = document.getElementById('btn-lpwd-text');
+    btn.disabled = true;
+    txt.textContent = 'Actualizando...';
+
+    fetch('{{ route("student.password.change") }}', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            current_password: cur,
+            new_password: np,
+            new_password_confirmation: conf
+        })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        txt.textContent = 'Actualizar Contraseña';
+        if (data.success) {
+            closePasswordModal();
+            showToast('¡Contraseña actualizada exitosamente!');
+        } else {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fee2e2';
+            alertBox.style.color = '#991b1b';
+            alertBox.textContent = data.message || 'Error al cambiar contraseña.';
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        txt.textContent = 'Actualizar Contraseña';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#991b1b';
+        alertBox.textContent = 'Error de conexión con el servidor.';
+    });
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePostularModal();
+        closePasswordModal();
+    }
+});
 </script>
+
+    {{-- ══ MODAL CAMBIAR CONTRASEÑA ══ --}}
+    <div id="modal-password" class="modal-overlay" onclick="if(event.target===this)closePasswordModal()">
+        <div class="modal-box" style="max-width:440px;">
+            <button type="button" class="modal-close-btn" onclick="closePasswordModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div style="width:52px;height:52px;border-radius:16px;background:var(--pri-tint);color:var(--pri);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <span class="material-symbols-outlined filled" style="font-size:26px;">lock_reset</span>
+            </div>
+            <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#111827;text-align:center;margin-bottom:6px;">Cambiar Contraseña</h3>
+            <p style="font-size:13px;color:#6b7280;text-align:center;margin-bottom:20px;">Ingresa tu clave actual y define una nueva contraseña de al menos 8 caracteres.</p>
+
+            <form id="form-landing-password" onsubmit="event.preventDefault();submitChangePassword()">
+                @csrf
+                <div style="text-align:left;margin-bottom:14px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Contraseña Actual</label>
+                    <input type="password" id="lpwd-current" class="form-input" style="width:100%;height:44px;padding:0 14px;border:1.5px solid var(--bor);border-radius:12px;" required placeholder="Tu contraseña actual">
+                </div>
+                <div style="text-align:left;margin-bottom:14px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Nueva Contraseña</label>
+                    <input type="password" id="lpwd-new" class="form-input" style="width:100%;height:44px;padding:0 14px;border:1.5px solid var(--bor);border-radius:12px;" required minlength="8" placeholder="Mínimo 8 caracteres">
+                </div>
+                <div style="text-align:left;margin-bottom:18px;">
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="lpwd-confirm" class="form-input" style="width:100%;height:44px;padding:0 14px;border:1.5px solid var(--bor);border-radius:12px;" required minlength="8" placeholder="Repite la nueva contraseña">
+                </div>
+
+                <div id="lpwd-alert" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:left;"></div>
+
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <button type="submit" id="btn-lpwd-submit" class="modal-btn-pri" style="flex:1;">
+                        <span class="material-symbols-outlined" style="font-size:18px;">check</span>
+                        <span id="btn-lpwd-text">Actualizar Contraseña</span>
+                    </button>
+                    <button type="button" class="modal-btn-sec" onclick="closePasswordModal()" style="width:auto;padding:12px 18px;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>
