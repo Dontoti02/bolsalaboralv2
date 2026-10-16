@@ -100,7 +100,7 @@
     </header>
     
     <!-- Main Dashboard Canvas -->
-    <main class="flex-1 p-lg md:p-2xl w-full max-w-container-max mx-auto">
+    <main class="flex-1 px-lg md:px-xl py-lg md:py-xl w-full">
         
         <!-- ================= PANEL 1: DASHBOARD OVERVIEW ================= -->
         <div id="panel-dashboard" class="tab-panel space-y-xl">
