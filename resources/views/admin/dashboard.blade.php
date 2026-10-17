@@ -17,6 +17,7 @@
         }
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700&amp;display=swap"
         rel="stylesheet" />
@@ -3772,6 +3773,9 @@
             let targetPanelId = 'panel-placeholder';
             if (tabId === 'dashboard') {
                 targetPanelId = 'panel-dashboard';
+                if (typeof initAdminCharts === 'function') {
+                    setTimeout(initAdminCharts, 50);
+                }
             } else if (tabId === 'users') {
                 targetPanelId = 'panel-users';
             } else if (tabId === 'settings') {
@@ -8277,345 +8281,389 @@
 
     </script>
 
-<script type="module">
-// Chart.js is loaded globally via Vite bundle (app.js)
-// Data from controller
-const monthlyStats = @json($monthlyStats);
-const roleDistribution = @json($roleDistribution);
-const topCompanies = @json($topCompanies);
+<script>
+// Data passed from AdminController
+const adminMonthlyStats = @json($monthlyStats);
+const adminRoleDistribution = @json($roleDistribution);
+const adminTopCompanies = @json($topCompanies);
 
-// --- Chart 1: Registration Trends (Line/Area) ---
-const trendCtx = document.getElementById('trendChart').getContext('2d');
+window.initAdminCharts = function() {
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js no está disponible aún. Reintentando en 100ms...');
+        setTimeout(window.initAdminCharts, 100);
+        return;
+    }
 
-// Create gradients
-const gradientUsers = trendCtx.createLinearGradient(0, 0, 0, 300);
-gradientUsers.addColorStop(0, 'rgba(0, 39, 65, 0.3)');
-gradientUsers.addColorStop(1, 'rgba(0, 39, 65, 0.0)');
+    const trendCanvas = document.getElementById('trendChart');
+    const roleCanvas = document.getElementById('roleChart');
+    const compCanvas = document.getElementById('companiesChart');
 
-const gradientOffers = trendCtx.createLinearGradient(0, 0, 0, 300);
-gradientOffers.addColorStop(0, 'rgba(0, 107, 96, 0.3)');
-gradientOffers.addColorStop(1, 'rgba(0, 107, 96, 0.0)');
+    if (!trendCanvas || !roleCanvas || !compCanvas) {
+        return;
+    }
 
-const gradientApps = trendCtx.createLinearGradient(0, 0, 0, 300);
-gradientApps.addColorStop(0, 'rgba(255, 159, 67, 0.3)');
-gradientApps.addColorStop(1, 'rgba(255, 159, 67, 0.0)');
+    // Limpiar instancias previas si existen (evita error de reuso de canvas al cambiar pestañas)
+    if (window._adminTrendChart && typeof window._adminTrendChart.destroy === 'function') {
+        window._adminTrendChart.destroy();
+    }
+    if (window._adminRoleChart && typeof window._adminRoleChart.destroy === 'function') {
+        window._adminRoleChart.destroy();
+    }
+    if (window._adminCompChart && typeof window._adminCompChart.destroy === 'function') {
+        window._adminCompChart.destroy();
+    }
 
-new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: monthlyStats.map(m => m.label),
-        datasets: [
-            {
-                label: 'Usuarios',
-                data: monthlyStats.map(m => m.users),
-                borderColor: '#002741',
-                backgroundColor: gradientUsers,
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#002741',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            },
-            {
-                label: 'Ofertas',
-                data: monthlyStats.map(m => m.offers),
-                borderColor: '#006b60',
-                backgroundColor: gradientOffers,
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#006b60',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            },
-            {
-                label: 'Postulaciones',
-                data: monthlyStats.map(m => m.applications),
-                borderColor: '#ff9f43',
-                backgroundColor: gradientApps,
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#ff9f43',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            },
-        ],
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            intersect: false,
-            mode: 'index',
+    // --- Chart 1: Registration Trends (Line/Area) ---
+    const trendCtx = trendCanvas.getContext('2d');
+    const gradientUsers = trendCtx.createLinearGradient(0, 0, 0, 300);
+    gradientUsers.addColorStop(0, 'rgba(0, 39, 65, 0.3)');
+    gradientUsers.addColorStop(1, 'rgba(0, 39, 65, 0.0)');
+
+    const gradientOffers = trendCtx.createLinearGradient(0, 0, 0, 300);
+    gradientOffers.addColorStop(0, 'rgba(0, 107, 96, 0.3)');
+    gradientOffers.addColorStop(1, 'rgba(0, 107, 96, 0.0)');
+
+    const gradientApps = trendCtx.createLinearGradient(0, 0, 0, 300);
+    gradientApps.addColorStop(0, 'rgba(255, 159, 67, 0.3)');
+    gradientApps.addColorStop(1, 'rgba(255, 159, 67, 0.0)');
+
+    window._adminTrendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: (adminMonthlyStats || []).map(m => m.label),
+            datasets: [
+                {
+                    label: 'Usuarios',
+                    data: (adminMonthlyStats || []).map(m => m.users),
+                    borderColor: '#002741',
+                    backgroundColor: gradientUsers,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#002741',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Ofertas',
+                    data: (adminMonthlyStats || []).map(m => m.offers),
+                    borderColor: '#006b60',
+                    backgroundColor: gradientOffers,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#006b60',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Postulaciones',
+                    data: (adminMonthlyStats || []).map(m => m.applications),
+                    borderColor: '#ff9f43',
+                    backgroundColor: gradientApps,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ff9f43',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                },
+            ],
         },
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 20,
-                    font: { family: 'Inter', size: 12 },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20,
+                        font: { family: 'Inter', size: 12 },
+                    },
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    titleFont: { family: 'Inter', size: 13 },
+                    bodyFont: { family: 'Inter', size: 12 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
                 },
             },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleFont: { family: 'Inter', size: 13 },
-                bodyFont: { family: 'Inter', size: 12 },
-                padding: 12,
-                cornerRadius: 8,
-                displayColors: true,
-            },
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: { font: { family: 'Inter', size: 11 } },
-            },
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                ticks: {
-                    font: { family: 'Inter', size: 11 },
-                    stepSize: 1,
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter', size: 11 } },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                        font: { family: 'Inter', size: 11 },
+                        stepSize: 1,
+                    },
                 },
             },
         },
-    },
-});
+    });
 
-// --- Chart 2: Role Distribution (Doughnut Premium) ---
-const roleCtx = document.getElementById('roleChart').getContext('2d');
+    // --- Chart 2: Role Distribution (Doughnut Premium) ---
+    const roleCtx = roleCanvas.getContext('2d');
 
-// Plugin: draw percentages on each slice
-const slicePercentagePlugin = {
-    id: 'slicePercentage',
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+    const slicePercentagePlugin = {
+        id: 'slicePercentage',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data) return;
+            const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
 
-        meta.data.forEach((arc, i) => {
-            const value = chart.data.datasets[0].data[i];
-            const pct = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
-            if (pct < 3) return; // skip tiny slices
+            meta.data.forEach((arc, i) => {
+                const value = chart.data.datasets[0].data[i];
+                const pct = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                if (pct < 4) return; // skip tiny slices
 
-            const { x, y } = arc.tooltipPosition();
-            const angle = (arc.startAngle + arc.endAngle) / 2;
-            const radius = (arc.innerRadius + arc.outerRadius) / 2;
-            const labelX = x + Math.cos(angle) * radius;
-            const labelY = y + Math.sin(angle) * radius;
+                let pos = null;
+                if (typeof arc.tooltipPosition === 'function') {
+                    pos = arc.tooltipPosition();
+                } else if (typeof arc.getCenterPoint === 'function') {
+                    pos = arc.getCenterPoint();
+                }
+                if (!pos) return;
+
+                const angle = (arc.startAngle + arc.endAngle) / 2;
+                const radius = (arc.innerRadius + arc.outerRadius) / 2;
+                const labelX = pos.x + Math.cos(angle) * (radius * 0.15);
+                const labelY = pos.y + Math.sin(angle) * (radius * 0.15);
+
+                ctx.save();
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(`${pct}%`, labelX, labelY);
+                ctx.restore();
+            });
+        },
+    };
+
+    const centerLabelPlugin = {
+        id: 'centerLabel',
+        afterDraw(chart) {
+            const { ctx, width, height } = chart;
+            const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
 
             ctx.save();
-            ctx.font = 'bold 12px Inter';
-            ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 3;
-            ctx.fillText(`${pct}%`, labelX, labelY);
-            ctx.restore();
-        });
-    },
-};
 
-// Plugin: center label with total
-const centerLabelPlugin = {
-    id: 'centerLabel',
-    afterDraw(chart) {
-        const { ctx, width, height } = chart;
-        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Total number
-        ctx.font = 'bold 28px Manrope';
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillText(total, width / 2, height / 2 - 8);
-
-        // Label
-        ctx.font = '500 11px Inter';
-        ctx.fillStyle = '#94a3b8';
-        ctx.fillText('TOTAL', width / 2, height / 2 + 16);
-
-        ctx.restore();
-    },
-};
-
-new Chart(roleCtx, {
-    type: 'doughnut',
-    plugins: [slicePercentagePlugin, centerLabelPlugin],
-    data: {
-        labels: roleDistribution.map(r => r.label),
-        datasets: [{
-            data: roleDistribution.map(r => r.total),
-            backgroundColor: roleDistribution.map(r => r.color),
-            borderColor: '#ffffff',
-            borderWidth: 3,
-            hoverBorderWidth: 0,
-            hoverOffset: 10,
-        }],
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        layout: {
-            padding: 6,
-        },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(0, 39, 65, 0.95)',
-                titleFont: { family: 'Inter', size: 13, weight: '600' },
-                bodyFont: { family: 'Inter', size: 12 },
-                padding: 14,
-                cornerRadius: 10,
-                displayColors: true,
-                boxPadding: 4,
-                callbacks: {
-                    label: function(context) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${context.raw} usuarios (${pct}%)`;
-                    },
-                },
-            },
-        },
-    },
-});
-
-// Render premium legend with badges
-const legendContainer = document.getElementById('roleLegend');
-const totalUsersCount = roleDistribution.reduce((sum, r) => sum + r.total, 0);
-roleDistribution.forEach(r => {
-    const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(0) : 0;
-    legendContainer.innerHTML += `
-        <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low border border-outline-variant/40">
-            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${r.color}"></span>
-            <span class="text-[11px] text-on-surface-variant font-medium whitespace-nowrap">${r.label}</span>
-            <span class="text-[11px] font-bold text-primary">${pct}%</span>
-        </div>
-    `;
-});
-
-// --- Chart 3: Top Companies (Vertical Bar - Premium) ---
-const companiesCtx = document.getElementById('companiesChart').getContext('2d');
-
-// Individual gradient per bar
-const barColors = topCompanies.map((_, i) => {
-    const gradient = companiesCtx.createLinearGradient(0, 0, 0, 320);
-    const stops = [
-        ['#002741', '#0f3d5e'],
-        ['#006b60', '#18A999'],
-        ['#ff9f43', '#fbbf24'],
-        ['#18A999', '#006b60'],
-        ['#0f3d5e', '#002741'],
-    ];
-    const [top, bottom] = stops[i % stops.length];
-    gradient.addColorStop(0, top);
-    gradient.addColorStop(1, bottom);
-    return gradient;
-});
-
-// Data labels plugin (inline)
-const dataLabelsPlugin = {
-    id: 'barDataLabels',
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        chart.getDatasetMeta(0).data.forEach((bar, i) => {
-            const value = chart.data.datasets[0].data[i];
-            ctx.save();
-            ctx.font = 'bold 13px Inter';
+            // Total number
+            ctx.font = 'bold 26px Manrope, sans-serif';
             ctx.fillStyle = '#1a1a1a';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(value, bar.x, bar.y - 6);
+            ctx.fillText(total, width / 2, height / 2 - 8);
+
+            // Label
+            ctx.font = '600 11px Inter, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('TOTAL', width / 2, height / 2 + 16);
+
             ctx.restore();
+        },
+    };
+
+    window._adminRoleChart = new Chart(roleCtx, {
+        type: 'doughnut',
+        plugins: [slicePercentagePlugin, centerLabelPlugin],
+        data: {
+            labels: (adminRoleDistribution || []).map(r => r.label),
+            datasets: [{
+                data: (adminRoleDistribution || []).map(r => r.total),
+                backgroundColor: (adminRoleDistribution || []).map(r => r.color),
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverBorderWidth: 0,
+                hoverOffset: 8,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            layout: {
+                padding: 6,
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 39, 65, 0.95)',
+                    titleFont: { family: 'Inter', size: 13, weight: '600' },
+                    bodyFont: { family: 'Inter', size: 12 },
+                    padding: 14,
+                    cornerRadius: 10,
+                    displayColors: true,
+                    boxPadding: 4,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                            return ` ${context.raw} usuarios (${pct}%)`;
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    // Render legend
+    const legendContainer = document.getElementById('roleLegend');
+    if (legendContainer) {
+        legendContainer.innerHTML = '';
+        const totalUsersCount = (adminRoleDistribution || []).reduce((sum, r) => sum + r.total, 0);
+        (adminRoleDistribution || []).forEach(r => {
+            const pct = totalUsersCount > 0 ? ((r.total / totalUsersCount) * 100).toFixed(0) : 0;
+            legendContainer.innerHTML += `
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low border border-outline-variant/40">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${r.color}"></span>
+                    <span class="text-[11px] text-on-surface-variant font-medium whitespace-nowrap">${r.label}</span>
+                    <span class="text-[11px] font-bold text-primary">${pct}%</span>
+                </div>
+            `;
         });
-    },
+    }
+
+    // --- Chart 3: Top Companies (Vertical Bar - Premium) ---
+    const companiesCtx = compCanvas.getContext('2d');
+    const safeCompanies = adminTopCompanies || [];
+
+    const barColors = safeCompanies.map((_, i) => {
+        const gradient = companiesCtx.createLinearGradient(0, 0, 0, 320);
+        const stops = [
+            ['#002741', '#0f3d5e'],
+            ['#006b60', '#18A999'],
+            ['#ff9f43', '#fbbf24'],
+            ['#18A999', '#006b60'],
+            ['#0f3d5e', '#002741'],
+        ];
+        const [top, bottom] = stops[i % stops.length];
+        gradient.addColorStop(0, top);
+        gradient.addColorStop(1, bottom);
+        return gradient;
+    });
+
+    const dataLabelsPlugin = {
+        id: 'barDataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data) return;
+            meta.data.forEach((bar, i) => {
+                const value = chart.data.datasets[0].data[i];
+                ctx.save();
+                ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.fillStyle = '#1a1a1a';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(value, bar.x, bar.y - 6);
+                ctx.restore();
+            });
+        },
+    };
+
+    window._adminCompChart = new Chart(companiesCtx, {
+        type: 'bar',
+        plugins: [dataLabelsPlugin],
+        data: {
+            labels: safeCompanies.map(c => {
+                const name = c.name || '';
+                return name.length > 20 ? name.substring(0, 18) + '...' : name;
+            }),
+            datasets: [{
+                label: 'Ofertas',
+                data: safeCompanies.map(c => c.total),
+                backgroundColor: barColors.length ? barColors : '#002741',
+                borderRadius: { topLeft: 8, topRight: 8 },
+                borderSkipped: false,
+                barPercentage: 0.55,
+                categoryPercentage: 0.65,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: { top: 25 },
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 39, 65, 0.95)',
+                    titleFont: { family: 'Inter', size: 13, weight: '600' },
+                    bodyFont: { family: 'Inter', size: 12 },
+                    padding: 14,
+                    cornerRadius: 10,
+                    displayColors: true,
+                    boxPadding: 4,
+                    callbacks: {
+                        title: function(items) {
+                            if (!items.length) return '';
+                            const idx = items[0].dataIndex;
+                            return safeCompanies[idx] ? safeCompanies[idx].name : '';
+                        },
+                        label: function(context) {
+                            return ` ${context.raw} ofertas publicadas`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        font: { family: 'Inter', size: 11, weight: '500' },
+                        color: '#64748b',
+                        maxRotation: 0,
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.04)',
+                        drawTicks: false,
+                    },
+                    ticks: {
+                        font: { family: 'Inter', size: 11 },
+                        color: '#94a3b8',
+                        stepSize: 1,
+                        padding: 8,
+                    },
+                },
+            },
+        },
+    });
 };
 
-new Chart(companiesCtx, {
-    type: 'bar',
-    plugins: [dataLabelsPlugin],
-    data: {
-        labels: topCompanies.map(c => {
-            const name = c.name;
-            return name.length > 18 ? name.substring(0, 16) + '...' : name;
-        }),
-        datasets: [{
-            label: 'Ofertas',
-            data: topCompanies.map(c => c.total),
-            backgroundColor: barColors,
-            borderRadius: { topLeft: 8, topRight: 8 },
-            borderSkipped: false,
-            barPercentage: 0.6,
-            categoryPercentage: 0.7,
-        }],
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-            padding: { top: 25 },
-        },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(0, 39, 65, 0.95)',
-                titleFont: { family: 'Inter', size: 13, weight: '600' },
-                bodyFont: { family: 'Inter', size: 12 },
-                padding: 14,
-                cornerRadius: 10,
-                displayColors: true,
-                boxPadding: 4,
-                callbacks: {
-                    title: function(items) {
-                        const idx = items[0].dataIndex;
-                        return topCompanies[idx].name;
-                    },
-                    label: function(context) {
-                        return ` ${context.raw} ofertas publicadas`;
-                    },
-                },
-            },
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                border: { display: false },
-                ticks: {
-                    font: { family: 'Inter', size: 11, weight: '500' },
-                    color: '#64748b',
-                    maxRotation: 0,
-                },
-            },
-            y: {
-                beginAtZero: true,
-                border: { display: false },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.04)',
-                    drawTicks: false,
-                },
-                ticks: {
-                    font: { family: 'Inter', size: 11 },
-                    color: '#94a3b8',
-                    stepSize: 1,
-                    padding: 8,
-                },
-            },
-        },
+// Initialize immediately or on DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initAdminCharts);
+} else {
+    window.initAdminCharts();
+}
 </script>
 
 <!-- Sistema de alertas UI premium -->
