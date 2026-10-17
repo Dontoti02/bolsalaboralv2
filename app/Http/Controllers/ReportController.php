@@ -241,6 +241,12 @@ class ReportController extends Controller
                 default            => 'Todos los estados',
             };
 
+            $logoBase64 = null;
+            $logoPath = public_path('assets/logo.png');
+            if (file_exists($logoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            }
+
             $data = [
                 'users' => $formattedUsers,
                 'type' => $type,
@@ -255,6 +261,7 @@ class ReportController extends Controller
                 'totalAccepted' => collect($formattedUsers)->sum(function($u) {
                     return collect($u['applications'])->where('status', 'accepted')->count();
                 }),
+                'logoBase64' => $logoBase64,
             ];
 
             $dateStr = date('Y-m-d_His');
@@ -266,7 +273,7 @@ class ReportController extends Controller
             $fileName = "{$prefix}_{$dateStr}.pdf";
 
             $pdf = Pdf::loadView('reports.pdf', $data)
-                ->setPaper('a4', 'landscape')
+                ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isRemoteEnabled', true);
 
