@@ -2408,9 +2408,10 @@
                             <span id="text-export-excel">Exportar a Excel (.xlsx)</span>
                         </button>
                         <button type="button" id="btn-export-reports-pdf" onclick="exportReportsPdf()"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
-                            <span class="material-symbols-outlined text-[20px]" id="icon-export-pdf">picture_as_pdf</span>
-                            <span id="text-export-pdf">Exportar a PDF (.pdf)</span>
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer"
+                            style="background-color: #dc2626 !important; color: #ffffff !important;">
+                            <span class="material-symbols-outlined text-[20px]" id="icon-export-pdf" style="color: #ffffff !important;">picture_as_pdf</span>
+                            <span id="text-export-pdf" style="color: #ffffff !important;">Exportar a PDF (.pdf)</span>
                         </button>
                     </div>
                 </div>
