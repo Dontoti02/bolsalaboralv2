@@ -24,19 +24,29 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
 
     public function title(): string
     {
-        return $this->type === 'graduate' ? 'Egresados' : 'Estudiantes';
+        return match($this->type) {
+            'graduate' => 'Egresados',
+            'student'  => 'Estudiantes',
+            default    => 'Todos (Estudiantes-Egresados)',
+        };
     }
 
     public function array(): array
     {
-        $roleLabel = $this->type === 'graduate' ? 'EGRESADOS' : 'ESTUDIANTES';
+        $roleLabel = match($this->type) {
+            'graduate' => 'EGRESADOS',
+            'student'  => 'ESTUDIANTES',
+            default    => 'ESTUDIANTES Y EGRESADOS',
+        };
         $exportDate = date('d/m/Y H:i:s');
         $totalCount = count($this->users);
 
         $rows = [
+            // Row 1: Main Title
             ["REPORTE INSTITUCIONAL DE BOLSA LABORAL - {$roleLabel}"],
+            // Row 2: Subtitle / Metadata
             ["Fecha de emisión: {$exportDate} | Total de registros evaluados: {$totalCount}"],
-            [],
+            // Row 3: Table Headers
             [
                 'N°',
                 'Tipo',
@@ -58,6 +68,11 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
             $apps = $u['applications'] ?? [];
             $totalApps = count($apps);
 
+            // Determinar rol específico
+            $userRole = ($u['rol_id'] ?? null) == 5 ? 'Egresado' : 'Estudiante';
+            if ($this->type === 'graduate') $userRole = 'Egresado';
+            if ($this->type === 'student')  $userRole = 'Estudiante';
+
             // Resumen de ofertas
             $offersList = [];
             $statusList = [];
@@ -75,9 +90,10 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
                 $statusText = 'Sin postulaciones';
             }
 
+            // Data rows start at index 4 (Excel row 4)
             $rows[] = [
                 $index++,
-                $this->type === 'graduate' ? 'Egresado' : 'Estudiante',
+                $userRole,
                 $person['document_number'] ?? '-',
                 $person['names'] ?? '-',
                 $u['email'] ?? '-',
@@ -90,35 +106,88 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
             ];
         }
 
+        if (count($this->users) === 0) {
+            $rows[] = [
+                '-',
+                '-',
+                '-',
+                'No se encontraron registros con los filtros seleccionados',
+                '-',
+                '-',
+                '-',
+                0,
+                '-',
+                '-',
+                '-'
+            ];
+        }
+
         return $rows;
     }
 
     public function styles(Worksheet $sheet)
     {
-        $highestRow = max(count($this->users) + 4, 5);
+        $totalDataRows = count($this->users);
+        $highestRow = max($totalDataRows + 3, 4);
 
-        // Merge title rows
+        // Merge title and subtitle
         $sheet->mergeCells('A1:K1');
         $sheet->mergeCells('A2:K2');
 
-        // Text wrap on offers and status columns
-        $sheet->getStyle("I5:J{$highestRow}")->getAlignment()->setWrapText(true);
+        // Row Heights
+        $sheet->getRowDimension(1)->setRowHeight(34);
+        $sheet->getRowDimension(2)->setRowHeight(22);
+        $sheet->getRowDimension(3)->setRowHeight(28);
 
-        // Borders for table data
-        $sheet->getStyle("A4:K{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('D1D5DB'));
+        // Freeze pane at Row 4 (keeps headers sticky)
+        $sheet->freezePane('A4');
+
+        // Text wrap on offers and status columns
+        $sheet->getStyle("I4:J{$highestRow}")->getAlignment()->setWrapText(true);
+
+        // Vertical alignments: Top for multi-line text, center for titles/headers
+        $sheet->getStyle("A4:K{$highestRow}")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+
+        // Column Horizontal Alignments for data
+        $sheet->getStyle("A4:C{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("D4:E{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle("F4:F{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("G4:G{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle("H4:H{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("I4:I{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle("J4:K{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Make Total Postulaciones bold
+        $sheet->getStyle("H4:H{$highestRow}")->getFont()->setBold(true);
+
+        // Borders for table data (from row 3 to highestRow)
+        $sheet->getStyle("A3:K{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('D1D5DB'));
+
+        // Soft Zebra Striping for alternating data rows (starting at row 4)
+        for ($r = 4; $r <= $highestRow; $r++) {
+            if ($r % 2 === 0) {
+                $sheet->getStyle("A{$r}:K{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+            }
+        }
+
+        // AutoFilter on Header Row 3
+        $sheet->setAutoFilter("A3:K{$highestRow}");
 
         return [
+            // Row 1: Institutional Header
             1 => [
-                'font' => ['bold' => true, 'size' => 15, 'color' => ['rgb' => 'FFFFFF']],
+                'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '002741']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
             ],
+            // Row 2: Metadata / Subtitle
             2 => [
                 'font' => ['italic' => true, 'size' => 10, 'color' => ['rgb' => '4B5563']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F3F4F6']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
             ],
-            4 => [
+            // Row 3: TABLE HEADERS (Navy / Dark Slate Header)
+            3 => [
                 'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0F3D5E']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
@@ -130,15 +199,15 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
     {
         return [
             'A' => 6,   // N°
-            'B' => 13,  // Tipo
+            'B' => 14,  // Tipo
             'C' => 14,  // DNI
-            'D' => 30,  // Nombres
+            'D' => 32,  // Nombres
             'E' => 30,  // Correo
             'F' => 16,  // Teléfono
             'G' => 28,  // Programa Estudio
-            'H' => 14,  // Total Apps
-            'I' => 38,  // Ofertas
-            'J' => 22,  // Estados
+            'H' => 16,  // Total Apps
+            'I' => 42,  // Ofertas
+            'J' => 24,  // Estados
             'K' => 16,  // Fecha Registro
         ];
     }

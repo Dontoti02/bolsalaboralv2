@@ -2401,11 +2401,16 @@
                         <h1 class="text-headline-lg font-headline-lg text-primary mb-1">Reportes de Bolsa Laboral</h1>
                         <p class="text-body-md text-on-surface-variant">Monitoreo, trazabilidad de postulaciones y exportación a Excel para estudiantes y egresados.</p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2.5">
                         <button type="button" id="btn-export-reports-excel" onclick="exportReportsExcel()"
                             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
                             <span class="material-symbols-outlined text-[20px]" id="icon-export-excel">table_view</span>
                             <span id="text-export-excel">Exportar a Excel (.xlsx)</span>
+                        </button>
+                        <button type="button" id="btn-export-reports-pdf" onclick="exportReportsPdf()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-[20px]" id="icon-export-pdf">picture_as_pdf</span>
+                            <span id="text-export-pdf">Exportar a PDF (.pdf)</span>
                         </button>
                     </div>
                 </div>
@@ -2461,16 +2466,22 @@
                     </div>
                 </div>
 
-                <!-- Subtabs: Estudiantes / Egresados -->
-                <div class="flex items-center gap-2 border-b border-outline-variant/60">
+                <!-- Subtabs: Todos / Estudiantes / Egresados -->
+                <div class="flex items-center gap-2 border-b border-outline-variant/60 overflow-x-auto">
+                    <button type="button" id="tab-btn-report-all" onclick="switchReportTab('all')"
+                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer whitespace-nowrap">
+                        <span class="material-symbols-outlined text-[20px]">groups</span>
+                        <span>Todos (Estudiantes y Egresados)</span>
+                        <span id="badge-count-all" class="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary font-semibold">0</span>
+                    </button>
                     <button type="button" id="tab-btn-report-student" onclick="switchReportTab('student')"
-                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer">
+                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer whitespace-nowrap">
                         <span class="material-symbols-outlined text-[20px]">school</span>
                         <span>Estudiantes</span>
-                        <span id="badge-count-students" class="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary font-semibold">0</span>
+                        <span id="badge-count-students" class="px-2 py-0.5 rounded-full text-xs bg-surface-container-high text-on-surface-variant font-semibold">0</span>
                     </button>
                     <button type="button" id="tab-btn-report-graduate" onclick="switchReportTab('graduate')"
-                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer">
+                        class="report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer whitespace-nowrap">
                         <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
                         <span>Egresados</span>
                         <span id="badge-count-graduates" class="px-2 py-0.5 rounded-full text-xs bg-surface-container-high text-on-surface-variant font-semibold">0</span>
@@ -7897,7 +7908,7 @@
         // ==========================================
         // MODULE: REPORTES DE BOLSA LABORAL
         // ==========================================
-        let currentReportType = 'student';
+        let currentReportType = 'all';
         let currentReportPage = 1;
         let reportSearchTimer = null;
         let cachedReportUsers = [];
@@ -7911,15 +7922,22 @@
             currentReportType = type;
             currentReportPage = 1;
 
+            const btnAll = document.getElementById('tab-btn-report-all');
             const btnStudent = document.getElementById('tab-btn-report-student');
             const btnGraduate = document.getElementById('tab-btn-report-graduate');
 
+            const inactiveClass = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer whitespace-nowrap";
+            
+            if (btnAll) btnAll.className = inactiveClass;
+            if (btnStudent) btnStudent.className = inactiveClass;
+            if (btnGraduate) btnGraduate.className = inactiveClass;
+
             if (type === 'graduate') {
-                if (btnGraduate) btnGraduate.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-purple-600 text-purple-700 font-bold text-sm transition-all cursor-pointer";
-                if (btnStudent) btnStudent.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer";
+                if (btnGraduate) btnGraduate.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-purple-600 text-purple-700 font-bold text-sm transition-all cursor-pointer whitespace-nowrap";
+            } else if (type === 'student') {
+                if (btnStudent) btnStudent.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer whitespace-nowrap";
             } else {
-                if (btnStudent) btnStudent.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer";
-                if (btnGraduate) btnGraduate.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-semibold text-sm transition-all cursor-pointer";
+                if (btnAll) btnAll.className = "report-subtab-btn flex items-center gap-2.5 px-5 py-3 border-b-2 border-primary text-primary font-bold text-sm transition-all cursor-pointer whitespace-nowrap";
             }
 
             loadReportsData(1);
@@ -8004,8 +8022,10 @@
                     if (elUnderReviewApps) elUnderReviewApps.textContent = s.under_review_applications ?? 0;
 
                     // Badges on tabs
+                    const badgeAll = document.getElementById('badge-count-all');
                     const badgeStud = document.getElementById('badge-count-students');
                     const badgeGrad = document.getElementById('badge-count-graduates');
+                    if (badgeAll) badgeAll.textContent = (s.total_students ?? 0) + (s.total_graduates ?? 0);
                     if (badgeStud) badgeStud.textContent = s.total_students ?? 0;
                     if (badgeGrad) badgeGrad.textContent = s.total_graduates ?? 0;
                 }
@@ -8029,7 +8049,7 @@
             })
             .catch(err => {
                 console.error('Error fetching report data:', err);
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600 font-medium">Error de conexion al cargar el reporte.</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600 font-medium">Error de conexión al cargar el reporte.</td></tr>`;
             });
         }
 
@@ -8039,7 +8059,8 @@
             if (!tbody) return;
 
             if (countText && pagination) {
-                countText.textContent = `Mostrando ${items.length} de ${pagination.total} ${currentReportType === 'graduate' ? 'egresados' : 'estudiantes'}`;
+                const typeText = currentReportType === 'all' ? 'estudiantes y egresados' : (currentReportType === 'graduate' ? 'egresados' : 'estudiantes');
+                countText.textContent = `Mostrando ${items.length} de ${pagination.total} ${typeText}`;
             }
 
             if (items.length === 0) {
@@ -8049,7 +8070,7 @@
                             <div class="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
                                 <span class="material-symbols-outlined text-4xl text-outline">search_off</span>
                                 <p class="font-bold text-sm text-on-surface">No se encontraron registros</p>
-                                <p class="text-xs text-on-surface-variant">Prueba ajustando los terminos de busqueda o los filtros de programa y estado.</p>
+                                <p class="text-xs text-on-surface-variant">Prueba ajustando los términos de búsqueda o los filtros de programa y estado.</p>
                             </div>
                         </td>
                     </tr>
@@ -8062,7 +8083,10 @@
             items.forEach(u => {
                 const p = u.person || {};
                 const initials = (p.names || 'U').split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase() || 'U';
-                const avatarBg = currentReportType === 'graduate' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+                const isGrad = u.rol_id === 5 || u.role_name === 'Egresado';
+                const roleLabel = isGrad ? 'Egresado' : 'Estudiante';
+                const roleClass = isGrad ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                const avatarBg = isGrad ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
 
                 // Postulaciones chips
                 let appsHtml = '';
@@ -8071,7 +8095,7 @@
                     u.applications.slice(0, 2).forEach(app => {
                         const statusClass = getReportStatusBadge(app.status);
                         appsHtml += `
-                            <div class="text-xs p-1.5 rounded-lg border border-gray-200 flex items-center justify-between gap-1.5">
+                            <div class="text-xs p-1.5 rounded-lg border border-gray-200 flex items-center justify-between gap-1.5 bg-gray-50/50">
                                 <span class="font-medium truncate max-w-[140px]" title="${app.offer_title}">${app.offer_title}</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold shrink-0 ${statusClass}">
                                     ${app.status_label}
@@ -8080,7 +8104,7 @@
                         `;
                     });
                     if (u.applications.length > 2) {
-                        appsHtml += `<span class="text-[11px] text-blue-700 font-semibold block">+${u.applications.length - 2} postulacion(es) mas</span>`;
+                        appsHtml += `<span class="text-[11px] text-blue-700 font-semibold block">+${u.applications.length - 2} postulación(es) más</span>`;
                     }
                     appsHtml += '</div>';
                 } else {
@@ -8097,7 +8121,7 @@
                     if (hasAccepted) {
                         mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="material-symbols-outlined text-[14px]">check_circle</span> Aceptado</span>';
                     } else if (hasReview) {
-                        mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="material-symbols-outlined text-[14px]">timelapse</span> En revision</span>';
+                        mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="material-symbols-outlined text-[14px]">timelapse</span> En revisión</span>';
                     } else if (hasRejected) {
                         mainStatusBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200"><span class="material-symbols-outlined text-[14px]">cancel</span> Rechazado</span>';
                     } else {
@@ -8108,42 +8132,45 @@
                 }
 
                 html += `
-                    <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                    <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl ${avatarBg} flex items-center justify-center font-bold text-xs shrink-0">
+                                <div class="w-9 h-9 rounded-xl ${avatarBg} flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                                     ${initials}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="font-semibold text-gray-800 truncate text-xs sm:text-sm" title="${p.names}">${p.names}</p>
-                                    <p class="text-[11px] text-gray-500">DNI: <span class="font-mono font-medium">${p.document_number}</span></p>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="font-semibold text-gray-800 truncate text-xs sm:text-sm" title="${p.names}">${p.names}</p>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${roleClass}">${roleLabel}</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">DNI: <span class="font-mono font-medium text-gray-700">${p.document_number}</span></p>
                                 </div>
                             </div>
                         </td>
                         <td class="py-3.5 px-4 text-xs">
-                            <p class="text-gray-800 truncate max-w-[180px]" title="${u.email}">${u.email}</p>
-                            <p class="text-gray-500">${p.phone || 'Sin telefono'}</p>
+                            <p class="text-gray-800 truncate max-w-[180px] font-medium" title="${u.email}">${u.email}</p>
+                            <p class="text-gray-500 mt-0.5">${p.phone || 'Sin teléfono'}</p>
                         </td>
                         <td class="py-3.5 px-4">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 max-w-[220px] truncate" title="${p.study_program || 'Sin asignar'}">
-                                <span class="material-symbols-outlined text-[14px] text-blue-600 shrink-0">school</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 max-w-[220px] truncate" title="${p.study_program || 'Sin asignar'}">
+                                <span class="material-symbols-outlined text-[15px] text-primary shrink-0">school</span>
                                 <span class="truncate">${p.study_program || 'Sin asignar'}</span>
                             </span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
-                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${u.applications_count > 0 ? 'bg-blue-100 text-blue-700 font-bold' : 'bg-gray-100 text-gray-500'} text-xs">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${u.applications_count > 0 ? 'bg-primary/10 text-primary font-bold' : 'bg-gray-100 text-gray-500'} text-xs">
                                 ${u.applications_count}
                             </span>
                         </td>
                         <td class="py-3.5 px-4">
-                            <div class="space-y-1">
+                            <div class="space-y-1.5">
                                 <div>${mainStatusBadge}</div>
                                 ${appsHtml}
                             </div>
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <button type="button" onclick="openReportDetailModal(${u.id})"
-                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-700 font-semibold text-xs transition-all cursor-pointer shadow-sm">
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-primary hover:text-white text-on-surface font-semibold text-xs transition-all cursor-pointer shadow-xs">
                                 <span class="material-symbols-outlined text-[16px]">visibility</span>
                                 <span>Detalle</span>
                             </button>
@@ -8171,7 +8198,7 @@
             if (!container || !p) return;
 
             if (info) {
-                info.textContent = `Pagina ${p.current_page} de ${p.last_page} | Total: ${p.total} registros`;
+                info.textContent = `Página ${p.current_page} de ${p.last_page} | Total: ${p.total} registros`;
             }
 
             let btnsHtml = '';
@@ -8196,12 +8223,14 @@
             const appsList = document.getElementById('modal-report-apps-list');
 
             const initials = (p.names || 'U').split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase() || 'U';
+            const userRoleName = user.role_name || (user.rol_id === 5 ? 'Egresado' : 'Estudiante');
+
             if (avatar) avatar.textContent = initials;
             if (name) name.textContent = p.names || 'Sin nombre';
-            if (subtitle) subtitle.textContent = `DNI: ${p.document_number || '-'} | ${currentReportType === 'graduate' ? 'Egresado' : 'Estudiante'} (Registrado el ${user.created_at || '-'})`;
+            if (subtitle) subtitle.textContent = `DNI: ${p.document_number || '-'} | ${userRoleName} (Registrado el ${user.created_at || '-'})`;
             if (prog) prog.innerHTML = `<span class="material-symbols-outlined text-[16px]">school</span><span>${p.study_program || 'Sin asignar'}</span>`;
             if (email) email.textContent = user.email || '-';
-            if (phone) phone.textContent = p.phone || 'Sin telefono';
+            if (phone) phone.textContent = p.phone || 'Sin teléfono';
             if (count) count.textContent = (user.applications || []).length;
 
             if (appsList) {
@@ -8209,7 +8238,7 @@
                     appsList.innerHTML = `
                         <div class="p-8 text-center rounded-xl bg-gray-50 border border-gray-200 text-gray-500">
                             <span class="material-symbols-outlined text-3xl text-gray-400 mb-1">info</span>
-                            <p class="font-medium text-xs">Este usuario no ha postulado a ninguna oferta laboral aun.</p>
+                            <p class="font-medium text-xs">Este usuario no ha postulado a ninguna oferta laboral aún.</p>
                         </div>
                     `;
                 } else {
@@ -8217,7 +8246,7 @@
                     user.applications.forEach(app => {
                         const badgeClass = getReportStatusBadge(app.status);
                         html += `
-                            <div class="p-4 rounded-xl bg-white border border-gray-200 shadow-sm space-y-2">
+                            <div class="p-4 rounded-xl bg-white border border-gray-200 shadow-xs space-y-2">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                     <div>
                                         <h4 class="font-bold text-sm text-gray-800">${app.offer_title}</h4>
@@ -8232,7 +8261,7 @@
                                 </div>
                                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                                     <span>Postulado el: <strong class="text-gray-800">${app.created_at}</strong></span>
-                                    ${app.cv_url ? `<a href="${app.cv_url}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:underline font-semibold"><span class="material-symbols-outlined text-[14px]">description</span>Descargar CV</a>` : ''}
+                                    ${app.cv_url ? `<a href="${app.cv_url}" target="_blank" class="inline-flex items-center gap-1 text-primary hover:underline font-semibold"><span class="material-symbols-outlined text-[14px]">description</span>Descargar CV</a>` : ''}
                                 </div>
                                 ${app.feedback ? `<div class="p-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs mt-2"><strong class="text-gray-700 block text-[11px] mb-0.5">Feedback:</strong><p class="text-gray-600">${app.feedback}</p></div>` : ''}
                             </div>
@@ -8277,6 +8306,35 @@
                     text.textContent = 'Exportar a Excel (.xlsx)';
                 }
             }, 2500);
+        }
+
+        function exportReportsPdf() {
+            const btn = document.getElementById('btn-export-reports-pdf');
+            const icon = document.getElementById('icon-export-pdf');
+            const text = document.getElementById('text-export-pdf');
+
+            const search = document.getElementById('report-search-input')?.value || '';
+            const programId = document.getElementById('report-filter-program')?.value || '';
+            const status = document.getElementById('report-filter-status')?.value || 'all';
+
+            if (btn && icon && text) {
+                btn.setAttribute('disabled', 'true');
+                icon.textContent = 'autorenew';
+                icon.classList.add('animate-spin');
+                text.textContent = 'Generando PDF...';
+            }
+
+            const url = `/admin/reports/export-pdf?type=${currentReportType}&search=${encodeURIComponent(search)}&program_id=${encodeURIComponent(programId)}&status=${encodeURIComponent(status)}`;
+            window.location.href = url;
+
+            setTimeout(() => {
+                if (btn && icon && text) {
+                    btn.removeAttribute('disabled');
+                    icon.textContent = 'picture_as_pdf';
+                    icon.classList.remove('animate-spin');
+                    text.textContent = 'Exportar a PDF (.pdf)';
+                }
+            }, 3000);
         }
 
     </script>

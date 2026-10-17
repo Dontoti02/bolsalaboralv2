@@ -8,6 +8,8 @@ use App\Models\JobOpportunityApplication;
 use App\Exports\BolsaLaboralReportExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -16,17 +18,24 @@ class ReportController extends Controller
      */
     private function buildQuery(Request $request)
     {
-        $type = $request->get('type', 'student');
-        $rolId = ($type === 'graduate') ? 5 : 3;
+        $type = $request->get('type', 'all');
         $search = trim($request->get('search', ''));
         $programId = $request->get('program_id');
         $status = $request->get('status');
 
-        $query = User::where('rol_id', $rolId)
-            ->with([
-                'person.studyProgram',
-                'applications.offer.company'
-            ]);
+        $query = User::with([
+            'person.studyProgram',
+            'applications.offer.company'
+        ]);
+
+        if ($type === 'graduate') {
+            $query->where('rol_id', 5);
+        } elseif ($type === 'student') {
+            $query->where('rol_id', 3);
+        } else {
+            // 'all': Ambos roles institucionales (Estudiantes y Egresados)
+            $query->whereIn('rol_id', [3, 5]);
+        }
 
         // Search filter
         if ($search !== '') {
@@ -94,6 +103,8 @@ class ReportController extends Controller
 
             return [
                 'id' => $user->id,
+                'rol_id' => (int) $user->rol_id,
+                'role_name' => (int) $user->rol_id === 5 ? 'Egresado' : 'Estudiante',
                 'email' => $user->email,
                 'is_active' => (bool) $user->is_active,
                 'created_at' => $user->created_at ? $user->created_at->format('d/m/Y') : '-',
@@ -117,7 +128,7 @@ class ReportController extends Controller
     public function getReportsData(Request $request)
     {
         try {
-            $type = $request->get('type', 'student');
+            $type = $request->get('type', 'all');
             $perPage = (int) $request->get('per_page', 15);
 
             $query = $this->buildQuery($request);
@@ -128,8 +139,11 @@ class ReportController extends Controller
             // Overall Summary KPI Statistics
             $studentUserIds = User::where('rol_id', 3)->pluck('id');
             $graduateUserIds = User::where('rol_id', 5)->pluck('id');
+            $allUserIds = $studentUserIds->concat($graduateUserIds);
 
             $summary = [
+                'total_all' => $allUserIds->count(),
+                'all_with_apps' => JobOpportunityApplication::whereIn('user_id', $allUserIds)->distinct('user_id')->count('user_id'),
                 'total_students' => $studentUserIds->count(),
                 'students_with_apps' => JobOpportunityApplication::whereIn('user_id', $studentUserIds)->distinct('user_id')->count('user_id'),
                 'total_graduates' => $graduateUserIds->count(),
@@ -168,14 +182,18 @@ class ReportController extends Controller
     public function exportExcel(Request $request)
     {
         try {
-            $type = $request->get('type', 'student');
+            $type = $request->get('type', 'all');
             $query = $this->buildQuery($request);
             
             $users = $query->latest('id')->get();
             $formattedUsers = $this->formatUserData($users)->toArray();
 
             $dateStr = date('Y-m-d_His');
-            $prefix = ($type === 'graduate') ? 'reporte_egresados_bolsa_laboral' : 'reporte_estudiantes_bolsa_laboral';
+            $prefix = match($type) {
+                'graduate' => 'reporte_egresados_bolsa_laboral',
+                'student'  => 'reporte_estudiantes_bolsa_laboral',
+                default    => 'reporte_estudiantes_egresados_bolsa_laboral',
+            };
             $fileName = "{$prefix}_{$dateStr}.xlsx";
 
             return Excel::download(new BolsaLaboralReportExport($formattedUsers, $type), $fileName);
@@ -183,6 +201,80 @@ class ReportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al exportar reporte Excel: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export Reports to PDF (.pdf)
+     */
+    public function exportPdf(Request $request)
+    {
+        try {
+            $type = $request->get('type', 'all');
+            $query = $this->buildQuery($request);
+
+            $users = $query->latest('id')->get();
+            $formattedUsers = $this->formatUserData($users)->toArray();
+
+            $typeLabel = match($type) {
+                'graduate' => 'Egresados',
+                'student'  => 'Estudiantes',
+                default    => 'Estudiantes y Egresados',
+            };
+
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+            $institutionName = $config['institution_name'] ?? 'Bolsa Laboral Institucional';
+
+            $programName = 'Todos los programas';
+            if ($request->filled('program_id')) {
+                $p = StudyProgram::find($request->get('program_id'));
+                if ($p) $programName = $p->name;
+            }
+
+            $statusLabel = match($request->get('status', 'all')) {
+                'has_applications' => 'Con postulaciones activas',
+                'no_applications'  => 'Sin postulaciones',
+                'accepted'         => 'Aceptados en convocatoria',
+                'under_review'     => 'En revisión',
+                'rejected'         => 'Rechazados',
+                default            => 'Todos los estados',
+            };
+
+            $data = [
+                'users' => $formattedUsers,
+                'type' => $type,
+                'typeLabel' => $typeLabel,
+                'institutionName' => $institutionName,
+                'programName' => $programName,
+                'statusLabel' => $statusLabel,
+                'search' => $request->get('search', ''),
+                'date' => date('d/m/Y H:i:s'),
+                'totalEvaluated' => count($formattedUsers),
+                'totalWithApps' => collect($formattedUsers)->where('applications_count', '>', 0)->count(),
+                'totalAccepted' => collect($formattedUsers)->sum(function($u) {
+                    return collect($u['applications'])->where('status', 'accepted')->count();
+                }),
+            ];
+
+            $dateStr = date('Y-m-d_His');
+            $prefix = match($type) {
+                'graduate' => 'reporte_egresados_bolsa_laboral',
+                'student'  => 'reporte_estudiantes_bolsa_laboral',
+                default    => 'reporte_estudiantes_egresados_bolsa_laboral',
+            };
+            $fileName = "{$prefix}_{$dateStr}.pdf";
+
+            $pdf = Pdf::loadView('reports.pdf', $data)
+                ->setPaper('a4', 'landscape')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isRemoteEnabled', true);
+
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al exportar reporte PDF: ' . $e->getMessage()
             ], 500);
         }
     }

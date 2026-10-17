@@ -90,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
         // Reports Routes (Estudiantes y Egresados)
         Route::get('/admin/reports/data', [\App\Http\Controllers\ReportController::class, 'getReportsData'])->name('admin.reports.data');
         Route::get('/admin/reports/export-excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('admin.reports.export-excel');
+        Route::get('/admin/reports/export-pdf', [\App\Http\Controllers\ReportController::class, 'exportPdf'])->name('admin.reports.export-pdf');
     });
     
     // Rutas comunes de perfil, postulación y CVs para Estudiantes, Docentes y Egresados (rol_id = 2, 3 y 5)
