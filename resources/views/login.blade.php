@@ -86,6 +86,42 @@
             border-color: #34d399 !important;
             box-shadow: 0 4px 12px rgba(5, 150, 105, 0.14) !important;
         }
+
+        /* Custom smooth scrollbar for auth container */
+        .auth-scroll-panel {
+            scroll-behavior: smooth;
+            scroll-padding-top: 1rem;
+            overscroll-behavior: contain;
+        }
+        .auth-scroll-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .auth-scroll-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .auth-scroll-panel::-webkit-scrollbar-thumb {
+            background-color: rgba(100, 116, 139, 0.25);
+            border-radius: 9999px;
+        }
+        .auth-scroll-panel::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(100, 116, 139, 0.45);
+        }
+
+        /* Safe centering: Only vertical-center when viewport height has ample room (>760px).
+           On standard laptops, high browser zoom, or mobile, align to top to avoid cutting the logo/header. */
+        @media (min-height: 760px) {
+            .auth-card-inner {
+                margin-top: auto !important;
+                margin-bottom: auto !important;
+            }
+        }
+        @media (max-height: 759px) {
+            .auth-card-inner {
+                margin-top: 0.75rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+        }
+
         @media screen and (max-width: 640px) {
             input, select, textarea {
                 font-size: 16px !important;
@@ -109,15 +145,16 @@
             </div>
         </div>
     </div>
+
     <!-- Right Side: Login Form -->
-    <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col justify-start lg:justify-center items-center px-4 py-6 sm:px-8 sm:py-10 lg:px-12 bg-surface-container-lowest overflow-y-auto min-h-[100dvh] lg:h-screen">
-        <div class="w-full max-w-[420px] sm:max-w-[480px] my-auto py-2 sm:py-4 transition-all duration-300">
+    <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col justify-start items-center px-4 py-6 sm:px-8 sm:py-8 lg:px-12 bg-surface-container-lowest overflow-y-auto min-h-[100dvh] lg:h-screen auth-scroll-panel">
+        <div class="w-full max-w-[420px] sm:max-w-[480px] my-auto auth-card-inner py-2 sm:py-4 transition-all duration-300">
             <!-- Logo y Nombre Institucional -->
             <div class="mb-5 sm:mb-6 flex items-center justify-center lg:justify-start gap-3.5 sm:gap-4">
                 @if(!empty($config['logo']))
-                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-14 sm:h-16 w-auto max-h-16 object-contain shrink-0" onerror="this.onerror=null;this.src='/assets/logo.png';">
+                    <img src="{{ $config['logo'] }}" alt="Logo" class="h-12 sm:h-14 lg:h-16 w-auto max-h-16 object-contain shrink-0" onerror="this.onerror=null;this.src='/assets/logo.png';">
                 @endif
-                <span class="font-bold text-primary tracking-tight leading-none" style="font-size: 38px;">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
+                <span class="font-bold text-primary tracking-tight leading-tight text-2xl sm:text-3xl lg:text-[34px] xl:text-[38px]">{{ $config['application_name'] ?? 'Bolsa Laboral' }}</span>
             </div> 
             
             <!-- Section: Login -->
@@ -481,7 +518,7 @@
 
             <!-- Carousel of Registered Companies -->
             @if(isset($companies) && $companies->isNotEmpty())
-                <div class="mt-8 sm:mt-10 border-t border-outline-variant/60 pt-6 overflow-hidden w-full">
+                <div class="mt-6 sm:mt-8 border-t border-outline-variant/60 pt-4 sm:pt-5 overflow-hidden w-full">
                     <p class="font-label-sm text-label-sm text-on-surface-variant text-center mb-4 tracking-wider uppercase font-semibold text-[10px]">Empresas en la plataforma</p>
                     <div class="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_15%,_black_85%,transparent_100%)]">
                         <div class="flex gap-lg items-center animate-infinite-scroll w-max whitespace-nowrap">
@@ -519,7 +556,7 @@
             @endif
 
             <!-- Footer / Security -->
-            <div class="mt-8 sm:mt-10 text-center border-t border-outline-variant pt-6">
+            <div class="mt-6 sm:mt-8 text-center border-t border-outline-variant/60 pt-4 sm:pt-5">
                 <div class="flex items-center justify-center gap-2 text-on-surface-variant mb-xs">
                     <span class="material-symbols-outlined text-sm filled">verified_user</span>
                     <span class="font-label-sm text-label-sm">Conexión Segura</span>
@@ -791,6 +828,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        const formScrollContainer = document.getElementById('form-scroll-container');
+        if (formScrollContainer) {
+            formScrollContainer.scrollTop = 0;
+        }
+
         const togglePassword = document.getElementById('toggle-password');
         const passwordInput = document.getElementById('password');
         const toggleIcon = document.getElementById('toggle-icon');

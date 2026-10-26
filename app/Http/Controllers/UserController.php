@@ -619,6 +619,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'application_name' => 'required|string|max:255',
+            'institution_url' => 'nullable|string|max:255',
             'maximum_file_size_to_upload' => 'required|integer|min:1|max:100',
             'primary_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'secondary_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
@@ -650,6 +651,7 @@ class UserController extends Controller
             $hasType = in_array('type', $configColumns, true);
             $configMetadata = [
                 'application_name' => ['name' => 'Nombre de la institucion', 'type' => 'text'],
+                'institution_url' => ['name' => 'Portal web institucional', 'type' => 'url'],
                 'maximum_file_size_to_upload' => ['name' => 'Tamano maximo de archivos', 'type' => 'number'],
                 'primary_color' => ['name' => 'Color principal', 'type' => 'color'],
                 'primary_container_color' => ['name' => 'Color principal suavizado', 'type' => 'color'],
@@ -702,6 +704,17 @@ class UserController extends Controller
             };
 
             $updateConfig('application_name', $request->application_name);
+
+            $rawInstitutionUrl = trim((string) $request->input('institution_url', ''));
+            $institutionUrl = null;
+            if (!empty($rawInstitutionUrl)) {
+                if (!preg_match('~^https?://~i', $rawInstitutionUrl)) {
+                    $rawInstitutionUrl = 'https://' . $rawInstitutionUrl;
+                }
+                $institutionUrl = filter_var($rawInstitutionUrl, FILTER_VALIDATE_URL) ? $rawInstitutionUrl : null;
+            }
+            $updateConfig('institution_url', $institutionUrl);
+
             $updateConfig('maximum_file_size_to_upload', $request->maximum_file_size_to_upload);
             $updateConfig('primary_color', $request->primary_color);
             $updateConfig('primary_container_color', $this->softenHexColor($request->primary_color));

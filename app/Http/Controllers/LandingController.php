@@ -474,8 +474,7 @@ class LandingController extends Controller
             $config = [];
         }
 
-        $company = Company::where('is_verified', true)
-            ->whereNull('deleted_at')
+        $company = Company::whereNull('deleted_at')
             ->findOrFail($id);
 
         // Ofertas activas de esta empresa

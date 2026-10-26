@@ -60,9 +60,10 @@
             z-index: 100;
         }
         .navbar-inner {
-            max-width: 1240px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 clamp(16px, 3.2vw, 56px);
             height: 86px;
             display: flex;
             align-items: center;
@@ -252,9 +253,10 @@
             pointer-events: none;
         }
         .page-container {
-            max-width: 1240px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 clamp(16px, 3.2vw, 56px);
             position: relative;
             z-index: 2;
         }
@@ -291,11 +293,11 @@
 
         /* ── MAIN CONTENT ── */
         .main-content {
-            max-width: 1240px;
-            margin: 32px auto 60px;
-            padding: 0 24px;
-            flex: 1;
             width: 100%;
+            max-width: 100%;
+            margin: 32px auto 60px;
+            padding: 0 clamp(16px, 3.2vw, 56px);
+            flex: 1;
         }
 
         /* Filter & Search Bar */
@@ -675,9 +677,10 @@
             margin-top: auto;
         }
         .footer-inner {
-            max-width: 1240px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 clamp(16px, 3.2vw, 56px);
             display: flex;
             align-items: center;
             justify-content: space-between;

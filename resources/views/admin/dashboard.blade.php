@@ -988,6 +988,21 @@
                                 value="{{ $config['application_name'] ?? 'Bolsa Laboral' }}" type="text" required />
                         </div>
 
+                        <!-- Enlace del portal web institucional -->
+                        <div class="space-y-xs">
+                            <label class="font-label-sm text-label-sm text-on-surface-variant block"
+                                for="set-institution-url">Enlace del Portal Web Institucional</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">language</span>
+                                <input
+                                    class="w-full pl-10 pr-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                    id="set-institution-url" name="institution_url"
+                                    placeholder="Ej. https://www.tuinstitucion.edu.pe"
+                                    value="{{ $config['institution_url'] ?? '' }}" type="url" />
+                            </div>
+                            <p class="text-xs text-on-surface-variant">Este enlace aparecerá en la cabecera (header) de la web pública para que los usuarios puedan visitar el portal oficial.</p>
+                        </div>
+
                         <!-- Extensiones permitidas -->
                         @php
                             $defaultExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', 'jpg', 'jpeg', 'png', 'gif', 'mp3', 'mp4', 'avi', 'mkv'];

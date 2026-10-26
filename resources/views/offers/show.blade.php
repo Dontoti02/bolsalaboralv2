@@ -159,6 +159,31 @@
             color: #01143c;
             background: rgba(1, 20, 60, 0.05);
         }
+        .nav-link-institution {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #1e3a8a;
+            background: rgba(30, 58, 138, 0.05);
+            border: 1.5px solid rgba(30, 58, 138, 0.15);
+            font-size: 14.5px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 50px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+        }
+        .nav-link-institution:hover {
+            color: #ffffff;
+            background: #01143c;
+            border-color: #01143c;
+            box-shadow: 0 2px 8px rgba(1, 20, 60, 0.15);
+        }
+        @media (max-width: 640px) {
+            .nav-link-institution {
+                display: none;
+            }
+        }
         .btn-login-nav {
             display: inline-flex;
             align-items: center;
@@ -380,6 +405,12 @@
             overflow: hidden;
             flex-shrink: 0;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+        }
+        a.company-large-avatar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
         }
         .company-large-avatar img {
             width: 100%;
@@ -436,6 +467,12 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        a.offer-company-name:hover {
+            color: var(--pri);
+            text-decoration: underline;
         }
         .verified-badge {
             color: var(--pri);
@@ -1118,6 +1155,14 @@
                 <div class="nav-links">
                     <a href="{{ route('landing') }}#oportunidades" class="nav-link nav-link-opportunities">Oportunidades</a>
 
+                    @if(!empty($config['institution_url']))
+                        <a href="{{ $config['institution_url'] }}" target="_blank" rel="noopener noreferrer" class="nav-link nav-link-institution" title="Visitar portal web oficial de {{ $config['application_name'] ?? 'la institución' }}">
+                            <span class="material-symbols-outlined" style="font-size:18px;">language</span>
+                            <span>Portal Web</span>
+                            <span class="material-symbols-outlined" style="font-size:14px;opacity:0.75;">open_in_new</span>
+                        </a>
+                    @endif
+
                     @if($authUser)
                         @php
                             $roleLabel = match((int)($authUser->rol_id ?? 0)) {
@@ -1228,13 +1273,23 @@
                         $isOfferExternal = $offer->isExternal();
                     @endphp
 
-                    <div class="company-large-avatar" style="background: {{ $offer->company->logo ? 'transparent' : 'var(--pri)' }};">
-                        @if(!empty($offer->company->logo))
-                            <img src="{{ $offer->company->logo }}" alt="{{ $coName }}" onerror="this.onerror=null;this.parentNode.innerHTML='{{ $initial }}';">
-                        @else
-                            {{ $initial }}
-                        @endif
-                    </div>
+                    @if(!empty($offer->company_id ?: ($offer->company->id ?? null)))
+                        <a href="{{ route('landing.company.show', $offer->company_id ?: $offer->company->id) }}" class="company-large-avatar" title="Ver perfil y ofertas de {{ $coName }}" style="background: {{ (!empty($offer->company) && $offer->company->logo) ? 'transparent' : 'var(--pri)' }};">
+                            @if(!empty($offer->company) && !empty($offer->company->logo))
+                                <img src="{{ $offer->company->logo }}" alt="{{ $coName }}" onerror="this.onerror=null;this.parentNode.innerHTML='{{ $initial }}';">
+                            @else
+                                {{ $initial }}
+                            @endif
+                        </a>
+                    @else
+                        <div class="company-large-avatar" style="background: {{ (!empty($offer->company) && $offer->company->logo) ? 'transparent' : 'var(--pri)' }};">
+                            @if(!empty($offer->company) && !empty($offer->company->logo))
+                                <img src="{{ $offer->company->logo }}" alt="{{ $coName }}" onerror="this.onerror=null;this.parentNode.innerHTML='{{ $initial }}';">
+                            @else
+                                {{ $initial }}
+                            @endif
+                        </div>
+                    @endif
 
                     <div class="offer-title-wrap">
                         <div class="offer-badges-row">
@@ -1271,12 +1326,21 @@
                         <h1 class="offer-title">{{ $offer->title }}</h1>
 
                         <div class="offer-company-info">
-                            <span class="offer-company-name">
-                                {{ $coName }}
-                                @if(!empty($offer->company->is_verified))
-                                    <span class="material-symbols-outlined verified-badge filled" title="Empresa Verificada">verified</span>
-                                @endif
-                            </span>
+                            @if(!empty($offer->company_id ?: ($offer->company->id ?? null)))
+                                <a href="{{ route('landing.company.show', $offer->company_id ?: $offer->company->id) }}" class="offer-company-name" title="Ver perfil y ofertas de {{ $coName }}">
+                                    {{ $coName }}
+                                    @if(!empty($offer->company->is_verified))
+                                        <span class="material-symbols-outlined verified-badge filled" title="Empresa Verificada">verified</span>
+                                    @endif
+                                </a>
+                            @else
+                                <span class="offer-company-name">
+                                    {{ $coName }}
+                                    @if(!empty($offer->company->is_verified))
+                                        <span class="material-symbols-outlined verified-badge filled" title="Empresa Verificada">verified</span>
+                                    @endif
+                                </span>
+                            @endif
                             <span>•</span>
                             <span style="display:inline-flex;align-items:center;gap:4px;">
                                 <span class="material-symbols-outlined" style="font-size:16px;">location_on</span>

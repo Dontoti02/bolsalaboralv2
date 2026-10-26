@@ -161,6 +161,31 @@
             color: #01143c;
             background: rgba(1, 20, 60, 0.05);
         }
+        .nav-link-institution {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #1e3a8a;
+            background: rgba(30, 58, 138, 0.05);
+            border: 1.5px solid rgba(30, 58, 138, 0.15);
+            font-size: 14.5px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 50px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+        }
+        .nav-link-institution:hover {
+            color: #ffffff;
+            background: #01143c;
+            border-color: #01143c;
+            box-shadow: 0 2px 8px rgba(1, 20, 60, 0.15);
+        }
+        @media (max-width: 640px) {
+            .nav-link-institution {
+                display: none;
+            }
+        }
         .btn-login-nav {
             display: inline-flex;
             align-items: center;
@@ -1408,6 +1433,14 @@
                 {{-- Nav Links --}}
                 <div class="nav-links">
                     <a href="#oportunidades" class="nav-link nav-link-opportunities">Oportunidades</a>
+
+                    @if(!empty($config['institution_url']))
+                        <a href="{{ $config['institution_url'] }}" target="_blank" rel="noopener noreferrer" class="nav-link nav-link-institution" title="Visitar portal web oficial de {{ $config['application_name'] ?? 'la institución' }}">
+                            <span class="material-symbols-outlined" style="font-size:18px;">language</span>
+                            <span>Portal Web</span>
+                            <span class="material-symbols-outlined" style="font-size:14px;opacity:0.75;">open_in_new</span>
+                        </a>
+                    @endif
 
                     @if($authUser)
                         @php
