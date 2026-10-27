@@ -6,20 +6,57 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithDrawings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, WithColumnWidths, WithDrawings
 {
     protected array $users;
     protected string $type;
+    protected ?string $logoPath;
+    protected string $institutionName;
 
-    public function __construct(array $users, string $type = 'student')
-    {
+    public function __construct(
+        array $users,
+        string $type = 'student',
+        ?string $logoPath = null,
+        string $institutionName = 'Bolsa Laboral Institucional'
+    ) {
         $this->users = $users;
         $this->type = $type;
+        $this->logoPath = $logoPath;
+        $this->institutionName = $institutionName;
+    }
+
+    protected function hasLogo(): bool
+    {
+        return !empty($this->logoPath) && is_file($this->logoPath) && is_readable($this->logoPath);
+    }
+
+    public function drawings(): array
+    {
+        if (!$this->hasLogo()) {
+            return [];
+        }
+
+        try {
+            $drawing = new Drawing();
+            $drawing->setName('Logo Institucional');
+            $drawing->setDescription($this->institutionName);
+            $drawing->setPath($this->logoPath);
+            $drawing->setHeight(48);
+            $drawing->setCoordinates('A1');
+            $drawing->setOffsetX(12);
+            $drawing->setOffsetY(6);
+
+            return [$drawing];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     public function title(): string
@@ -40,12 +77,15 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
         };
         $exportDate = date('d/m/Y H:i:s');
         $totalCount = count($this->users);
+        $instUpper = mb_strtoupper($this->institutionName);
+        $titleText = "{$instUpper} — REPORTE DE BOLSA LABORAL ({$roleLabel})";
+        $subtitleText = "Institución: {$this->institutionName} | Fecha de emisión: {$exportDate} | Total de registros evaluados: {$totalCount}";
 
         $rows = [
             // Row 1: Main Title
-            ["REPORTE INSTITUCIONAL DE BOLSA LABORAL - {$roleLabel}"],
+            $this->hasLogo() ? ['', '', $titleText] : [$titleText],
             // Row 2: Subtitle / Metadata
-            ["Fecha de emisión: {$exportDate} | Total de registros evaluados: {$totalCount}"],
+            $this->hasLogo() ? ['', '', $subtitleText] : [$subtitleText],
             // Row 3: Table Headers
             [
                 'N°',
@@ -130,13 +170,19 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
         $totalDataRows = count($this->users);
         $highestRow = max($totalDataRows + 3, 4);
 
-        // Merge title and subtitle
-        $sheet->mergeCells('A1:K1');
-        $sheet->mergeCells('A2:K2');
+        // Merge title, subtitle, and logo box if present
+        if ($this->hasLogo()) {
+            $sheet->mergeCells('A1:B2');
+            $sheet->mergeCells('C1:K1');
+            $sheet->mergeCells('C2:K2');
+        } else {
+            $sheet->mergeCells('A1:K1');
+            $sheet->mergeCells('A2:K2');
+        }
 
         // Row Heights
-        $sheet->getRowDimension(1)->setRowHeight(34);
-        $sheet->getRowDimension(2)->setRowHeight(22);
+        $sheet->getRowDimension(1)->setRowHeight(36);
+        $sheet->getRowDimension(2)->setRowHeight(24);
         $sheet->getRowDimension(3)->setRowHeight(28);
 
         // Freeze pane at Row 4 (keeps headers sticky)
@@ -173,15 +219,18 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
         // AutoFilter on Header Row 3
         $sheet->setAutoFilter("A3:K{$highestRow}");
 
-        return [
+        $titleRange = $this->hasLogo() ? 'C1:K1' : 'A1:K1';
+        $subtitleRange = $this->hasLogo() ? 'C2:K2' : 'A2:K2';
+
+        $styles = [
             // Row 1: Institutional Header
-            1 => [
-                'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],
+            $titleRange => [
+                'font' => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '002741']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
             ],
             // Row 2: Metadata / Subtitle
-            2 => [
+            $subtitleRange => [
                 'font' => ['italic' => true, 'size' => 10, 'color' => ['rgb' => '4B5563']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
@@ -193,6 +242,21 @@ class BolsaLaboralSummarySheet implements FromArray, WithTitle, WithStyles, With
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
             ],
         ];
+
+        if ($this->hasLogo()) {
+            $styles['A1:B2'] = [
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFFF']],
+                'borders' => [
+                    'outline' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['rgb' => 'CBD5E1'],
+                    ],
+                ],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ];
+        }
+
+        return $styles;
     }
 
     public function columnWidths(): array

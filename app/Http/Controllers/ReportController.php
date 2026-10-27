@@ -177,6 +177,35 @@ class ReportController extends Controller
     }
 
     /**
+     * Resolve the configured institution logo path on disk.
+     */
+    public static function resolveInstitutionLogoPath(array $config): ?string
+    {
+        $configuredLogo = $config['logo'] ?? null;
+
+        if (!empty($configuredLogo)) {
+            $relativePath = parse_url($configuredLogo, PHP_URL_PATH) ?: $configuredLogo;
+            $relativePath = ltrim($relativePath, '/\\');
+
+            $candidates = array_filter([
+                public_path($relativePath),
+                base_path('public/' . $relativePath),
+                !empty($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . DIRECTORY_SEPARATOR . $relativePath : null,
+                storage_path('app/public/' . preg_replace('#^storage/#', '', $relativePath)),
+            ]);
+
+            foreach ($candidates as $candidate) {
+                if (is_file($candidate) && is_readable($candidate)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        $fallback = public_path('assets/logo.png');
+        return (is_file($fallback) && is_readable($fallback)) ? $fallback : null;
+    }
+
+    /**
      * Export Reports to Excel (.xlsx)
      */
     public function exportExcel(Request $request)
@@ -188,6 +217,10 @@ class ReportController extends Controller
             $users = $query->latest('id')->get();
             $formattedUsers = $this->formatUserData($users)->toArray();
 
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+            $institutionName = $config['application_name'] ?? $config['institution_name'] ?? 'Bolsa Laboral Institucional';
+            $logoPath = $this->resolveInstitutionLogoPath($config);
+
             $dateStr = date('Y-m-d_His');
             $prefix = match($type) {
                 'graduate' => 'reporte_egresados_bolsa_laboral',
@@ -196,7 +229,10 @@ class ReportController extends Controller
             };
             $fileName = "{$prefix}_{$dateStr}.xlsx";
 
-            return Excel::download(new BolsaLaboralReportExport($formattedUsers, $type), $fileName);
+            return Excel::download(
+                new BolsaLaboralReportExport($formattedUsers, $type, $logoPath, $institutionName),
+                $fileName
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -224,7 +260,7 @@ class ReportController extends Controller
             };
 
             $config = DB::table('system_configuration')->pluck('value', 'key')->all();
-            $institutionName = $config['institution_name'] ?? 'Bolsa Laboral Institucional';
+            $institutionName = $config['application_name'] ?? $config['institution_name'] ?? 'Bolsa Laboral Institucional';
 
             $programName = 'Todos los programas';
             if ($request->filled('program_id')) {
@@ -242,9 +278,10 @@ class ReportController extends Controller
             };
 
             $logoBase64 = null;
-            $logoPath = public_path('assets/logo.png');
-            if (file_exists($logoPath)) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            $logoPath = $this->resolveInstitutionLogoPath($config);
+            if ($logoPath && file_exists($logoPath)) {
+                $mime = @mime_content_type($logoPath) ?: 'image/png';
+                $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoPath));
             }
 
             $data = [

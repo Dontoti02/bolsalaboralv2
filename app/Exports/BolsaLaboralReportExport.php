@@ -8,11 +8,19 @@ class BolsaLaboralReportExport implements WithMultipleSheets
 {
     protected array $users;
     protected string $type;
+    protected ?string $logoPath;
+    protected string $institutionName;
 
-    public function __construct(array $users, string $type = 'student')
-    {
+    public function __construct(
+        array $users,
+        string $type = 'student',
+        ?string $logoPath = null,
+        string $institutionName = 'Bolsa Laboral Institucional'
+    ) {
         $this->users = $users;
         $this->type = $type;
+        $this->logoPath = $logoPath;
+        $this->institutionName = $institutionName;
     }
 
     /**
@@ -21,8 +29,8 @@ class BolsaLaboralReportExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new BolsaLaboralSummarySheet($this->users, $this->type),
-            new BolsaLaboralApplicationsSheet($this->users, $this->type),
+            new BolsaLaboralSummarySheet($this->users, $this->type, $this->logoPath, $this->institutionName),
+            new BolsaLaboralApplicationsSheet($this->users, $this->type, $this->logoPath, $this->institutionName),
         ];
     }
 }

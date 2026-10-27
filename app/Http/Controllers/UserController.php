@@ -1649,7 +1649,14 @@ class UserController extends Controller
                 'recentCompanies' => $recentCompanies
             ];
 
-            return Excel::download(new \App\Exports\AdminDashboardExport($data), 'resumen-admin-' . date('Y-m-d') . '.xlsx');
+            $config = DB::table('system_configuration')->pluck('value', 'key')->all();
+            $institutionName = $config['application_name'] ?? $config['institution_name'] ?? 'Bolsa Laboral Institucional';
+            $logoPath = ReportController::resolveInstitutionLogoPath($config);
+
+            return Excel::download(
+                new \App\Exports\AdminDashboardExport($data, $logoPath, $institutionName),
+                'resumen-admin-' . date('Y-m-d') . '.xlsx'
+            );
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al generar Excel: ' . $e->getMessage());
         }
