@@ -1244,21 +1244,25 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'ruc' => 'required|string|size:11',
+            'email' => 'required|email|unique:user,email',
+            'ruc' => ['required', 'string', 'regex:/^\d{11}$/', 'unique:job_opportunity_company,ruc'],
             'phone' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'mailbox' => 'nullable|email|max:255',
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'password' => 'nullable|string|min:6',
             'logo' => 'nullable|image|max:2048',
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'email.required' => 'El email es obligatorio.',
+            'email.unique' => 'Este correo electrónico ya está registrado por otro usuario.',
             'ruc.required' => 'El RUC es obligatorio.',
-            'ruc.size' => 'El RUC debe tener exactamente 11 dígitos.',
+            'ruc.regex' => 'El RUC debe tener exactamente 11 dígitos numéricos.',
+            'ruc.unique' => 'Este RUC ya está registrado para otra empresa.',
             'phone.required' => 'El teléfono es obligatorio.',
             'address.required' => 'La dirección es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         if ($validator->fails()) {
@@ -1271,58 +1275,13 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            // Find user if user_id is provided, or by email
-            $user = null;
-            if ($request->filled('user_id')) {
-                $user = User::find($request->user_id);
-            }
-            if (!$user) {
-                $user = User::where('email', $request->email)->first();
-            }
-
-            // Find if a company with this RUC already exists
-            $company = Company::where('ruc', $request->ruc)->first();
-
-            // Validate that we are not trying to hijack another user's email/RUC
-            if ($user && $user->rol_id != 4) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Este correo electrónico ya está registrado por un usuario con otro rol.'
-                ], 422);
-            }
-
-            if ($company) {
-                // If company exists, make sure it is linked to the correct user (if any)
-                $linkedUser = User::where('company_id', $company->id)->first();
-                if ($linkedUser && $linkedUser->email !== $request->email) {
-                    if (!$user || $linkedUser->id !== $user->id) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Este RUC ya está registrado para otra empresa.'
-                        ], 422);
-                    }
-                }
-            }
-
-            if (!$company) {
-                // If company doesn't exist by RUC, check if user exists and has a company linked
-                if ($user && $user->company_id) {
-                    $company = Company::find($user->company_id);
-                }
-            }
-
-            // If we still don't have a company, create a new one
-            if (!$company) {
-                $company = new Company();
-                $company->ruc = $request->ruc;
-            }
-
-            // Update company fields
+            $company = new Company();
+            $company->ruc = $request->ruc;
             $company->name = $request->name;
             $company->email = $request->email;
             $company->phone = $request->phone;
             $company->address = $request->address;
-            $company->mailbox = $request->mailbox ?? $request->email;
+            $company->mailbox = $request->mailbox ?: $request->email;
             $company->website = $request->website;
             $company->description = $request->description;
             $company->is_verified = true;
@@ -1340,51 +1299,28 @@ class UserController extends Controller
 
             $company->save();
 
-            // Handle user account linking
-            if (!$user) {
-                // If company is already linked to some user, update that user's email
-                $linkedUser = User::where('company_id', $company->id)->first();
-                if ($linkedUser) {
-                    $user = $linkedUser;
-                    $user->email = $request->email;
-                    $user->save();
-                } else {
-                    // Create associated User account with a secure random password
-                    $user = new User();
-                    $user->company_id = $company->id;
-                    $user->rol_id = 4; // Empresa
-                    $user->email = $request->email;
-                    $user->password = Hash::make(Str::random(16));
-                    $user->is_active = true;
-                    $user->attempts = 0;
-                    $user->save();
+            // Crear cuenta de usuario de empresa (contraseña ingresada o RUC por defecto)
+            $rawPassword = $request->filled('password') ? $request->password : $request->ruc;
 
-                    // Insert into legacy/related role_user table
-                    DB::table('rol_user')->insert([
-                        'rol_id' => 4,
-                        'user_id' => $user->id
-                    ]);
-                }
-            } else {
-                // Link the user to the company
-                $user->company_id = $company->id;
-                $user->save();
-                
-                // If this user was not mapped to role 4 in rol_user table, map it
-                $hasRolUser = DB::table('rol_user')->where('user_id', $user->id)->where('rol_id', 4)->exists();
-                if (!$hasRolUser) {
-                    DB::table('rol_user')->insert([
-                        'rol_id' => 4,
-                        'user_id' => $user->id
-                    ]);
-                }
-            }
+            $user = new User();
+            $user->company_id = $company->id;
+            $user->rol_id = 4; // Empresa
+            $user->email = $request->email;
+            $user->password = Hash::make($rawPassword);
+            $user->is_active = true;
+            $user->attempts = 0;
+            $user->save();
+
+            DB::table('rol_user')->insert([
+                'rol_id' => 4,
+                'user_id' => $user->id
+            ]);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Empresa registrada y vinculada exitosamente.'
+                'message' => 'Empresa y usuario de acceso creados exitosamente.'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1413,22 +1349,24 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email,' . ($user ? $user->id : 'NULL'),
-            'ruc' => 'required|string|size:11|unique:job_opportunity_company,ruc,' . $id,
+            'ruc' => ['required', 'string', 'regex:/^\d{11}$/', 'unique:job_opportunity_company,ruc,' . $id],
             'phone' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'mailbox' => 'nullable|email|max:255',
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'password' => 'nullable|string|min:6',
             'logo' => 'nullable|image|max:2048',
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'email.required' => 'El email es obligatorio.',
             'email.unique' => 'Este correo electrónico ya está registrado.',
             'ruc.required' => 'El RUC es obligatorio.',
-            'ruc.size' => 'El RUC debe tener exactamente 11 dígitos.',
+            'ruc.regex' => 'El RUC debe tener exactamente 11 dígitos numéricos.',
             'ruc.unique' => 'Este RUC ya está registrado.',
             'phone.required' => 'El teléfono es obligatorio.',
             'address.required' => 'La dirección es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         if ($validator->fails()) {
@@ -1446,7 +1384,7 @@ class UserController extends Controller
             $company->email = $request->email;
             $company->phone = $request->phone;
             $company->address = $request->address;
-            $company->mailbox = $request->mailbox ?? $request->email;
+            $company->mailbox = $request->mailbox ?: $request->email;
             $company->website = $request->website;
             $company->description = $request->description;
 
@@ -1463,10 +1401,28 @@ class UserController extends Controller
 
             $company->save();
 
-            // Update associated User account if it exists
+            // Update or create associated User account
             if ($user) {
                 $user->email = $request->email;
+                if ($request->filled('password')) {
+                    $user->password = Hash::make($request->password);
+                }
                 $user->save();
+            } else {
+                $rawPassword = $request->filled('password') ? $request->password : $request->ruc;
+                $user = new User();
+                $user->company_id = $company->id;
+                $user->rol_id = 4;
+                $user->email = $request->email;
+                $user->password = Hash::make($rawPassword);
+                $user->is_active = true;
+                $user->attempts = 0;
+                $user->save();
+
+                DB::table('rol_user')->insert([
+                    'rol_id' => 4,
+                    'user_id' => $user->id
+                ]);
             }
 
             DB::commit();

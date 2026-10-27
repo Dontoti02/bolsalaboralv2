@@ -2183,30 +2183,8 @@
                     <input type="hidden" id="form-company-id" value="">
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                        <!-- Columna Izquierda: Datos Básicos y Contacto -->
+                        <!-- Columna Izquierda: Datos Básicos y Cuenta de Usuario -->
                         <div class="space-y-md">
-                            <!-- Vincular Cuenta de Usuario de Empresa -->
-                            <div class="space-y-xs" id="container-comp-user-id">
-                                <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                    for="comp-user-id">Vincular Cuenta de Usuario de Empresa Existente
-                                    (Opcional)</label>
-                                <select id="comp-user-id" name="user_id" onchange="handleSelectCompanyUser(this)"
-                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface">
-                                    <option value="">-- Crear nueva cuenta de usuario --</option>
-                                    @foreach ($users->where('rol_id', 4) as $companyUser)
-                                        @php
-                                            $companyUserName = $companyUser->company->name ?? 'Usuario Empresa';
-                                        @endphp
-                                        <option value="{{ $companyUser->id }}" data-email="{{ $companyUser->email }}"
-                                            data-name="{{ $companyUserName }}"
-                                            data-ruc="{{ $companyUser->company->ruc ?? '' }}"
-                                            data-phone="{{ $companyUser->company->phone ?? '' }}">
-                                            {{ $companyUser->email }} ({{ $companyUserName }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
                             <!-- Nombre de la Empresa -->
                             <div class="space-y-xs">
                                 <label class="font-label-sm text-label-sm text-on-surface-variant block"
@@ -2229,12 +2207,23 @@
                                 </div>
                                 <div class="space-y-xs">
                                     <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                        for="comp-email">Email corporativo / Usuario</label>
+                                        for="comp-email">Email corporativo / Usuario de acceso</label>
                                     <input
                                         class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
                                         id="comp-email" name="email" placeholder="Ej. contacto@techcorp.com"
                                         type="email" required />
                                 </div>
+                            </div>
+
+                            <!-- Contraseña de Usuario Empresa -->
+                            <div class="space-y-xs">
+                                <label id="comp-password-label" class="font-label-sm text-label-sm text-on-surface-variant block"
+                                    for="comp-password">Contraseña de Usuario Empresa (Opcional)</label>
+                                <input
+                                    class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                    id="comp-password" name="password" placeholder="Si se deja vacío, la contraseña inicial será el RUC"
+                                    type="password" minlength="6" autocomplete="new-password" />
+                                <p id="comp-password-help" class="text-[11px] text-on-surface-variant">Se creará automáticamente el usuario con rol Empresa usando el correo o RUC para iniciar sesión.</p>
                             </div>
 
                             <!-- Teléfono y Dirección -->
@@ -7403,20 +7392,24 @@
             document.getElementById('comp-website').value = company.website || '';
             document.getElementById('comp-description').value = company.description || '';
 
+            const passwordInput = document.getElementById('comp-password');
+            const passwordLabel = document.getElementById('comp-password-label');
+            const passwordHelp = document.getElementById('comp-password-help');
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.placeholder = 'Dejar vacío para mantener la contraseña actual';
+            }
+            if (passwordLabel) {
+                passwordLabel.textContent = 'Nueva Contraseña de Usuario Empresa (Opcional)';
+            }
+            if (passwordHelp) {
+                passwordHelp.textContent = 'Ingrese una contraseña solo si desea cambiar la clave de acceso del usuario empresa.';
+            }
+
             if (company.logo) {
                 document.getElementById('comp-logo-preview').src = company.logo;
             } else {
                 document.getElementById('comp-logo-preview').src = 'https://placehold.co/100x100?text=Logo';
-            }
-
-            // Hide user linkage field during edit
-            const userIdContainer = document.getElementById('container-comp-user-id');
-            if (userIdContainer) userIdContainer.classList.add('hidden');
-
-            const emailInput = document.getElementById('comp-email');
-            if (emailInput) {
-                emailInput.readOnly = false;
-                emailInput.classList.remove('bg-surface-container-low', 'cursor-not-allowed');
             }
 
             // Change Form Visual titles & button
@@ -7433,57 +7426,23 @@
             if (form) form.reset();
             document.getElementById('form-company-id').value = '';
 
-            const userIdContainer = document.getElementById('container-comp-user-id');
-            if (userIdContainer) userIdContainer.classList.remove('hidden');
-
-            const emailInput = document.getElementById('comp-email');
-            if (emailInput) {
-                emailInput.readOnly = false;
-                emailInput.classList.remove('bg-surface-container-low', 'cursor-not-allowed');
+            const passwordInput = document.getElementById('comp-password');
+            const passwordLabel = document.getElementById('comp-password-label');
+            const passwordHelp = document.getElementById('comp-password-help');
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.placeholder = 'Si se deja vacío, la contraseña inicial será el RUC';
+            }
+            if (passwordLabel) {
+                passwordLabel.textContent = 'Contraseña de Usuario Empresa (Opcional)';
+            }
+            if (passwordHelp) {
+                passwordHelp.textContent = 'Se creará automáticamente el usuario con rol Empresa usando el correo o RUC para iniciar sesión.';
             }
 
             document.getElementById('comp-logo-preview').src = 'https://placehold.co/100x100?text=Logo';
             document.getElementById('companies-form-title').textContent = 'Registrar Empresa';
             document.getElementById('btn-save-company').textContent = 'Registrar Empresa';
-        }
-
-        // Auto-fills form fields when an existing user is selected
-        function handleSelectCompanyUser(select) {
-            const option = select.options[select.selectedIndex];
-            const emailInput = document.getElementById('comp-email');
-            const nameInput = document.getElementById('comp-name');
-            const rucInput = document.getElementById('comp-ruc');
-            const phoneInput = document.getElementById('comp-phone');
-
-            if (option && option.value) {
-                const email = option.getAttribute('data-email');
-                const name = option.getAttribute('data-name');
-                const ruc = option.getAttribute('data-ruc');
-                const phone = option.getAttribute('data-phone');
-
-                if (email) {
-                    emailInput.value = email;
-                    emailInput.readOnly = true;
-                    emailInput.classList.add('bg-surface-container-low', 'cursor-not-allowed');
-                }
-                if (name && name !== 'Usuario Empresa') {
-                    nameInput.value = name;
-                }
-                if (ruc) {
-                    rucInput.value = ruc;
-                }
-                if (phone) {
-                    phoneInput.value = phone;
-                }
-            } else {
-                emailInput.value = '';
-                emailInput.readOnly = false;
-                emailInput.classList.remove('bg-surface-container-low', 'cursor-not-allowed');
-
-                nameInput.value = '';
-                rucInput.value = '';
-                phoneInput.value = '';
-            }
         }
 
         // Submit Company Form (Creates or Updates)
@@ -7517,6 +7476,9 @@
 
                     if (data.success) {
                         showToast(data.message);
+                        if (typeof fetchFilteredUsers === 'function') {
+                            fetchFilteredUsers(1);
+                        }
                         switchTab('companies-manage');
                     } else {
                         showToast(data.message || 'Error al guardar empresa.', 'error');
