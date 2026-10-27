@@ -1489,10 +1489,20 @@
                                     <span class="material-symbols-outlined">bookmark</span>
                                     Ofertas guardadas ({{ count($studentSavedOfferIds ?? []) }})
                                 </a>
-                                @endif
                                 <button type="button" class="profile-dropdown-item" onclick="openPasswordModal();closeProfileMenu()">
                                     <span class="material-symbols-outlined">lock</span> Cambiar contraseña
                                 </button>
+                                @elseif($authUser->rol_id == 4)
+                                <a href="{{ route('company.dashboard') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">dashboard</span>
+                                    Ir a mi Panel de Empresa
+                                </a>
+                                @elseif($authUser->rol_id == 1)
+                                <a href="{{ route('admin.dashboard') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                                    Ir al Panel de Administración
+                                </a>
+                                @endif
                                 <div class="profile-dropdown-divider"></div>
                                 <form method="POST" action="{{ route('logout') }}" style="margin:0">
                                     @csrf
@@ -2071,6 +2081,8 @@ var currentSelectedOffer = null;
 var appliedOffers = new Set(@json($studentApplicationIds ?? []));
 var savedOffers = new Set(@json($studentSavedOfferIds ?? []));
 var isAuth = {{ $authUser ? 'true' : 'false' }};
+var authRoleId = {{ $authUser ? (int)$authUser->rol_id : 0 }};
+var isNonApplicantAuth = (authRoleId === 1 || authRoleId === 4);
 
 // Paletas aleatorias armoniosas para avatares
 var avatarPalettes = [
@@ -2293,9 +2305,11 @@ function renderCard(o) {
                 '<span class="card-type-badge ' + badgeClass + '">' + esc(typeBadge) + '</span>' +
                 externalBadgeHtml +
             '</div>' +
-            '<button type="button" class="btn-card-star ' + (isSaved ? 'active' : '') + '" onclick="handleStarClick(event, ' + o.id + ')" title="' + (isSaved ? 'Quitar de guardadas' : 'Guardar oportunidad') + '">' +
-                '<span class="material-symbols-outlined ' + (isSaved ? 'filled' : '') + '">' + (isSaved ? 'bookmark' : 'bookmark_border') + '</span>' +
-            '</button>' +
+            (!isNonApplicantAuth ? (
+                '<button type="button" class="btn-card-star ' + (isSaved ? 'active' : '') + '" onclick="handleStarClick(event, ' + o.id + ')" title="' + (isSaved ? 'Quitar de guardadas' : 'Guardar oportunidad') + '">' +
+                    '<span class="material-symbols-outlined ' + (isSaved ? 'filled' : '') + '">' + (isSaved ? 'bookmark' : 'bookmark_border') + '</span>' +
+                '</button>'
+            ) : '') +
         '</div>' +
         '<div class="card-body">' +
             '<div class="card-company-name">' + esc(name) + '</div>' +
@@ -2435,7 +2449,20 @@ function openOpportunityDetail(id) {
 
     // Botón postular estado
     var applyBtn = document.getElementById('m-btn-apply');
-    if (isExpired) {
+    var saveBtn = document.getElementById('m-btn-save');
+    if (saveBtn) {
+        saveBtn.style.display = isNonApplicantAuth ? 'none' : '';
+    }
+    if (isNonApplicantAuth) {
+        var panelUrl = (authRoleId === 4) ? '{{ route("company.dashboard") }}' : '{{ route("admin.dashboard") }}';
+        var roleName = (authRoleId === 4) ? 'Empresa' : 'Administración';
+        applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">dashboard</span> Modo Vista Previa — Volver a mi Panel de ' + roleName;
+        applyBtn.disabled = false;
+        applyBtn.style.background = 'var(--pri)';
+        applyBtn.style.cursor = 'pointer';
+        applyBtn.style.opacity = '1';
+        applyBtn.onclick = function() { window.location.href = panelUrl; };
+    } else if (isExpired) {
         applyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">block</span> Convocatoria finalizada';
         applyBtn.disabled = true;
         applyBtn.style.background = '#9ca3af';

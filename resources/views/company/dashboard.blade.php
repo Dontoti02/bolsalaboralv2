@@ -1405,6 +1405,153 @@
     </div>
 </div>
 
+<!-- ============================================================
+     MODAL DE VISTA PREVIA DE PUBLICACIÓN DE OFERTA (EMPRESA)
+============================================================ -->
+<div id="company-offer-preview-modal" onclick="if(event.target===this)closeCompanyOfferPreview()" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-surface border border-outline-variant rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+        <!-- Top Preview Header Bar -->
+        <div class="px-5 py-3.5 bg-primary text-on-primary flex items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider opacity-90">Modo Vista Previa — Cuenta Empresa</div>
+                    <div class="text-[11px] opacity-80 hidden sm:block">Así visualizan los postulantes tu convocatoria en la bolsa laboral</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span id="cop-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/20 text-white">Activa</span>
+                <button type="button" onclick="closeCompanyOfferPreview()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Cerrar vista previa">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Offer Body -->
+        <div class="p-5 sm:p-7 overflow-y-auto space-y-6 flex-1 bg-background">
+            <!-- Optional Promotional Banner -->
+            <div id="cop-banner-wrap" class="hidden rounded-2xl overflow-hidden border border-outline-variant shadow-xs max-h-56 bg-surface-container">
+                <img id="cop-banner-img" src="" alt="Banner de la oferta" class="w-full h-full object-cover max-h-56">
+            </div>
+
+            <!-- Main Offer Header Card -->
+            <div class="bg-surface rounded-2xl border border-outline-variant p-5 sm:p-6 shadow-xs space-y-5">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-primary/10 border border-outline-variant flex items-center justify-center overflow-hidden shrink-0 text-primary font-bold text-xl">
+                        @if($company->logo)
+                            <img src="{{ $company->logo }}" alt="{{ $company->name }}" class="w-full h-full object-cover">
+                        @else
+                            {{ strtoupper(substr($company->name ?? 'E', 0, 1)) }}
+                        @endif
+                    </div>
+                    <div class="flex-1 min-w-0 space-y-1.5">
+                        <div id="cop-badges-row" class="flex items-center flex-wrap gap-1.5"></div>
+                        <h3 id="cop-title" class="text-xl sm:text-2xl font-bold text-on-surface leading-tight break-words">—</h3>
+                        <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-on-surface-variant font-medium">
+                            <span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                                <span class="material-symbols-outlined text-[15px] text-primary">business</span>
+                                {{ $company->name }}
+                            </span>
+                            <span>•</span>
+                            <span id="cop-location" class="inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[15px]">location_on</span>
+                                <span>Perú</span>
+                            </span>
+                            <span>•</span>
+                            <span id="cop-pub-date" class="inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[15px]">calendar_today</span>
+                                <span>—</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Highlight Stats Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-surface-container-low border border-outline-variant/60">
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Remuneración</span>
+                        <span id="cop-salary" class="text-sm sm:text-base font-extrabold text-primary mt-0.5 block">—</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Modalidad / Jornada</span>
+                        <span id="cop-modality-schedule" class="text-xs sm:text-sm font-bold text-on-surface mt-0.5 block">—</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Vacantes / Postulantes</span>
+                        <span id="cop-vacancies-applicants" class="text-xs sm:text-sm font-bold text-on-surface mt-0.5 block">—</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Fecha límite</span>
+                        <span id="cop-deadline" class="text-xs sm:text-sm font-bold text-on-surface mt-0.5 block">—</span>
+                    </div>
+                </div>
+
+                <!-- External Offer Notice if applicable -->
+                <div id="cop-external-box" class="hidden p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="material-symbols-outlined text-purple-700 text-[20px] shrink-0">open_in_new</span>
+                        <div class="truncate">
+                            <strong class="block">Convocatoria con enlace externo</strong>
+                            <span id="cop-external-url-text" class="text-purple-700 truncate block"></span>
+                        </div>
+                    </div>
+                    <a id="cop-external-link" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-purple-700 text-white font-semibold hover:bg-purple-800 shrink-0">Probar enlace ↗</a>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-2 pt-1">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-on-surface flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[17px] text-primary">description</span>
+                        Descripción del puesto
+                    </h4>
+                    <div id="cop-description" class="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line bg-background/60 p-4 rounded-xl border border-outline-variant/40">—</div>
+                </div>
+
+                <!-- Requirements -->
+                <div id="cop-req-section" class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-on-surface flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[17px] text-primary">checklist</span>
+                        Requisitos y perfil buscado
+                    </h4>
+                    <div id="cop-requirements" class="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line bg-background/60 p-4 rounded-xl border border-outline-variant/40">—</div>
+                </div>
+
+                <!-- Benefits -->
+                <div id="cop-ben-section" class="space-y-2 hidden">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-on-surface flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[17px] text-primary">card_giftcard</span>
+                        Beneficios
+                    </h4>
+                    <div id="cop-benefits" class="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line bg-background/60 p-4 rounded-xl border border-outline-variant/40">—</div>
+                </div>
+
+                <!-- Simulated Applicant View Info Box -->
+                <div class="p-3.5 rounded-xl bg-primary/5 border border-primary/15 flex items-center gap-3 text-xs text-on-surface-variant">
+                    <span class="material-symbols-outlined text-primary text-[20px] shrink-0">info</span>
+                    <span>En la vista pública, los <strong>estudiantes y egresados</strong> verán habilitado el botón de postulación con su CV. Como empresa titular, puedes editar esta oferta o gestionar sus postulantes directamente desde aquí.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions for Company -->
+        <div class="px-5 py-3.5 bg-surface border-t border-outline-variant flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2">
+                <button type="button" id="cop-btn-edit" class="px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold hover:opacity-95 transition-all inline-flex items-center gap-1.5 shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                    <span>Editar Oferta</span>
+                </button>
+                <button type="button" id="cop-btn-applicants" class="px-4 py-2 rounded-xl bg-secondary-container text-on-secondary-container text-xs font-semibold hover:opacity-90 transition-all inline-flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">group</span>
+                    <span id="cop-btn-applicants-label">Ver Postulantes (0)</span>
+                </button>
+            </div>
+            <button type="button" onclick="closeCompanyOfferPreview()" class="px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-container-high text-xs font-semibold text-on-surface-variant transition-colors">
+                Cerrar vista previa
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     function switchTab(tabId) {
         // Find all tabs and panels
@@ -1754,6 +1901,7 @@
                     return;
                 }
                 const offers = data.offers || [];
+                window.companyLoadedOffers = offers;
                 if (!offers.length) {
                     tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-on-surface-variant">No hay ofertas publicadas aún.</td></tr>';
                     return;
@@ -1819,7 +1967,7 @@
                                 <button onclick="editCompanyOffer(${o.id})" title="Editar" class="p-1.5 rounded-lg hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
                                 <button onclick="deleteCompanyOffer(${o.id})" title="Eliminar" class="p-1.5 rounded-lg hover:bg-error-container text-error"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                                 <button onclick="toggleCompanyOfferState(${o.id})" title="${toggleLbl}" class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">${stateId === 2 ? 'pause' : 'play_arrow'}</span></button>
-                                <button onclick="window.open('/ofertas/${o.id}', '_blank')" title="Ver publicación de oferta" class="p-1.5 rounded-lg hover:bg-surface-container-high text-secondary"><span class="material-symbols-outlined text-[18px]">visibility</span></button>
+                                <button onclick="openCompanyOfferPreview(${o.id})" title="Vista previa de publicación" class="p-1.5 rounded-lg hover:bg-surface-container-high text-secondary"><span class="material-symbols-outlined text-[18px]">visibility</span></button>
                             </div>
                         </td>
                         <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${displayStateClr}">${displayStateLbl}</span></td>
@@ -1847,6 +1995,198 @@
                 console.error('Error al cargar ofertas:', err);
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center py-xl text-red-600">Error al cargar ofertas. Verifique su conexión e intente nuevamente.</td></tr>';
             });
+    }
+
+    function formatPreviewDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = String(dateStr).split('T')[0].split(' ')[0].split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return String(dateStr);
+    }
+
+    function openCompanyOfferPreview(id) {
+        const list = window.companyLoadedOffers || [];
+        const cached = list.find(item => Number(item.id) === Number(id));
+        if (cached) {
+            renderCompanyOfferPreviewModal(cached);
+            return;
+        }
+
+        fetch(`/company/offers/${id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.offer) {
+                    renderCompanyOfferPreviewModal(data.offer);
+                } else {
+                    showToast('No se pudo cargar la vista previa de la oferta.', 'error');
+                }
+            })
+            .catch(() => showToast('Error al cargar la vista previa.', 'error'));
+    }
+
+    function renderCompanyOfferPreviewModal(o) {
+        const modal = document.getElementById('company-offer-preview-modal');
+        if (!modal) return;
+
+        const now = new Date();
+        const stateId = Number(o.state_id || 1);
+        const stateLabels = { 1: 'Borrador', 2: 'Activa', 3: 'Finalizada', 4: 'Pausada', 5: 'Archivada' };
+        let isExpired = (stateId === 3);
+        if (!isExpired && o.deadline) {
+            const dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
+            const deadlineDate = dp.length === 3
+                ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
+                : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
+            if (deadlineDate < now) isExpired = true;
+        }
+
+        let isScheduled = false;
+        if (o.publication_date) {
+            const pp = String(o.publication_date).split('T')[0].split(' ')[0].split('-');
+            const pubDate = pp.length === 3
+                ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
+                : new Date(o.publication_date);
+            if (pubDate > now) isScheduled = true;
+        }
+
+        const statusBadge = document.getElementById('cop-status-badge');
+        if (statusBadge) {
+            if (isExpired) {
+                statusBadge.textContent = 'Convocatoria Finalizada';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-500 text-white';
+            } else if (isScheduled) {
+                statusBadge.textContent = 'Programada';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-500 text-white';
+            } else if (stateId === 2) {
+                statusBadge.textContent = 'Publicada / Activa';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500 text-white';
+            } else {
+                statusBadge.textContent = o.state?.name || stateLabels[stateId] || 'Borrador';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/20 text-white';
+            }
+        }
+
+        // Banner
+        const bannerWrap = document.getElementById('cop-banner-wrap');
+        const bannerImg = document.getElementById('cop-banner-img');
+        if (bannerWrap && bannerImg) {
+            if (o.banner_image) {
+                bannerImg.src = o.banner_image;
+                bannerWrap.classList.remove('hidden');
+            } else {
+                bannerImg.src = '';
+                bannerWrap.classList.add('hidden');
+            }
+        }
+
+        // Badges
+        const badgesRow = document.getElementById('cop-badges-row');
+        if (badgesRow) {
+            const pills = [];
+            if (o.contract_type?.name) {
+                pills.push(`<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary">${o.contract_type.name}</span>`);
+            }
+            if (o.category?.name) {
+                pills.push(`<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800">${o.category.name}</span>`);
+            }
+            if (o.modality?.name) {
+                pills.push(`<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container-high text-on-surface-variant">${o.modality.name}</span>`);
+            }
+            if (o.external_url) {
+                pills.push(`<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800">Convocatoria Externa</span>`);
+            }
+            badgesRow.innerHTML = pills.join('');
+        }
+
+        document.getElementById('cop-title').textContent = o.title || 'Sin título';
+        const locStr = [o.province, o.department || 'Perú'].filter(Boolean).join(', ');
+        document.getElementById('cop-location').innerHTML = `<span class="material-symbols-outlined text-[15px]">location_on</span><span>${locStr}</span>`;
+        const pubFormatted = formatPreviewDate(o.publication_date) || 'Reciente';
+        document.getElementById('cop-pub-date').innerHTML = `<span class="material-symbols-outlined text-[15px]">calendar_today</span><span>Publicación: ${pubFormatted}</span>`;
+
+        // Salary
+        const salaryEl = document.getElementById('cop-salary');
+        if (salaryEl) {
+            if (o.salary != null && !isNaN(Number(o.salary)) && Number(o.salary) > 0) {
+                const curr = o.salary_currency === 'DOLARES' ? '$ ' : 'S/ ';
+                const formatted = curr + Number(o.salary).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                salaryEl.textContent = o.hide_salary ? `${formatted} (Oculto al público)` : formatted;
+            } else {
+                salaryEl.textContent = 'A tratar';
+            }
+        }
+
+        document.getElementById('cop-modality-schedule').textContent =
+            `${o.modality?.name || 'Presencial'} • ${o.work_schedule?.name || 'Tiempo Completo'}`;
+
+        const vacs = Number(o.vacancies || 1);
+        const apps = Number(o.applicants_count ?? 0);
+        document.getElementById('cop-vacancies-applicants').textContent =
+            `${vacs} ${vacs === 1 ? 'vacante' : 'vacantes'} • ${apps} ${apps === 1 ? 'postulante' : 'postulantes'}`;
+
+        document.getElementById('cop-deadline').textContent =
+            formatPreviewDate(o.deadline) || 'Convocatoria abierta';
+
+        // External box
+        const extBox = document.getElementById('cop-external-box');
+        if (extBox) {
+            if (o.external_url) {
+                extBox.classList.remove('hidden');
+                document.getElementById('cop-external-url-text').textContent = o.external_url;
+                document.getElementById('cop-external-link').href = o.external_url;
+            } else {
+                extBox.classList.add('hidden');
+            }
+        }
+
+        // Content blocks
+        document.getElementById('cop-description').textContent = o.description || 'Sin descripción registrada.';
+        document.getElementById('cop-requirements').textContent = o.requirements || 'No especificados.';
+
+        const benSec = document.getElementById('cop-ben-section');
+        const benEl = document.getElementById('cop-benefits');
+        if (o.benefits && String(o.benefits).trim() !== '') {
+            benEl.textContent = o.benefits;
+            benSec.classList.remove('hidden');
+        } else {
+            benSec.classList.add('hidden');
+        }
+
+        // Footer buttons
+        const editBtn = document.getElementById('cop-btn-edit');
+        if (editBtn) {
+            editBtn.onclick = function() {
+                closeCompanyOfferPreview();
+                editCompanyOffer(o.id);
+            };
+        }
+
+        const appBtn = document.getElementById('cop-btn-applicants');
+        const appBtnLbl = document.getElementById('cop-btn-applicants-label');
+        if (appBtnLbl) {
+            appBtnLbl.textContent = `Ver Postulantes (${apps})`;
+        }
+        if (appBtn) {
+            appBtn.onclick = function() {
+                closeCompanyOfferPreview();
+                filterApplicantsByOffer(o.id, o.title || '');
+            };
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCompanyOfferPreview() {
+        const modal = document.getElementById('company-offer-preview-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        document.body.style.overflow = '';
     }
 
     function showCreateOfferForm() {

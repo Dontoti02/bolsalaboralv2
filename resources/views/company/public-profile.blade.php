@@ -986,7 +986,7 @@
                                         <span class="material-symbols-outlined" style="font-size:16px;">send</span>
                                         <span>Postularme</span>
                                     </button>
-                                @else
+                                @elseif(!$authUser)
                                     <a href="{{ route('login') }}?redirect={{ urlencode('/ofertas/' . $off->id) }}" class="btn-apply-direct">
                                         <span class="material-symbols-outlined" style="font-size:16px;">login</span>
                                         <span>Postularme</span>

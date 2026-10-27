@@ -1210,11 +1210,21 @@
                                     <span class="material-symbols-outlined">bookmark</span>
                                     Ofertas guardadas ({{ count($studentSavedOfferIds ?? []) }})
                                 </a>
-                                @endif
                                 <button type="button" class="profile-dropdown-item" onclick="openPasswordModal();closeProfileMenu()">
                                     <span class="material-symbols-outlined">lock</span>
                                     Cambiar contraseña
                                 </button>
+                                @elseif($authUser->rol_id == 4)
+                                <a href="{{ route('company.dashboard') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">dashboard</span>
+                                    Ir a mi Panel de Empresa
+                                </a>
+                                @elseif($authUser->rol_id == 1)
+                                <a href="{{ route('admin.dashboard') }}" class="profile-dropdown-item">
+                                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                                    Ir al Panel de Administración
+                                </a>
+                                @endif
                                 <div class="profile-dropdown-divider"></div>
                                 <form method="POST" action="{{ route('logout') }}" style="margin:0">
                                     @csrf
@@ -1445,55 +1455,72 @@
 
             {{-- ── RIGHT: STICKY APPLICATION SIDEBAR ── --}}
             <aside class="offer-sidebar-card">
-                
-                @if($isOfferExpired)
-                    <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
-                        <span class="material-symbols-outlined" style="font-size:32px;color:#dc2626;display:block;margin:0 auto 6px;">event_busy</span>
-                        <div style="font-size:15px;font-weight:800;color:#991b1b;">Convocatoria Finalizada</div>
-                        <div style="font-size:12.5px;color:#b91c1c;margin-top:4px;line-height:1.4;">Esta oferta laboral ya cumplió su fecha límite de postulación y no recibe nuevas solicitudes.</div>
-                    </div>
-                    <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
-                        <span class="material-symbols-outlined">block</span>
-                        <span>Convocatoria finalizada</span>
-                    </button>
-                @elseif($isOfferScheduled)
-                    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
-                        <span class="material-symbols-outlined" style="font-size:32px;color:#d97706;display:block;margin:0 auto 6px;">schedule</span>
-                        <div style="font-size:15px;font-weight:800;color:#92400e;">Oferta Programada</div>
-                        <div style="font-size:12.5px;color:#b45309;margin-top:4px;line-height:1.4;">La convocatoria abrirá el {{ $offer->publication_date ? $offer->publication_date->format('d/m/Y') : '' }}.</div>
-                    </div>
-                    <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
-                        <span class="material-symbols-outlined">schedule</span>
-                        <span>Convocatoria programada</span>
-                    </button>
-                @elseif($isOfferExternal)
-                    <a href="{{ $offer->external_url }}" target="_blank" rel="noopener noreferrer" class="btn-apply-main" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);box-shadow:0 8px 24px -4px rgba(124, 58, 237, 0.4);">
-                        <span class="material-symbols-outlined" style="font-size:20px;">open_in_new</span>
-                        <span>Postular en sitio externo ↗</span>
-                    </a>
-                    <div style="font-size:12px;color:#6b7280;text-align:center;margin-top:8px;line-height:1.4;">
-                        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;color:#7c3aed;">info</span>
-                        Esta vacante se gestiona fuera de la bolsa laboral.
-                    </div>
-                @elseif($hasApplied)
-                    <div class="applied-status-banner">
-                        <span class="material-symbols-outlined" style="font-size:28px;">check_circle</span>
-                        <div>
-                            <div class="applied-status-title">¡Ya has postulado!</div>
-                            <div class="applied-status-sub">Tu postulación está siendo evaluada por la empresa.</div>
+                @if($authUser && in_array((int)$authUser->rol_id, [1, 4]))
+                    <div style="background:var(--pri-tint);border:1.5px solid var(--pri-tint-border);border-radius:16px;padding:18px;text-align:center;">
+                        <div style="width:44px;height:44px;border-radius:12px;background:var(--pri);color:#ffffff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+                            <span class="material-symbols-outlined" style="font-size:22px;">visibility</span>
+                        </div>
+                        <div style="font-size:14.5px;font-weight:800;color:#111827;">
+                            Modo Vista Previa ({{ (int)$authUser->rol_id === 4 ? 'Empresa' : 'Administrador' }})
+                        </div>
+                        <div style="font-size:12.5px;color:#4b5563;margin-top:6px;line-height:1.45;">
+                            Estás visualizando esta publicación como {{ (int)$authUser->rol_id === 4 ? 'empresa empleadora' : 'administrador' }}. Las opciones de postulación están habilitadas únicamente para cuentas de estudiantes y egresados.
                         </div>
                     </div>
+                    <a href="{{ (int)$authUser->rol_id === 4 ? route('company.dashboard') . '?tab=offers' : route('admin.dashboard') }}" class="btn-apply-main" style="text-decoration:none;">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Volver a mi Panel de {{ (int)$authUser->rol_id === 4 ? 'Empresa' : 'Administración' }}</span>
+                    </a>
                 @else
-                    <button type="button" class="btn-apply-main" onclick="openApplyFlow()">
-                        <span class="material-symbols-outlined">send</span>
-                        <span>Postularme ahora</span>
+                    @if($isOfferExpired)
+                        <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
+                            <span class="material-symbols-outlined" style="font-size:32px;color:#dc2626;display:block;margin:0 auto 6px;">event_busy</span>
+                            <div style="font-size:15px;font-weight:800;color:#991b1b;">Convocatoria Finalizada</div>
+                            <div style="font-size:12.5px;color:#b91c1c;margin-top:4px;line-height:1.4;">Esta oferta laboral ya cumplió su fecha límite de postulación y no recibe nuevas solicitudes.</div>
+                        </div>
+                        <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
+                            <span class="material-symbols-outlined">block</span>
+                            <span>Convocatoria finalizada</span>
+                        </button>
+                    @elseif($isOfferScheduled)
+                        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
+                            <span class="material-symbols-outlined" style="font-size:32px;color:#d97706;display:block;margin:0 auto 6px;">schedule</span>
+                            <div style="font-size:15px;font-weight:800;color:#92400e;">Oferta Programada</div>
+                            <div style="font-size:12.5px;color:#b45309;margin-top:4px;line-height:1.4;">La convocatoria abrirá el {{ $offer->publication_date ? $offer->publication_date->format('d/m/Y') : '' }}.</div>
+                        </div>
+                        <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
+                            <span class="material-symbols-outlined">schedule</span>
+                            <span>Convocatoria programada</span>
+                        </button>
+                    @elseif($isOfferExternal)
+                        <a href="{{ $offer->external_url }}" target="_blank" rel="noopener noreferrer" class="btn-apply-main" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);box-shadow:0 8px 24px -4px rgba(124, 58, 237, 0.4);">
+                            <span class="material-symbols-outlined" style="font-size:20px;">open_in_new</span>
+                            <span>Postular en sitio externo ↗</span>
+                        </a>
+                        <div style="font-size:12px;color:#6b7280;text-align:center;margin-top:8px;line-height:1.4;">
+                            <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;color:#7c3aed;">info</span>
+                            Esta vacante se gestiona fuera de la bolsa laboral.
+                        </div>
+                    @elseif($hasApplied)
+                        <div class="applied-status-banner">
+                            <span class="material-symbols-outlined" style="font-size:28px;">check_circle</span>
+                            <div>
+                                <div class="applied-status-title">¡Ya has postulado!</div>
+                                <div class="applied-status-sub">Tu postulación está siendo evaluada por la empresa.</div>
+                            </div>
+                        </div>
+                    @else
+                        <button type="button" class="btn-apply-main" onclick="openApplyFlow()">
+                            <span class="material-symbols-outlined">send</span>
+                            <span>Postularme ahora</span>
+                        </button>
+                    @endif
+
+                    <button type="button" id="btn-save-toggle" class="btn-save-offer {{ $isSaved ? 'active' : '' }}" onclick="handleSaveOffer({{ $offer->id }})">
+                        <span class="material-symbols-outlined" id="save-icon">{{ $isSaved ? 'bookmark' : 'bookmark_border' }}</span>
+                        <span id="save-label">{{ $isSaved ? 'Guardada en tus ofertas' : 'Guardar oferta' }}</span>
                     </button>
                 @endif
-
-                <button type="button" id="btn-save-toggle" class="btn-save-offer {{ $isSaved ? 'active' : '' }}" onclick="handleSaveOffer({{ $offer->id }})">
-                    <span class="material-symbols-outlined" id="save-icon">{{ $isSaved ? 'bookmark' : 'bookmark_border' }}</span>
-                    <span id="save-label">{{ $isSaved ? 'Guardada en tus ofertas' : 'Guardar oferta' }}</span>
-                </button>
 
                 {{-- Metadata List --}}
                 <div class="sidebar-meta-list">
@@ -1615,9 +1642,11 @@
                                         </div>
                                         <span class="card-type-badge {{ $simBadgeClass }}">{{ $simType }}</span>
                                     </div>
+                                    @if(!$authUser || in_array((int)$authUser->rol_id, [2, 3, 5]))
                                     <button type="button" class="btn-card-star {{ $isSimSaved ? 'active' : '' }}" onclick="event.stopPropagation();handleSaveOffer({{ $sim->id }}, this)" title="{{ $isSimSaved ? 'Quitar de guardadas' : 'Guardar oferta' }}">
                                         <span class="material-symbols-outlined {{ $isSimSaved ? 'filled' : '' }}">{{ $isSimSaved ? 'bookmark' : 'bookmark_border' }}</span>
                                     </button>
+                                    @endif
                                 </div>
                                 <div class="card-company-name">{{ $simCo }}</div>
                                 <h3 class="card-job-title">{{ $sim->title }}</h3>
