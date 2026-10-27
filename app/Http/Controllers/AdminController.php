@@ -154,8 +154,11 @@ class AdminController extends Controller
             // Get system configuration
             $config = DB::table('system_configuration')->pluck('value', 'key')->all();
 
+            // Active study programs for students and graduates
+            $studyPrograms = \App\Models\StudyProgram::where('is_active', true)->orderBy('name')->get();
+
             // Get all users for the users table with filters and pagination
-            $usersQuery = User::with(['person', 'company'])->latest();
+            $usersQuery = User::with(['person.studyProgram', 'company'])->latest();
 
             // Current filter values for preserving state in the view
             $currentSearch = request()->input('search', '');
@@ -218,7 +221,8 @@ class AdminController extends Controller
                 'currentStatus',
                 'monthlyStats',
                 'roleDistribution',
-                'topCompanies'
+                'topCompanies',
+                'studyPrograms'
             ));
 
         } catch (\Exception $e) {
@@ -239,6 +243,7 @@ class AdminController extends Controller
             $monthlyStats = collect();
             $roleDistribution = collect();
             $topCompanies = collect();
+            $studyPrograms = collect();
 
             return view('admin.dashboard', compact(
                 'totalUsers',
@@ -256,7 +261,8 @@ class AdminController extends Controller
                 'currentStatus',
                 'monthlyStats',
                 'roleDistribution',
-                'topCompanies'
+                'topCompanies',
+                'studyPrograms'
             ));
         }
     }
@@ -266,7 +272,7 @@ class AdminController extends Controller
      */
     public function filterUsers()
     {
-        $usersQuery = User::with(['person', 'company'])->latest();
+        $usersQuery = User::with(['person.studyProgram', 'company'])->latest();
 
         $search = request()->input('search', '');
         $rolId = request()->input('rol_id', '');
@@ -317,6 +323,10 @@ class AdminController extends Controller
                 'doc_number' => $user->person ? ($user->person->document_number ?? '') : ($user->company->ruc ?? ''),
                 'rol_id' => $user->rol_id,
                 'is_active' => (bool) $user->is_active,
+                'study_program' => ($user->person && in_array((int)$user->rol_id, [3, 5]))
+                    ? ($user->person->studyProgram->name ?? ($user->person->career ?: '-'))
+                    : '-',
+                'study_program_id' => $user->person ? $user->person->study_program_id : null,
             ];
         });
 

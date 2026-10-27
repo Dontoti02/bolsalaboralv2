@@ -36,10 +36,12 @@ class UserController extends Controller
             'role_id' => 'required|integer|in:1,2,3,4,5',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
+            'study_program_id' => 'nullable|exists:study_programs,id',
         ], [
             'email.unique' => 'El correo electrónico ya está registrado.',
             'role_id.in' => 'El rol seleccionado no es válido.',
             'doc_type.in' => 'El tipo de documento seleccionado no es válido.',
+            'study_program_id.exists' => 'El programa de estudios seleccionado no es válido.',
         ]);
 
         if ($validator->fails()) {
@@ -101,11 +103,22 @@ class UserController extends Controller
             } else {
                 // For Admin, Teacher, Student, Graduate roles (always enabled when created by admin)
                 $person = Person::where('document_number', $request->doc_number)->first();
+                $studyProgramId = in_array((int)$request->role_id, [3, 5], true) ? $request->study_program_id : null;
+                $career = null;
+                if ($studyProgramId) {
+                    $sp = \App\Models\StudyProgram::find($studyProgramId);
+                    $career = $sp?->name;
+                }
+
                 if ($person) {
                     $person->names = $request->names;
                     $person->document_type = $request->doc_type;
                     $person->email = $request->email;
                     if (!empty($phone)) $person->phone = $phone;
+                    if (in_array((int)$request->role_id, [3, 5], true)) {
+                        $person->study_program_id = $studyProgramId;
+                        if ($career) $person->career = $career;
+                    }
                     $person->save();
                 } else {
                     $person = Person::create([
@@ -114,6 +127,8 @@ class UserController extends Controller
                         'names' => $request->names,
                         'phone' => $phone ?? '',
                         'email' => $request->email,
+                        'study_program_id' => $studyProgramId,
+                        'career' => $career,
                     ]);
                 }
                 $user->person_id = $person->id;
@@ -129,7 +144,7 @@ class UserController extends Controller
 
             DB::commit();
 
-            $user->load(['person', 'company']);
+            $user->load(['person.studyProgram', 'company']);
 
             return response()->json([
                 'success' => true,
@@ -166,8 +181,10 @@ class UserController extends Controller
             'role_id' => 'required|integer|in:1,2,3,4,5',
             'doc_type' => 'required|string|in:DNI,RUC,CE',
             'doc_number' => 'required|string|max:20',
+            'study_program_id' => 'nullable|exists:study_programs,id',
         ], [
             'email.unique' => 'El correo electrónico ya está registrado por otro usuario.',
+            'study_program_id.exists' => 'El programa de estudios seleccionado no es válido.',
         ]);
 
         if ($validator->fails()) {
@@ -227,16 +244,28 @@ class UserController extends Controller
                 }
             } else {
                 // If it was already a person, update it. If not, create a new one.
+                $studyProgramId = in_array((int)$request->role_id, [3, 5], true) ? $request->study_program_id : null;
+                $career = null;
+                if ($studyProgramId) {
+                    $sp = \App\Models\StudyProgram::find($studyProgramId);
+                    $career = $sp?->name;
+                }
+
                 if ($user->person_id) {
                     $person = Person::find($user->person_id);
                     if ($person) {
-                        $person->update([
+                        $personData = [
                             'document_type' => $request->doc_type,
                             'document_number' => $request->doc_number,
                             'names' => $request->names,
                             'phone' => $phone ?? '',
                             'email' => $request->email,
-                        ]);
+                        ];
+                        if (in_array((int)$request->role_id, [3, 5], true)) {
+                            $personData['study_program_id'] = $studyProgramId;
+                            if ($career) $personData['career'] = $career;
+                        }
+                        $person->update($personData);
                     }
                 } else {
                     $person = Person::create([
@@ -245,6 +274,8 @@ class UserController extends Controller
                         'names' => $request->names,
                         'phone' => $phone ?? '',
                         'email' => $request->email,
+                        'study_program_id' => $studyProgramId,
+                        'career' => $career,
                     ]);
                     $user->person_id = $person->id;
                     $user->company_id = null; // detach company
@@ -269,7 +300,7 @@ class UserController extends Controller
 
             DB::commit();
 
-            $user->load(['person', 'company']);
+            $user->load(['person.studyProgram', 'company']);
 
             return response()->json([
                 'success' => true,

@@ -714,6 +714,7 @@
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Documento de Identidad
                                     </th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Rol</th>
+                                    <th class="p-4 text-label-sm font-label-sm font-semibold">Programa de Estudios</th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold">Estado</th>
                                     <th class="p-4 text-label-sm font-label-sm font-semibold text-right">Acciones</th>
                                 </tr>
@@ -782,6 +783,16 @@
                                                 {{ $roleName }}
                                             </span>
                                         </td>
+                                        <td class="p-4 text-on-surface-variant text-body-sm">
+                                            @if (in_array((int) $user->rol_id, [3, 5]) && $user->person)
+                                                <span class="font-medium text-on-surface text-[13px] inline-flex items-center gap-1.5">
+                                                    <span class="material-symbols-outlined text-[16px] text-primary">school</span>
+                                                    {{ $user->person->studyProgram->name ?? ($user->person->career ?: 'Sin asignar') }}
+                                                </span>
+                                            @else
+                                                <span class="text-outline text-xs">-</span>
+                                            @endif
+                                        </td>
                                         <td class="p-4">
                                             <!-- Switch enable/disable -->
                                             <label class="switch">
@@ -792,7 +803,7 @@
                                         </td>
                                         <td class="p-4 text-right space-x-1">
                                             <button
-                                                onclick="editUser({{ $user->id }}, '{{ addslashes($displayName) }}', '{{ $user->email }}', '{{ $user->person->phone ?? ($user->company->phone ?? '') }}', {{ $user->rol_id }}, '{{ $docType }}', '{{ $docNum }}')"
+                                                onclick="editUser({{ $user->id }}, '{{ addslashes($displayName) }}', '{{ $user->email }}', '{{ $user->person->phone ?? ($user->company->phone ?? '') }}', {{ $user->rol_id }}, '{{ $docType }}', '{{ $docNum }}', '{{ $user->person->study_program_id ?? '' }}')"
                                                 class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors"
                                                 title="Editar Usuario">
                                                 <span class="material-symbols-outlined text-[20px]">edit</span>
@@ -820,7 +831,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="p-10 text-center">
+                                        <td colspan="7" class="p-10 text-center">
                                             <div class="flex flex-col items-center justify-center space-y-4">
                                                 <div
                                                     class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-outline shadow-inner">
@@ -2071,6 +2082,11 @@
                         <p class="text-body-md text-on-surface-variant">Gestione y verifique las empresas registradas en el sistema.</p>
                     </div>
                     <div class="flex flex-wrap gap-3">
+                        <button onclick="resetCompanyForm(); switchTab('companies-register')"
+                            class="px-4 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md hover:opacity-95 flex items-center gap-2 shadow-sm transition-all">
+                            <span class="material-symbols-outlined text-[20px]">domain_add</span>
+                            Registrar Empresa
+                        </button>
                         <button id="btn-bulk-delete-companies" onclick="bulkDeleteCompanies()"
                             class="px-4 py-2.5 bg-error text-on-error rounded-xl text-label-md font-label-md hover:opacity-90 flex items-center gap-2 shadow-sm transition-all hidden">
                             <span class="material-symbols-outlined text-[20px]">delete_sweep</span>
@@ -3203,6 +3219,20 @@
                             class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
                             id="form-doc-number" placeholder="Ej. 48293041" type="text" required />
                     </div>
+
+                    <!-- Programa de Estudios (Solo para Estudiantes y Egresados) -->
+                    <div id="container-form-study-program" class="space-y-xs md:col-span-2 hidden">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant block"
+                            for="form-study-program">Programa de Estudios</label>
+                        <select
+                            class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
+                            id="form-study-program">
+                            <option value="">-- Seleccionar Programa de Estudios --</option>
+                            @foreach ($studyPrograms ?? [] as $sp)
+                                <option value="{{ $sp->id }}">{{ $sp->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Actions -->
@@ -3898,6 +3928,9 @@
         function openCreateUserModal() {
             document.getElementById('create-user-form').reset();
             document.getElementById('form-user-id').value = '';
+            const spSelect = document.getElementById('form-study-program');
+            if (spSelect) spSelect.value = '';
+            handleRoleChange(document.getElementById('form-role').value);
 
             const modal = document.getElementById('create-user-modal');
             modal.querySelector('h2').textContent = 'Creación de usuario';
@@ -3909,7 +3942,7 @@
         }
 
         // Open User Modal for Editing
-        function editUser(id, names, email, phone, roleId, docType, docNumber) {
+        function editUser(id, names, email, phone, roleId, docType, docNumber, studyProgramId = '') {
             document.getElementById('form-user-id').value = id;
             document.getElementById('form-names').value = names;
             document.getElementById('form-email').value = email;
@@ -3917,6 +3950,8 @@
             document.getElementById('form-role').value = roleId;
             document.getElementById('form-doc-type').value = docType;
             document.getElementById('form-doc-number').value = docNumber;
+            const spSelect = document.getElementById('form-study-program');
+            if (spSelect) spSelect.value = studyProgramId || '';
             handleRoleChange(roleId);
 
             const modal = document.getElementById('create-user-modal');
@@ -4173,6 +4208,14 @@
                     ${roleName}
                 </span>
             </td>
+            <td class="p-4 text-on-surface-variant text-body-sm">
+                ${(roleId == 3 || roleId == 5) && studyProgram && studyProgram !== '-' ? `
+                    <span class="font-medium text-on-surface text-[13px] inline-flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px] text-primary">school</span>
+                        ${studyProgram}
+                    </span>
+                ` : '<span class="text-outline text-xs">-</span>'}
+            </td>
             <td class="p-4">
                 <!-- Switch enable/disable -->
                 <label class="switch">
@@ -4181,7 +4224,7 @@
                 </label>
             </td>
             <td class="p-4 text-right space-x-1">
-                <button onclick="editUser(${id}, '${escName}', '${escEmail}', '${escPhone}', ${roleId}, '${escDocType}', '${escDocNum}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Editar Usuario">
+                <button onclick="editUser(${id}, '${escName}', '${escEmail}', '${escPhone}', ${roleId}, '${escDocType}', '${escDocNum}', '${studyProgramId || ''}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Editar Usuario">
                     <span class="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <button onclick="openChangePasswordModal(${id}, '${escName}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Cambiar Contraseña">
@@ -4201,7 +4244,7 @@
         }
 
         // Prepend new user row
-        function addNewUserToTable(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone) {
+        function addNewUserToTable(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram = '-', studyProgramId = '') {
             const body = document.getElementById('users-table-body');
 
             const existing = document.getElementById('user-row-' + id);
@@ -4212,19 +4255,19 @@
             const tr = document.createElement('tr');
             tr.id = 'user-row-' + id;
             tr.className = 'border-b border-outline-variant hover:bg-surface-container-lowest transition-colors' + (id == currentUserId ? ' bg-primary-fixed/10' : '');
-            tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
+            tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram, studyProgramId);
 
             body.appendChild(tr);
         }
 
         // Update user row in table
-        function updateUserRow(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone) {
+        function updateUserRow(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram = '-', studyProgramId = '') {
             const tr = document.getElementById('user-row-' + id);
             if (tr) {
                 tr.className = 'border-b border-outline-variant hover:bg-surface-container-lowest transition-colors' + (id == currentUserId ? ' bg-primary-fixed/10' : '');
-                tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
+                tr.innerHTML = renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram, studyProgramId);
             } else {
-                addNewUserToTable(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone);
+                addNewUserToTable(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram, studyProgramId);
             }
         }
 
@@ -4232,6 +4275,15 @@
         function handleRoleChange(roleId) {
             const docTypeSelect = document.getElementById('form-doc-type');
             const docNumberInput = document.getElementById('form-doc-number');
+            const studyProgramContainer = document.getElementById('container-form-study-program');
+
+            if (studyProgramContainer) {
+                if (roleId == 3 || roleId == 5) {
+                    studyProgramContainer.classList.remove('hidden');
+                } else {
+                    studyProgramContainer.classList.add('hidden');
+                }
+            }
             
             if (roleId == 4) {
                 docTypeSelect.value = 'RUC';
@@ -4262,6 +4314,9 @@
             const roleName = roleSelect.options[roleSelect.selectedIndex].text;
             const docType = document.getElementById('form-doc-type').value;
             const docNum = document.getElementById('form-doc-number').value;
+            const studyProgramSelect = document.getElementById('form-study-program');
+            const studyProgramId = (roleId == 3 || roleId == 5) && studyProgramSelect ? studyProgramSelect.value : null;
+            const studyProgramText = (roleId == 3 || roleId == 5) && studyProgramSelect && studyProgramSelect.selectedIndex > 0 ? studyProgramSelect.options[studyProgramSelect.selectedIndex].text : '-';
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -4281,18 +4336,21 @@
                     phone: phone,
                     role_id: roleId,
                     doc_type: docType,
-                    doc_number: docNum
+                    doc_number: docNum,
+                    study_program_id: studyProgramId
                 })
             })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         const user = data.user;
+                        const spName = user.person?.study_program?.name || user.person?.career || studyProgramText;
+                        const spId = user.person?.study_program_id || studyProgramId;
                         if (id) {
-                            updateUserRow(user.id, names, email, docType, docNum, roleId, roleName, user.is_active, phone);
+                            updateUserRow(user.id, names, email, docType, docNum, roleId, roleName, user.is_active, phone, spName, spId);
                             showToast(`¡Usuario "${names}" modificado con éxito!`);
                         } else {
-                            addNewUserToTable(user.id, names, email, docType, docNum, roleId, roleName, user.is_active, phone);
+                            addNewUserToTable(user.id, names, email, docType, docNum, roleId, roleName, user.is_active, phone, spName, spId);
                             showToast(`¡Usuario "${names}" agregado con éxito!`);
                         }
                         toggleCreateModal();
@@ -4387,7 +4445,7 @@
 
             const tbody = document.getElementById('users-table-body');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><div class="flex justify-center items-center gap-2 text-on-surface-variant"><span class="material-symbols-outlined animate-spin">progress_activity</span> Cargando...</div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center"><div class="flex justify-center items-center gap-2 text-on-surface-variant"><span class="material-symbols-outlined animate-spin">progress_activity</span> Cargando...</div></td></tr>';
             }
 
             fetch(`/admin/users/filter?${params.toString()}`, {
@@ -4400,7 +4458,7 @@
                 updateFilterUI(data.filters);
             })
             .catch(() => {
-                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500">Error al cargar usuarios.</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">Error al cargar usuarios.</td></tr>';
             });
         }
 
@@ -4411,7 +4469,7 @@
             if (users.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="p-10 text-center">
+                        <td colspan="7" class="p-10 text-center">
                             <div class="flex flex-col items-center justify-center space-y-4">
                                 <div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-outline shadow-inner">
                                     <span class="material-symbols-outlined text-4xl">group_off</span>
@@ -4470,6 +4528,14 @@
                     <td class="p-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-semibold ${roleBadge}">${roleName}</span>
                     </td>
+                    <td class="p-4 text-on-surface-variant text-body-sm">
+                        ${(user.rol_id == 3 || user.rol_id == 5) && user.study_program && user.study_program !== '-' ? `
+                            <span class="font-medium text-on-surface text-[13px] inline-flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-primary">school</span>
+                                ${user.study_program}
+                            </span>
+                        ` : '<span class="text-outline text-xs">-</span>'}
+                    </td>
                     <td class="p-4">
                         <label class="switch">
                             <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleUserStatus(${user.id}, '${escName}', this)">
@@ -4477,7 +4543,7 @@
                         </label>
                     </td>
                     <td class="p-4 text-right space-x-1">
-                        <button onclick="editUser(${user.id}, '${escName}', '${escEmail}', '${escPhone}', ${user.rol_id}, '${escDocType}', '${escDocNum}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Editar Usuario">
+                        <button onclick="editUser(${user.id}, '${escName}', '${escEmail}', '${escPhone}', ${user.rol_id}, '${escDocType}', '${escDocNum}', '${user.study_program_id || ''}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Editar Usuario">
                             <span class="material-symbols-outlined text-[20px]">edit</span>
                         </button>
                         <button onclick="openChangePasswordModal(${user.id}, '${escName}')" class="p-1.5 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Cambiar Contraseña">
