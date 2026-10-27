@@ -2254,19 +2254,26 @@ function renderCard(o) {
     // Cierre / Vencimiento
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
-    if (!isExpired && o.deadline) {
-        var dDeadline = new Date(o.deadline);
-        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
-        if (deadlineEnd < now) isExpired = true;
+    var deadlineDateObj = null;
+    if (o.deadline) {
+        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
+        if (dp.length === 3) {
+            deadlineDateObj = new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59);
+        } else {
+            var dFallback = new Date(o.deadline);
+            deadlineDateObj = new Date(dFallback.getFullYear(), dFallback.getMonth(), dFallback.getDate(), 23, 59, 59);
+        }
+        if (!isExpired && deadlineDateObj < now) {
+            isExpired = true;
+        }
     }
 
-    var closeStr = 'Convocatoria abierta';
+    var closeHtml = 'Convocatoria abierta';
     if (isExpired) {
-        closeStr = '<span style="background:#fee2e2;color:#b91c1c;padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;">Convocatoria Finalizada</span>';
-    } else if (o.deadline) {
-        var d = new Date(o.deadline);
+        closeHtml = '<span style="background:#fee2e2;color:#b91c1c;padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;">Convocatoria Finalizada</span>';
+    } else if (deadlineDateObj) {
         var months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'];
-        closeStr = 'Cierra ' + String(d.getDate()).padStart(2, '0') + ' ' + (months[d.getMonth()] || '');
+        closeHtml = esc('Cierra ' + String(deadlineDateObj.getDate()).padStart(2, '0') + ' ' + (months[deadlineDateObj.getMonth()] || ''));
     }
 
     var externalBadgeHtml = o.external_url ? '<span class="card-type-badge" style="background:#f3e8ff;color:#7e22ce;font-size:11px;margin-left:4px;">Externa ↗</span>' : '';
@@ -2301,7 +2308,7 @@ function renderCard(o) {
             '<div class="card-salary">' + esc(salaryStr) + ' <span class="card-salary-sub">/ mes</span></div>' +
         '</div>' +
         '<div class="card-footer">' +
-            '<span class="card-close-date">' + esc(closeStr) + '</span>' +
+            '<span class="card-close-date">' + closeHtml + '</span>' +
             '<a href="/ofertas/' + o.id + '" class="card-link-action" onclick="event.stopPropagation();">Ver oportunidad ↗</a>' +
         '</div>' +
     '</div>';
@@ -2389,8 +2396,10 @@ function openOpportunityDetail(id) {
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
     if (!isExpired && o.deadline) {
-        var dDeadline = new Date(o.deadline);
-        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
+        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
+        var deadlineEnd = dp.length === 3
+            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
+            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
         if (deadlineEnd < now) isExpired = true;
     }
 
@@ -2483,8 +2492,10 @@ function openPostularModal(offer) {
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
     if (!isExpired && o.deadline) {
-        var dDeadline = new Date(o.deadline);
-        var deadlineEnd = new Date(dDeadline.getFullYear(), dDeadline.getMonth(), dDeadline.getDate(), 23, 59, 59);
+        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
+        var deadlineEnd = dp.length === 3
+            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
+            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
         if (deadlineEnd < now) isExpired = true;
     }
     if (isExpired) {

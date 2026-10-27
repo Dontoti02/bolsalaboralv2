@@ -6041,13 +6041,19 @@
                 const now = new Date();
                 let isExpired = (offer.state && offer.state.key === 'finished') || (offer.state_id == 3);
                 if (!isExpired && offer.deadline) {
-                    const d = new Date(offer.deadline);
-                    const deadlineDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+                    const dp = String(offer.deadline).split('T')[0].split(' ')[0].split('-');
+                    const deadlineDate = dp.length === 3
+                        ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
+                        : new Date(new Date(offer.deadline).getFullYear(), new Date(offer.deadline).getMonth(), new Date(offer.deadline).getDate(), 23, 59, 59);
                     if (deadlineDate < now) isExpired = true;
                 }
                 let isScheduled = false;
                 if (offer.publication_date) {
-                    if (new Date(offer.publication_date) > now) isScheduled = true;
+                    const pp = String(offer.publication_date).split('T')[0].split(' ')[0].split('-');
+                    const pubDate = pp.length === 3
+                        ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
+                        : new Date(offer.publication_date);
+                    if (pubDate > now) isScheduled = true;
                 }
 
                 let stateClass = 'bg-surface-container-high text-on-surface-variant';

@@ -1781,16 +1781,20 @@
                     const now = new Date();
                     let isExpired = (stateId === 3);
                     if (!isExpired && o.deadline) {
-                        const d = new Date(o.deadline);
-                        // If it has no time or midnight, consider end of that day
-                        const deadlineDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+                        const dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
+                        const deadlineDate = dp.length === 3
+                            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
+                            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
                         if (deadlineDate < now) isExpired = true;
                     }
 
                     let isScheduled = false;
                     if (o.publication_date) {
-                        const p = new Date(o.publication_date);
-                        if (p > now) isScheduled = true;
+                        const pp = String(o.publication_date).split('T')[0].split(' ')[0].split('-');
+                        const pubDate = pp.length === 3
+                            ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
+                            : new Date(o.publication_date);
+                        if (pubDate > now) isScheduled = true;
                     }
 
                     let displayStateLbl = stateLbl;
