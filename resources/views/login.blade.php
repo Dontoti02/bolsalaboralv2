@@ -149,6 +149,15 @@
     <!-- Right Side: Login Form -->
     <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col justify-start items-center px-4 py-6 sm:px-8 sm:py-8 lg:px-12 bg-surface-container-lowest overflow-y-auto min-h-[100dvh] lg:h-screen auth-scroll-panel">
         <div class="w-full max-w-[420px] sm:max-w-[480px] my-auto auth-card-inner py-2 sm:py-4 transition-all duration-300">
+            <!-- Botón Volver a Pantalla Pública -->
+            <div class="mb-4 flex items-center justify-center lg:justify-start">
+                <a href="{{ route('landing') }}"
+                    class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-outline-variant bg-surface hover:bg-surface-container-low text-on-surface-variant hover:text-primary text-xs sm:text-sm font-semibold shadow-2xs transition-all group">
+                    <span class="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-0.5">arrow_back</span>
+                    <span>Volver a pantalla pública</span>
+                </a>
+            </div>
+
             <!-- Logo y Nombre Institucional -->
             <div class="mb-5 sm:mb-6 flex items-center justify-center lg:justify-start gap-3.5 sm:gap-4">
                 @if(!empty($config['logo']))
