@@ -17,7 +17,6 @@ Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])-
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-use App\Models\User;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobOpportunityController;
 

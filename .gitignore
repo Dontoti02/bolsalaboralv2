@@ -23,5 +23,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/.kilo
+/.superpowers
+/scratch
 scratch_html.html
-temp_script*.js
+temp_*
+_fix_*.php
