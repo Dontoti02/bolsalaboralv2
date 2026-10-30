@@ -4145,7 +4145,7 @@
         }
 
         // Helper to generate the row HTML
-        function renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone) {
+        function renderUserRowHTML(id, displayName, email, docType, docNum, roleId, roleName, isActive, phone, studyProgram = '-', studyProgramId = '') {
             let roleBadge = 'bg-surface-container text-on-surface-variant';
             if (roleId == 1) {
                 roleBadge = 'bg-primary-fixed text-primary';
@@ -4161,7 +4161,7 @@
 
             const escName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const escEmail = email.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const escPhone = phone.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const escPhone = (phone || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const escDocType = docType.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const escDocNum = docNum.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
@@ -4179,7 +4179,7 @@
             </td>
             <td class="p-4 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-label-md">
-                    ${displayName.charAt(0).toUpperCase()}
+                    ${(displayName || '?').charAt(0).toUpperCase()}
                 </div>
                 <div>
                     <span class="font-medium text-on-background block leading-tight">${displayName}</span>
@@ -4316,6 +4316,7 @@
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': token,
                     'X-Requested-With': 'XMLHttpRequest'
                 },
@@ -4329,12 +4330,19 @@
                     study_program_id: studyProgramId
                 })
             })
-                .then(res => res.json())
+                .then(async res => {
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok) {
+                        const errorMsg = (data && data.message) || (res.status === 422 ? 'Datos de formulario inválidos.' : 'Error del servidor al intentar guardar.');
+                        throw new Error(errorMsg);
+                    }
+                    return data;
+                })
                 .then(data => {
-                    if (data.success) {
+                    if (data && data.success) {
                         const user = data.user;
-                        const spName = user.person?.study_program?.name || user.person?.career || studyProgramText;
-                        const spId = user.person?.study_program_id || studyProgramId;
+                        const spName = user?.person?.study_program?.name || user?.person?.career || studyProgramText;
+                        const spId = user?.person?.study_program_id || studyProgramId;
                         if (id) {
                             updateUserRow(user.id, names, email, docType, docNum, roleId, roleName, user.is_active, phone, spName, spId);
                             showToast(`¡Usuario "${names}" modificado con éxito!`);
@@ -4345,11 +4353,12 @@
                         toggleCreateModal();
                         document.getElementById('create-user-form').reset();
                     } else {
-                        showToast(data.message || 'Error al guardar el usuario.', 'error');
+                        showToast((data && data.message) || 'Error al guardar el usuario.', 'error');
                     }
                 })
                 .catch(err => {
-                    showToast('Error de red al intentar guardar.', 'error');
+                    console.error('Error al guardar usuario:', err);
+                    showToast(err.message || 'Error de red al intentar guardar.', 'error');
                 });
         }
 
