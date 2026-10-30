@@ -132,16 +132,18 @@
 <body class="bg-background text-on-background min-h-[100dvh] font-body-md text-body-md antialiased overflow-y-auto lg:overflow-hidden">
 <div class="flex min-h-[100dvh] w-full">
     <!-- Left Side: Banner -->
-    <div class="hidden lg:flex w-1/2 relative bg-surface-container-highest">
+    <div class="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden select-none">
         <div class="absolute inset-0 z-0">
-            <img class="w-full h-full object-cover opacity-90 mix-blend-multiply" alt="Banner de inicio de sesión" src="{{ $config['banner'] ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuB0GCPqRfHk17qwRO9ArDGmQnjimcWlSydHNLZPPosOjB7wl4sfjABEYZ63bbQWTpKF4t1350ibna8LW9_jKpDw1CC6XjPNaMQh7RwNXNmK9pB3V0bwMduZ4yQwJj4ZALYfElGZw8SBckCVCr0WaQ-2xrscdj_70LknBDHoHJjI_fKaRlRO5N6DYbXwbA-0oCU7s55OUjx-oFtp_Fe8U-XH2gFdHEWIcHM3L2vcx0v6kaOlBR32mI5_XY47gMD-BkZB0drkFXcmCL6e' }}"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+            <img class="w-full h-full object-cover object-center" alt="Banner de inicio de sesión" src="{{ $config['banner'] ?? asset('assets/banner.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/banner.png') }}';"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
         </div>
-        <div class="relative z-10 flex flex-col justify-end p-2xl text-on-primary w-full h-full">
-            <div class="max-w-md">
-                <span class="material-symbols-outlined text-4xl mb-md">work</span>
-                <h2 class="font-headline-lg text-headline-lg mb-sm">Bolsa Laboral - {{ $config['application_name'] ?? 'Institucional' }}</h2>
-                <p class="font-body-lg text-body-lg opacity-90">Conectando el talento de nuestros estudiantes con las mejores oportunidades del mercado.</p>
+        <div class="relative z-10 flex flex-col justify-end p-8 sm:p-12 lg:p-14 text-white w-full h-full">
+            <div class="max-w-lg">
+                <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white mb-4 shadow-sm">
+                    <span class="material-symbols-outlined text-[28px]">work</span>
+                </div>
+                <h2 class="font-headline-lg text-headline-lg font-bold text-white mb-2 drop-shadow-sm">Bolsa Laboral - {{ $config['application_name'] ?? 'Institucional' }}</h2>
+                <p class="font-body-lg text-body-lg text-white/90 leading-relaxed drop-shadow-sm">Conectando el talento de nuestros estudiantes y egresados con las mejores oportunidades del mercado.</p>
             </div>
         </div>
     </div>

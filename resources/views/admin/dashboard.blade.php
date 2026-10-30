@@ -1361,14 +1361,14 @@
                                     </button>
                                     @endif
                                 </div>
-                                <div class="w-32 h-32 rounded-xl border border-outline-variant bg-white p-2 flex items-center justify-center overflow-hidden">
-                                    <img id="preview-banner" src="{{ $config['banner'] ?? '/assets/banner.png' }}"
-                                        class="max-w-full max-h-full object-cover" alt="Banner actual"
-                                        onerror="this.src='/assets/banner.png'">
+                                <div class="w-28 h-36 rounded-xl border border-outline-variant bg-surface-container-lowest p-1.5 flex items-center justify-center overflow-hidden shadow-2xs">
+                                    <img id="preview-banner" src="{{ $config['banner'] ?? asset('assets/banner.png') }}"
+                                        class="w-full h-full object-cover object-center rounded-lg" alt="Banner actual"
+                                        onerror="this.src='{{ asset('assets/banner.png') }}'">
                                 </div>
                                 <div class="space-y-1 w-full">
-                                    <p class="text-[11px] text-on-surface-variant font-medium">📐 Recomendado: <strong>1920 × 1080 px</strong></p>
-                                    <p class="text-[10px] text-on-surface-variant">JPG/PNG horizontal · máx. 2 MB</p>
+                                    <p class="text-[11px] text-on-surface-variant font-medium">📐 Recomendado: <strong>1080 × 1350 px</strong> (o 960 × 1080 px)</p>
+                                    <p class="text-[10px] text-on-surface-variant">JPG/PNG/WEBP vertical (formato 4:5 · media pantalla) · máx. 10 MB</p>
                                 </div>
                                 <label class="w-full px-4 py-2 border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed cursor-pointer transition-all flex items-center justify-center gap-1">
                                     <span class="material-symbols-outlined text-[16px]">upload</span>
