@@ -1582,7 +1582,7 @@
                     <div class="hero-arch-slides-container" id="hero-arch-slides">
                         @forelse($bannerOffers as $index => $bOffer)
                             <div class="hero-arch-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}">
-                                <img src="{{ asset($bOffer->banner_image) }}" alt="{{ $bOffer->title }}" class="hero-arch-img" onerror="this.onerror=null;this.src='{{ asset('assets/hero_professionals.jpg') }}';">
+                                <img src="{{ asset($bOffer->banner_image) }}" alt="{{ $bOffer->title }}" class="hero-arch-img" onerror="this.onerror=null;this.style.opacity='0';">
                                 <div class="hero-arch-overlay">
                                     <div class="hero-arch-question">
                                         ¿Listo para tu próximo empleo?
@@ -1610,9 +1610,23 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="hero-arch-slide active" data-slide="0">
-                                <img src="{{ asset('assets/hero_professionals.jpg') }}" alt="Profesionales en Perú" class="hero-arch-img">
-                                <div class="hero-arch-overlay">
+                            <div class="hero-arch-slide active" data-slide="0" style="background: radial-gradient(circle at 50% 28%, #312e81 0%, #1e1b4b 60%, #0f172a 100%); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -30px; left: -30px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, transparent 70%); pointer-events: none;"></div>
+                                <div style="position: absolute; top: 35%; right: -25px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%); pointer-events: none;"></div>
+
+                                <div style="position: relative; z-index: 1; padding: 42px 24px 0 24px; text-align: center;">
+                                    <div style="width: 64px; height: 64px; margin: 0 auto 16px auto; border-radius: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);">
+                                        <span class="material-symbols-outlined" style="font-size: 32px; color: #a5b4fc;">work</span>
+                                    </div>
+                                    <span style="display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #c7d2fe; background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(165, 180, 252, 0.3); padding: 4px 12px; border-radius: 20px; margin-bottom: 10px;">
+                                        Oportunidades Laborales
+                                    </span>
+                                    <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 19px; font-weight: 800; color: #ffffff; line-height: 1.3; margin: 0;">
+                                        {{ $config['application_name'] ?? 'Bolsa de Trabajo' }}
+                                    </h3>
+                                </div>
+
+                                <div class="hero-arch-overlay" style="position: relative; background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.8) 40%, rgba(15, 23, 42, 0.98) 100%);">
                                     <div class="hero-arch-question">
                                         ¿Listo para tu próximo empleo?
                                     </div>
