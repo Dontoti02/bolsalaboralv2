@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 31-08-2026 a las 22:00:51
+-- Tiempo de generación: 27-10-2026 a las 17:31:58
 -- Versión del servidor: 11.8.2-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -32,14 +32,6 @@ CREATE TABLE `cache` (
   `value` mediumtext NOT NULL,
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
-
---
--- Volcado de datos para la tabla `cache`
---
-
-INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('laravel-cache-lopez sac|127.0.0.1', 'i:1;', 1787779765),
-('laravel-cache-lopez sac|127.0.0.1:timer', 'i:1787779765;', 1787779765);
 
 -- --------------------------------------------------------
 
@@ -130,7 +122,8 @@ CREATE TABLE `job_opportunity_applications` (
 --
 
 INSERT INTO `job_opportunity_applications` (`id`, `fullname`, `program_study`, `message`, `status`, `cv`, `feedback`, `feedback_date`, `offer_id`, `user_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(9, 'Alex López Salinas', 'Producción Agropecuaria', '', 'under_review', '/uploads/cvs/cv_1637_1783461866.pdf', NULL, '2026-08-20 19:56:11', 26, 1637, '2026-07-15 15:12:05', '2026-08-20 19:56:11', NULL);
+(23, 'Alexis López', 'Ingeniería de Sistemas', '', 'accepted', '/uploads/cvs/cv_2185_1791928671.pdf', NULL, NULL, 111, 2185, '2026-10-13 21:57:59', '2026-10-16 17:36:47', NULL),
+(24, 'Andrea Milagros Quispe Huamán', 'Sin programa asignado', '', 'accepted', '/uploads/cvs/cv_2186_1792081707.pdf', 'RTRTERT', NULL, 111, 2186, '2026-10-15 16:29:12', '2026-10-15 16:32:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -150,6 +143,7 @@ CREATE TABLE `job_opportunity_company` (
   `website` varchar(255) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
   `logo` varchar(255) DEFAULT NULL,
+  `cover_image` varchar(500) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL
@@ -159,8 +153,8 @@ CREATE TABLE `job_opportunity_company` (
 -- Volcado de datos para la tabla `job_opportunity_company`
 --
 
-INSERT INTO `job_opportunity_company` (`id`, `name`, `ruc`, `email`, `phone`, `mailbox`, `is_verified`, `description`, `website`, `address`, `logo`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(601, 'LOPEZ SAC', '12345678901', 'anonlazarus0@gmail.com', '984938378', 'anonlazarus0@gmail.com', 1, NULL, NULL, 'Urb Los Jardines', '/uploads/logos/1787254310_17604242.png', '2026-07-15 14:57:06', '2026-08-31 16:36:47', NULL);
+INSERT INTO `job_opportunity_company` (`id`, `name`, `ruc`, `email`, `phone`, `mailbox`, `is_verified`, `description`, `website`, `address`, `logo`, `cover_image`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(674, 'Innovación Educativa Andina S.A.C.', '20694751234', 'contacto.innovacion.andina@example.com', '926650951', 'contacto.innovacion.andina@example.com', 1, 'Innovación Educativa Andina S.A.C. es una institución dedicada a la formación profesional, el desarrollo tecnológico y la inserción laboral de talentos excepcionales.', 'https://innovacionandina.edu.pe', 'Av. El Sol 450, Cusco, Perú', '/uploads/logos/1783615064_innova-schools-logo-png_seeklogo-204903.png', '/uploads/companies/covers/cover_1792172103_rKwCjGJW.png', '2026-10-13 21:53:12', '2026-10-16 17:35:03', NULL);
 
 -- --------------------------------------------------------
 
@@ -227,6 +221,8 @@ CREATE TABLE `job_opportunity_offer` (
   `salary` decimal(10,2) NOT NULL,
   `salary_currency` varchar(255) NOT NULL,
   `attachments` varchar(255) DEFAULT NULL,
+  `banner_image` varchar(500) DEFAULT NULL,
+  `external_url` varchar(500) DEFAULT NULL,
   `address` varchar(255) NOT NULL,
   `department` varchar(255) NOT NULL,
   `province` varchar(255) NOT NULL,
@@ -246,9 +242,9 @@ CREATE TABLE `job_opportunity_offer` (
 -- Volcado de datos para la tabla `job_opportunity_offer`
 --
 
-INSERT INTO `job_opportunity_offer` (`id`, `title`, `slug`, `description`, `requirements`, `publication_date`, `deadline`, `benefits`, `salary`, `salary_currency`, `attachments`, `address`, `department`, `province`, `country`, `company_id`, `modality_id`, `state_id`, `category_id`, `work_schedule_id`, `contract_type_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(26, 'Full-stack JAVA', 'full-stack-java', '5 años', '5 años', '2026-07-15 00:00:00', NULL, 'todo de acorde al merca', 2500.00, 'SOLES', NULL, 'Urb Los Jardines', 'Lima', 'Huaral', 'Perú', 601, 2, 2, 4, 1, 2, '2026-07-15 15:03:05', '2026-07-15 15:03:05', NULL),
-(27, 'gnnnvbnvbnbn', 'gnnnvbnvbnbn', 'vbbvbnvbnvbnvn', 'vnvbnvbnn', '2026-08-20 00:00:00', NULL, 'nvbnvbbv', 3500.00, 'SOLES', NULL, 'Urb Los Jardines', 'Loreto', 'Mariscal Ramón Castilla', 'Perú', 601, 2, 2, 3, 3, 2, '2026-08-20 19:55:38', '2026-08-21 21:44:06', '2026-08-21 21:44:06');
+INSERT INTO `job_opportunity_offer` (`id`, `title`, `slug`, `description`, `requirements`, `publication_date`, `deadline`, `benefits`, `salary`, `salary_currency`, `attachments`, `banner_image`, `external_url`, `address`, `department`, `province`, `country`, `company_id`, `modality_id`, `state_id`, `category_id`, `work_schedule_id`, `contract_type_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(111, 'Docente en informatica', 'docente-en-informatica', 'adwda', 'awdwa', '2026-10-15 00:00:00', NULL, NULL, 2500.00, 'SOLES', NULL, '/uploads/offers/banners/banner_1792097929_c94TzRxr.png', NULL, 'Urb Los Jardines', 'Loreto', 'Putumayo', 'Perú', 674, 2, 2, 1, 1, 1, '2026-10-13 21:55:54', '2026-10-15 20:58:49', NULL),
+(112, 'sfsfsfd', 'sfsfsfd', 'sdfsdfdsf', 'sfdfdsd', '2026-10-15 00:00:00', NULL, NULL, 2496.00, 'SOLES', NULL, NULL, NULL, 'sdfsdsdfsdd', 'Loreto', 'Ucayali', 'Perú', 674, 1, 2, 1, 1, 1, '2026-10-15 21:26:14', '2026-10-15 21:35:20', '2026-10-15 21:35:20');
 
 -- --------------------------------------------------------
 
@@ -323,8 +319,8 @@ CREATE TABLE `job_opportunity_offer_state_detail` (
 --
 
 INSERT INTO `job_opportunity_offer_state_detail` (`id`, `offer_id`, `state_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(36, 26, 2, '2026-07-15 15:03:05', '2026-07-15 15:03:05', NULL),
-(37, 27, 2, '2026-08-20 19:55:38', '2026-08-20 19:55:38', NULL);
+(46, 111, 2, '2026-10-13 21:55:54', '2026-10-13 21:55:54', NULL),
+(47, 112, 2, '2026-10-15 21:26:14', '2026-10-15 21:26:14', NULL);
 
 -- --------------------------------------------------------
 
@@ -347,9 +343,10 @@ CREATE TABLE `job_opportunity_user_cv` (
 --
 
 INSERT INTO `job_opportunity_user_cv` (`id`, `version`, `url`, `user_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(5, '1', '/uploads/cvs/cv_1637_1783461866.pdf', 1637, '2026-07-07 22:04:26', '2026-07-07 22:04:26', NULL),
-(6, '1', '/uploads/cvs/cv_1647_1786540861.pdf', 1647, '2026-08-12 13:21:01', '2026-08-12 13:21:01', NULL),
-(7, '2', '/uploads/cvs/cv_1647_1786541681.pdf', 1647, '2026-08-12 13:34:41', '2026-08-12 13:34:41', NULL);
+(28, '1', '/uploads/cvs/cv_2185_1791928671.pdf', 2185, '2026-10-13 21:57:51', '2026-10-13 21:57:51', NULL),
+(29, '2', '/uploads/cvs/cv_2185_1791928688.pdf', 2185, '2026-10-13 21:58:08', '2026-10-13 22:03:46', '2026-10-13 22:03:46'),
+(30, '1', '/uploads/cvs/cv_2186_1792081707.pdf', 2186, '2026-10-15 16:28:27', '2026-10-15 16:28:27', NULL),
+(31, '2', '/uploads/cvs/cv_2186_1792081732.pdf', 2186, '2026-10-15 16:28:52', '2026-10-15 16:28:52', NULL);
 
 -- --------------------------------------------------------
 
@@ -458,7 +455,12 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (22, '2026_07_08_151641_add_career_to_person_table', 5),
 (23, '2026_07_15_000001_create_study_programs_table', 6),
 (24, '2026_07_15_000002_add_study_program_id_to_person_table', 7),
-(25, '2026_07_15_145010_rename_location_to_modality', 8);
+(25, '2026_07_15_145010_rename_location_to_modality', 8),
+(26, '2026_08_31_231421_create_saved_offers_table', 9),
+(27, '2026_09_15_000001_add_egresado_role_to_rol_table', 10),
+(28, '2026_10_15_201546_add_banner_image_to_job_opportunity_offer_table', 11),
+(29, '2026_10_15_214500_add_cover_image_to_job_opportunity_company_table', 12),
+(30, '2026_10_16_174954_add_external_url_to_job_opportunity_offer_table', 13);
 
 -- --------------------------------------------------------
 
@@ -511,8 +513,7 @@ CREATE TABLE `password_reset_tokens` (
 --
 
 INSERT INTO `password_reset_tokens` (`email`, `token`, `created_at`) VALUES
-('anonlazarus0@gmail.com', '$2y$12$pWWNU6S5LWE9J.wZAZ/BaeinLGyvtukRmfpuu5RxfjLrD1zwnYODy', '2026-07-15 22:16:18'),
-('springrandalf@gmail.com', '$2y$12$rr9Etbtr180KhIThCWp0ROxc.zsaTBBcrr8CivCxoueq/F7bqK8ey', '2026-06-29 20:22:50');
+('anonlazarus0@gmail.com', '$2y$12$pWWNU6S5LWE9J.wZAZ/BaeinLGyvtukRmfpuu5RxfjLrD1zwnYODy', '2026-07-15 22:16:18');
 
 -- --------------------------------------------------------
 
@@ -577,8 +578,8 @@ INSERT INTO `person` (`id`, `document_type`, `document_number`, `names`, `career
 (28, 'DNI', '70014528', 'Juan Diego Mendoza Castro', NULL, 1, '987654326', 'juan.mendoza@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:06', '2026-07-15 14:38:36', NULL, NULL, NULL, NULL, NULL, NULL),
 (29, 'DNI', '70014529', 'Valeria Sofía Chávez Núñez', NULL, 1, '987654327', 'valeria.chavez@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-07-15 14:38:36', NULL, NULL, NULL, NULL, NULL, NULL),
 (30, 'DNI', '70014530', 'Pedro Miguel García León', NULL, 1, '987654328', 'pedro.garcia@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-07-15 14:38:36', NULL, NULL, NULL, NULL, NULL, NULL),
-(31, 'DNI', '70014531', 'Camila Alejandra Soto Ríos', NULL, 1, '987654329', 'camila.soto@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-07-15 14:38:36', NULL, NULL, NULL, NULL, NULL, NULL),
-(32, 'DNI', '70014532', 'Diego Armando Paredes López', NULL, 1, '987654330', 'diego.paredes@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-07-15 14:38:36', NULL, NULL, NULL, NULL, NULL, NULL),
+(31, 'DNI', '70014531', 'Camila Alejandra Soto Ríos', NULL, 2, '987654329', 'camila.soto@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-08-31 21:27:01', NULL, NULL, NULL, NULL, NULL, NULL),
+(32, 'DNI', '70014532', 'Diego Armando Paredes López', NULL, 2, '987654330', 'diego.paredes@demo.edu.pe', NULL, NULL, NULL, '2026-06-26 17:15:07', '2026-08-31 21:27:01', NULL, NULL, NULL, NULL, NULL, NULL),
 (403, 'DNI', '70000002', 'Juan Campos Gutiérrez', NULL, NULL, '910000002', 'estudiante.juan.campos.gutierrez.2@demo.com', NULL, NULL, NULL, '2026-06-27 16:26:21', '2026-06-27 16:26:21', NULL, NULL, NULL, NULL, NULL, NULL),
 (404, 'DNI', '70000003', 'Brenda Cáceres Arias', NULL, NULL, '910000003', 'docente.brenda.caceres.arias.3@demo.com', NULL, NULL, NULL, '2026-06-27 16:26:22', '2026-06-27 16:26:22', NULL, NULL, NULL, NULL, NULL, NULL),
 (405, 'DNI', '70000007', 'Andrea Espinoza León', NULL, NULL, '910000007', 'estudiante.andrea.espinoza.leon.7@demo.com', NULL, NULL, NULL, '2026-06-27 16:26:22', '2026-06-27 16:26:22', NULL, NULL, NULL, NULL, NULL, NULL),
@@ -916,9 +917,9 @@ INSERT INTO `person` (`id`, `document_type`, `document_number`, `names`, `career
 (736, 'DNI', '70000500', 'Gabriela Gutiérrez Arias', NULL, NULL, '910000500', 'estudiante.gabriela.gutierrez.arias.500@demo.com', NULL, NULL, NULL, '2026-06-27 16:28:08', '2026-06-27 16:28:08', NULL, NULL, NULL, NULL, NULL, NULL),
 (737, 'DNI', '77966489', 'Alex Lopez', NULL, NULL, '94378829', 'springrandalf@gmail.com', NULL, NULL, NULL, '2026-06-27 20:52:44', '2026-06-27 20:52:44', NULL, NULL, NULL, NULL, NULL, NULL),
 (738, 'DNI', '00000000', 'Administrador Sistema', NULL, NULL, '999999999', 'springrandalf@gmail.com', NULL, NULL, NULL, '2026-06-29 15:49:53', '2026-06-29 15:49:53', NULL, NULL, NULL, NULL, NULL, NULL),
-(739, 'DNI', '99999999', 'Administrador Andheuris', NULL, NULL, '999999999', 'admin@andheuris.com', NULL, NULL, NULL, '2026-07-01 10:36:13', '2026-07-01 10:36:13', NULL, NULL, NULL, NULL, NULL, NULL),
-(740, 'DNI', '12345678', 'Alex Lopez', NULL, NULL, '94378829', 'anonlazarus0@gmail.com', NULL, NULL, NULL, '2026-07-03 17:11:16', '2026-07-03 17:31:44', NULL, 'ssd', '[]', '[]', '[{\"institution\":\"dcsd\",\"degree\":\"sdds\",\"year_start\":\"dscsd\",\"year_end\":\"dscsd\"}]', '[{\"company\":\"dsd\",\"role\":\"sds\",\"year_start\":\"sdsd\",\"year_end\":\"dssd\",\"description\":\"sdsd\"}]'),
-(741, 'DNI', '12345678', 'Alex López Salinas', 'Ing. Sistemas', 1, '94378829', 'springrandalf@gmail.com', 'M', '2002-05-15', 'Español', '2026-07-07 20:10:19', '2026-07-15 14:38:36', NULL, 'Me gusta trabar en equipo', '[]', '[]', '[]', '[]'),
+(739, 'DNI', '99999999', 'Administrador Andheuris', NULL, NULL, '999999999', 'admin@andheuris.com', 'M', NULL, NULL, '2026-07-01 10:36:13', '2026-09-11 16:28:19', NULL, NULL, NULL, NULL, NULL, NULL),
+(740, 'DNI', '12345678', 'Alexis López', 'Ingeniería de Sistemas', 3, '942308812', 'springrandalf@gmail.com', NULL, NULL, NULL, '2026-07-03 17:11:16', '2026-10-13 21:50:36', NULL, 'ssd', '[]', '[]', '[{\"institution\":\"dcsd\",\"degree\":\"sdds\",\"year_start\":\"dscsd\",\"year_end\":\"dscsd\"}]', '[{\"company\":\"dsd\",\"role\":\"sds\",\"year_start\":\"sdsd\",\"year_end\":\"dssd\",\"description\":\"sdsd\"}]'),
+(741, 'DNI', '12345678', 'Alex López Salinas', 'Ing. Sistemas', 2, '94378829', 'springrandalf@gmail.com', 'M', '2002-05-15', 'Español', '2026-07-07 20:10:19', '2026-08-31 21:27:01', NULL, 'Me gusta trabar en equipo', '[]', '[]', '[]', '[]'),
 (742, 'DNI', '12345678', 'Ana vera', NULL, NULL, '94378009', 'vera26@gmail.com', NULL, NULL, NULL, '2026-07-07 21:22:27', '2026-07-07 21:22:27', NULL, NULL, NULL, NULL, NULL, NULL),
 (743, 'DNI', '63432068', 'LLERLINSON BAUTISTA LIMA', NULL, NULL, '992521774', 'bllerlinson@outlook.es', NULL, NULL, NULL, '2026-07-15 16:21:46', '2026-07-15 16:21:46', NULL, NULL, NULL, NULL, NULL, NULL),
 (744, 'DNI', '63127958', 'YELSTIN BORIS CAHUAZA CRUZ', NULL, NULL, '978830153', 'cahuazacruzy@outlook.com', NULL, NULL, NULL, '2026-07-15 16:21:47', '2026-07-15 16:21:47', NULL, NULL, NULL, NULL, NULL, NULL),
@@ -972,7 +973,39 @@ INSERT INTO `person` (`id`, `document_type`, `document_number`, `names`, `career
 (792, 'DNI', '60110298', 'AMNER HITLER VENANCINO HUANUIRI', NULL, NULL, '939267020', 'venancinohuanuiriamner@outlook.com', NULL, NULL, NULL, '2026-07-15 16:21:57', '2026-07-15 16:21:57', NULL, NULL, NULL, NULL, NULL, NULL),
 (793, 'DNI', '73788965', 'GRISELDO ZUMAETA AMPUERO', NULL, NULL, '951979095', 'griseldoampuero2025@outlook.com', NULL, NULL, NULL, '2026-07-15 16:21:57', '2026-07-15 16:21:57', NULL, NULL, NULL, NULL, NULL, NULL),
 (794, 'DNI', '73788964', 'JATNIEL ZUMAETA AMPUERO', NULL, NULL, '950491750', 'jatnielzumaeta0510@gmail.com', NULL, NULL, NULL, '2026-07-15 16:21:57', '2026-07-15 16:21:57', NULL, NULL, NULL, NULL, NULL, NULL),
-(795, 'DNI', '73788979', 'MELODY ESTEFANE ZUMAETA AMPUERO', NULL, NULL, '985095544', 'melodyestefane12@gmail.com', NULL, NULL, NULL, '2026-07-15 16:21:58', '2026-07-15 16:21:58', NULL, NULL, NULL, NULL, NULL, NULL);
+(795, 'DNI', '73788979', 'MELODY ESTEFANE ZUMAETA AMPUERO', NULL, NULL, '985095544', 'melodyestefane12@gmail.com', NULL, NULL, NULL, '2026-07-15 16:21:58', '2026-07-15 16:21:58', NULL, NULL, NULL, NULL, NULL, NULL),
+(796, 'DNI', '29660616', 'Berenice Zuloaga Castillo', NULL, NULL, '950525423', 'bereniceanazc@gmail.com', NULL, NULL, NULL, '2026-09-07 21:11:43', '2026-09-07 21:11:43', NULL, NULL, NULL, NULL, NULL, NULL),
+(841, 'DNI', '77966489', 'Alex Lopez', NULL, NULL, '', 'springrandalf@gmail.com', NULL, NULL, NULL, '2026-09-15 19:49:27', '2026-09-15 19:49:27', NULL, NULL, NULL, NULL, NULL, NULL),
+(849, 'RUC', '12345678901', 'dfsdfdsd', NULL, NULL, '987654321', 'sdfdfd@gmail.com', NULL, NULL, NULL, '2026-09-16 16:55:42', '2026-09-16 16:55:42', NULL, NULL, NULL, NULL, NULL, NULL),
+(892, 'DNI', '49395347', 'Andrea Milagros Quispe Huamán', NULL, NULL, '943699363', 'andrea.quispe.huaman@example.com', NULL, NULL, NULL, '2026-10-13 21:53:06', '2026-10-26 20:45:10', NULL, NULL, '[]', '[]', '[]', '[]'),
+(893, 'DNI', '67594410', 'Luis Fernando Rojas Paredes', 'Ingeniería de Sistemas', 3, '908472118', 'luis.rojas.paredes@example.com', NULL, NULL, NULL, '2026-10-13 21:53:06', '2026-10-26 23:08:50', NULL, NULL, '[]', '[]', '[]', '[]'),
+(894, 'DNI', '74607317', 'Camila Sofía Flores Medina', NULL, NULL, '981804324', 'camila.flores.medina@example.com', NULL, NULL, NULL, '2026-10-13 21:53:06', '2026-10-13 21:53:06', NULL, NULL, NULL, NULL, NULL, NULL),
+(895, 'DNI', '41097567', 'Jorge Luis Condori Mamani', NULL, 3, '923037714', 'jorge.condori.mamani@example.com', NULL, NULL, NULL, '2026-10-13 21:53:07', '2026-10-13 21:53:07', NULL, NULL, NULL, NULL, NULL, NULL),
+(896, 'DNI', '55932702', 'Valeria Fernanda Torres Silva', NULL, NULL, '997471434', 'valeria.torres.silva@example.com', NULL, NULL, NULL, '2026-10-13 21:53:07', '2026-10-13 21:53:07', NULL, NULL, NULL, NULL, NULL, NULL),
+(897, 'DNI', '61645824', 'Diego Alonso Gutiérrez Ramos', NULL, 3, '923331978', 'diego.gutierrez.ramos@example.com', NULL, NULL, NULL, '2026-10-13 21:53:07', '2026-10-13 21:53:07', NULL, NULL, NULL, NULL, NULL, NULL),
+(898, 'DNI', '70383626', 'Karla Estefany Chávez Salazar', NULL, NULL, '923831880', 'karla.chavez.salazar@example.com', NULL, NULL, NULL, '2026-10-13 21:53:07', '2026-10-13 21:53:07', NULL, NULL, NULL, NULL, NULL, NULL),
+(899, 'DNI', '53283478', 'Miguel Ángel Huamán Cárdenas', NULL, 3, '972309079', 'miguel.huaman.cardenas@example.com', NULL, NULL, NULL, '2026-10-13 21:53:07', '2026-10-13 21:53:07', NULL, NULL, NULL, NULL, NULL, NULL),
+(900, 'DNI', '64001660', 'Daniela Alejandra García Poma', NULL, NULL, '918012026', 'daniela.garcia.poma@example.com', NULL, NULL, NULL, '2026-10-13 21:53:08', '2026-10-13 21:53:08', NULL, NULL, NULL, NULL, NULL, NULL),
+(901, 'DNI', '72367949', 'Ricardo Alexander Velásquez Peña', NULL, 3, '952940895', 'ricardo.velasquez.pena@example.com', NULL, NULL, NULL, '2026-10-13 21:53:08', '2026-10-13 21:53:08', NULL, NULL, NULL, NULL, NULL, NULL),
+(902, 'DNI', '78490082', 'Luz Marina Castillo Vargas', NULL, NULL, '908253108', 'luz.castillo.vargas@example.com', NULL, NULL, NULL, '2026-10-13 21:53:08', '2026-10-13 21:53:08', NULL, NULL, NULL, NULL, NULL, NULL),
+(903, 'DNI', '67446244', 'César Augusto Mendoza Yupanqui', NULL, 3, '993926364', 'cesar.mendoza.yupanqui@example.com', NULL, NULL, NULL, '2026-10-13 21:53:08', '2026-10-13 21:53:08', NULL, NULL, NULL, NULL, NULL, NULL),
+(904, 'DNI', '57114591', 'Fiorella Alessandra Ramírez López', NULL, NULL, '948210465', 'fiorella.ramirez.lopez@example.com', NULL, NULL, NULL, '2026-10-13 21:53:08', '2026-10-13 21:53:08', NULL, NULL, NULL, NULL, NULL, NULL),
+(905, 'DNI', '47526028', 'Jean Pierre Córdova Rivera', NULL, 3, '939424561', 'jean.cordova.rivera@example.com', NULL, NULL, NULL, '2026-10-13 21:53:09', '2026-10-13 21:53:09', NULL, NULL, NULL, NULL, NULL, NULL),
+(906, 'DNI', '75823585', 'Nicole Milagros Palomino Castro', NULL, NULL, '900253151', 'nicole.palomino.castro@example.com', NULL, NULL, NULL, '2026-10-13 21:53:09', '2026-10-13 21:53:09', NULL, NULL, NULL, NULL, NULL, NULL),
+(907, 'DNI', '75077826', 'Kevin Antony Sánchez Huayta', NULL, 3, '939828131', 'kevin.sanchez.huayta@example.com', NULL, NULL, NULL, '2026-10-13 21:53:09', '2026-10-13 21:53:09', NULL, NULL, NULL, NULL, NULL, NULL),
+(908, 'DNI', '60606955', 'Elena Paola Valdez Ortiz', NULL, NULL, '942335076', 'elena.valdez.ortiz@example.com', NULL, NULL, NULL, '2026-10-13 21:53:09', '2026-10-13 21:53:09', NULL, NULL, NULL, NULL, NULL, NULL),
+(909, 'DNI', '44233055', 'Bryan Esteban Aguilar Ríos', NULL, 3, '942348829', 'bryan.aguilar.rios@example.com', NULL, NULL, NULL, '2026-10-13 21:53:10', '2026-10-13 21:53:10', NULL, NULL, NULL, NULL, NULL, NULL),
+(910, 'DNI', '68082935', 'Rocío del Pilar Fernández Luján', NULL, NULL, '971326297', 'rocio.fernandez.lujan@example.com', NULL, NULL, NULL, '2026-10-13 21:53:10', '2026-10-13 21:53:10', NULL, NULL, NULL, NULL, NULL, NULL),
+(911, 'DNI', '48530247', 'Sebastián David Paredes Muñoz', NULL, 3, '938829741', 'sebastian.paredes.munoz@example.com', NULL, NULL, NULL, '2026-10-13 21:53:10', '2026-10-13 21:53:10', NULL, NULL, NULL, NULL, NULL, NULL),
+(912, 'DNI', '60204719', 'Melissa Carolina Delgado Acosta', NULL, NULL, '904647818', 'melissa.delgado.acosta@example.com', NULL, NULL, NULL, '2026-10-13 21:53:10', '2026-10-13 21:53:10', NULL, NULL, NULL, NULL, NULL, NULL),
+(913, 'DNI', '76682238', 'Víctor Hugo Vásquez Córdova', NULL, NULL, '993666135', 'victor.vasquez.cordova@example.com', NULL, NULL, NULL, '2026-10-13 21:53:10', '2026-10-13 21:53:10', NULL, NULL, NULL, NULL, NULL, NULL),
+(914, 'DNI', '49940342', 'Rosa Angélica Zegarra Ponce', NULL, NULL, '901639215', 'rosa.zegarra.ponce@example.com', NULL, NULL, NULL, '2026-10-13 21:53:11', '2026-10-13 21:53:11', NULL, NULL, NULL, NULL, NULL, NULL),
+(915, 'DNI', '77827996', 'Alfredo Enrique Rodríguez Soto', NULL, NULL, '927424286', 'alfredo.rodriguez.soto@example.com', NULL, NULL, NULL, '2026-10-13 21:53:11', '2026-10-13 21:53:11', NULL, NULL, NULL, NULL, NULL, NULL),
+(916, 'DNI', '74186113', 'María Isabel Valdivia Peralta', NULL, NULL, '900305681', 'maria.valdivia.peralta@example.com', NULL, NULL, NULL, '2026-10-13 21:53:11', '2026-10-13 21:53:11', NULL, NULL, NULL, NULL, NULL, NULL),
+(917, 'DNI', '57817332', 'Maritza Elena Torres Vega', NULL, NULL, '901217001', 'maritza.torres.vega@example.com', NULL, NULL, NULL, '2026-10-13 21:53:11', '2026-10-13 21:53:11', NULL, NULL, NULL, NULL, NULL, NULL),
+(918, 'DNI', '54740546', 'Óscar Daniel Alarcón Prado', NULL, NULL, '909181111', 'oscar.alarcon.prado@example.com', NULL, NULL, NULL, '2026-10-13 21:53:11', '2026-10-13 21:53:11', NULL, NULL, NULL, NULL, NULL, NULL),
+(919, 'DNI', '48002401', 'Samuel Eduardo Gálvez Rojas', NULL, NULL, '932966142', 'samuel.galvez.rojas@example.com', NULL, NULL, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL, NULL, NULL, NULL, NULL, NULL),
+(920, 'DNI', '53951088', 'Brenda Nathaly Mamani Vilca', NULL, 3, '970954385', 'brenda.mamani.vilca@example.com', NULL, NULL, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -999,7 +1032,7 @@ INSERT INTO `rol` (`id`, `name`, `key`, `level`, `created_at`, `updated_at`, `de
 (2, 'DOCENTE', 'rol_teacher', 1, '2025-06-03 09:58:29', '2025-06-03 09:58:29', NULL),
 (3, 'ESTUDIANTE', 'rol_student', 1, '2025-06-03 09:58:29', '2025-06-03 09:58:29', NULL),
 (4, 'EMPRESA', 'rol_company', 1, '2025-06-03 09:58:29', '2025-06-03 09:58:29', NULL),
-(5, 'EGRESADO', 'rol_graduate', 1, '2025-06-03 09:58:29', '2025-06-03 09:58:29', NULL);
+(5, 'EGRESADO', 'rol_graduate', 1, '2026-09-15 22:07:27', '2026-09-15 22:07:27', NULL);
 
 -- --------------------------------------------------------
 
@@ -1054,19 +1087,59 @@ CREATE TABLE `rol_user` (
 
 INSERT INTO `rol_user` (`id`, `rol_id`, `user_id`) VALUES
 (1634, 1, 1634),
-(1637, 3, 1637),
-(1638, 2, 1638),
-(1642, 2, 1642),
-(1643, 2, 1643),
-(1644, 2, 1644),
-(1645, 2, 1645),
-(1646, 2, 1646),
-(1647, 3, 1647),
-(1648, 3, 1648),
-(1649, 3, 1649),
-(1650, 3, 1650),
-(1651, 3, 1651),
-(1652, 4, 1652);
+(2181, 5, 2185),
+(2182, 3, 2186),
+(2183, 3, 2187),
+(2184, 3, 2188),
+(2185, 3, 2189),
+(2186, 3, 2190),
+(2187, 3, 2191),
+(2188, 3, 2192),
+(2189, 3, 2193),
+(2190, 3, 2194),
+(2191, 3, 2195),
+(2192, 3, 2196),
+(2193, 3, 2197),
+(2194, 3, 2198),
+(2195, 3, 2199),
+(2196, 3, 2200),
+(2197, 3, 2201),
+(2198, 3, 2202),
+(2199, 3, 2203),
+(2200, 3, 2204),
+(2201, 3, 2205),
+(2202, 2, 2206),
+(2203, 2, 2207),
+(2204, 2, 2208),
+(2205, 2, 2209),
+(2206, 2, 2210),
+(2207, 1, 2211),
+(2208, 1, 2212),
+(2209, 5, 2213),
+(2210, 5, 2214),
+(2211, 4, 2215);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `saved_offers`
+--
+
+CREATE TABLE `saved_offers` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `offer_id` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `saved_offers`
+--
+
+INSERT INTO `saved_offers` (`id`, `user_id`, `offer_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(20, 2185, 111, '2026-10-14 02:56:56', '2026-10-14 02:56:56', NULL);
 
 -- --------------------------------------------------------
 
@@ -1103,7 +1176,9 @@ CREATE TABLE `study_programs` (
 
 INSERT INTO `study_programs` (`id`, `name`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'Producción Agropecuaria', 1, '2026-07-15 19:20:24', '2026-07-15 19:20:24'),
-(2, 'Construcción Civil', 1, '2026-08-22 02:44:57', '2026-08-22 02:44:57');
+(2, 'Construcción Civil', 1, '2026-08-22 02:44:57', '2026-08-22 02:44:57'),
+(3, 'Ingeniería de Sistemas', 1, '2026-10-08 02:23:11', '2026-10-08 02:23:11'),
+(4, 'Programa Preexistente Uno', 1, '2026-10-08 02:54:14', '2026-10-08 02:54:14');
 
 -- --------------------------------------------------------
 
@@ -1127,21 +1202,32 @@ CREATE TABLE `system_configuration` (
 --
 
 INSERT INTO `system_configuration` (`id`, `key`, `name`, `type`, `value`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'application_name', 'Nombre de la institución', 'string', 'IESTP Sangarará', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
+(1, 'application_name', 'Nombre de la institución', 'string', 'IESP VILCANOTA', '2025-06-03 09:58:28', '2026-10-15 20:09:49', NULL),
 (2, 'support_emails', 'Correos de soporte', 'array', NULL, '2025-06-03 09:58:28', '2025-06-03 09:58:28', NULL),
-(3, 'logo', 'Logo', 'string', '/uploads/logo_1787160343.png', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(4, 'favicon', 'Favicon', 'string', '/uploads/favicon_1787160343.png', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(5, 'banner', 'Banner', 'string', '/uploads/banner_1787160343.jpg', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(6, 'maximum_file_size_to_upload', 'Tamaño máximo de archivos a subir (MB)', 'number', '10', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(7, 'extensions_allowed_to_upload', 'Extensiones permitidas para subir archivos', 'array', '[{\"extension\":\"pdf\",\"permitted\":true},{\"extension\":\"doc\",\"permitted\":true},{\"extension\":\"docx\",\"permitted\":true},{\"extension\":\"xls\",\"permitted\":true},{\"extension\":\"xlsx\",\"permitted\":true},{\"extension\":\"ppt\",\"permitted\":true},{\"extension\":\"pptx\",\"permitted\":true},{\"extension\":\"zip\",\"permitted\":true},{\"extension\":\"rar\",\"permitted\":true},{\"extension\":\"jpg\",\"permitted\":true},{\"extension\":\"jpeg\",\"permitted\":true},{\"extension\":\"png\",\"permitted\":true},{\"extension\":\"gif\",\"permitted\":true},{\"extension\":\"mp3\",\"permitted\":true},{\"extension\":\"mp4\",\"permitted\":true},{\"extension\":\"avi\",\"permitted\":true},{\"extension\":\"mkv\",\"permitted\":true}]', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(8, 'primary_color', 'Color Primario', 'string', '#dc2626', '2025-06-03 09:58:28', '2026-08-19 17:25:43', NULL),
-(9, 'primary_container_color', 'Color principal suavizado', 'color', '#f5c2c2', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(10, 'secondary_color', 'Color secundario', 'color', '#475569', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(11, 'secondary_container_color', 'Color secundario suavizado', 'color', '#cbcfd5', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(12, 'accent_color', 'Color de acento', 'color', '#f59e0b', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(13, 'theme_mode', 'Modo visual', 'select', 'light', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(14, 'interface_density', 'Densidad de interfaz', 'select', 'compact', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL),
-(15, 'sidebar_style', 'Estilo del sidebar', 'select', 'expanded', '2026-06-27 21:14:41', '2026-08-19 17:25:43', NULL);
+(3, 'logo', 'Logo', 'string', '/uploads/logo_1792094959.png', '2025-06-03 09:58:28', '2026-10-15 20:09:19', NULL),
+(4, 'favicon', 'Favicon', 'string', '/uploads/favicon_1792094959.png', '2025-06-03 09:58:28', '2026-10-15 20:09:19', NULL),
+(5, 'banner', 'Banner', 'string', '/uploads/banner_1791929311.png', '2025-06-03 09:58:28', '2026-10-13 22:08:31', NULL),
+(6, 'maximum_file_size_to_upload', 'Tamaño máximo de archivos a subir (MB)', 'number', '10', '2025-06-03 09:58:28', '2026-10-15 20:09:49', NULL),
+(7, 'extensions_allowed_to_upload', 'Extensiones permitidas para subir archivos', 'array', '[{\"extension\":\"pdf\",\"permitted\":true},{\"extension\":\"doc\",\"permitted\":true},{\"extension\":\"docx\",\"permitted\":true},{\"extension\":\"xls\",\"permitted\":true},{\"extension\":\"xlsx\",\"permitted\":true},{\"extension\":\"ppt\",\"permitted\":true},{\"extension\":\"pptx\",\"permitted\":true},{\"extension\":\"zip\",\"permitted\":true},{\"extension\":\"rar\",\"permitted\":true},{\"extension\":\"jpg\",\"permitted\":true},{\"extension\":\"jpeg\",\"permitted\":true},{\"extension\":\"png\",\"permitted\":true},{\"extension\":\"gif\",\"permitted\":true},{\"extension\":\"mp3\",\"permitted\":true},{\"extension\":\"mp4\",\"permitted\":true},{\"extension\":\"avi\",\"permitted\":true},{\"extension\":\"mkv\",\"permitted\":true}]', '2025-06-03 09:58:28', '2026-10-15 20:09:49', NULL),
+(8, 'primary_color', 'Color Primario', 'string', '#01143c', '2025-06-03 09:58:28', '2026-10-15 20:09:49', NULL),
+(9, 'primary_container_color', 'Color principal suavizado', 'color', '#b8bdc8', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(10, 'secondary_color', 'Color secundario', 'color', '#475eb8', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(11, 'secondary_container_color', 'Color secundario suavizado', 'color', '#cbd2eb', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(12, 'accent_color', 'Color de acento', 'color', '#ad6e00', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(13, 'theme_mode', 'Modo visual', 'select', 'light', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(14, 'interface_density', 'Densidad de interfaz', 'select', 'comfortable', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(15, 'sidebar_style', 'Estilo del sidebar', 'select', 'expanded', '2026-06-27 21:14:41', '2026-10-15 20:09:49', NULL),
+(16, 'allow_student_applications', 'Permitir postulaciones a estudiantes', 'boolean', '1', '2026-09-11 16:15:03', '2026-10-15 20:09:49', NULL),
+(17, 'allow_teacher_applications', 'Permitir postulaciones a docentes', 'boolean', '1', '2026-09-11 16:15:03', '2026-10-15 20:09:49', NULL),
+(18, 'mail_enabled', 'Habilitar envio de correos', 'boolean', '1', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(19, 'mail_host', 'Servidor SMTP', 'text', 'smtp.gmail.com', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(20, 'mail_port', 'Puerto SMTP', 'number', '587', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(21, 'mail_encryption', 'Seguridad SMTP', 'text', 'tls', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(22, 'mail_username', 'Usuario SMTP', 'text', 'conectandoselva@gmail.com', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(23, 'mail_from_address', 'Correo remitente', 'text', 'conectandoselva@gmail.com', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(24, 'mail_from_name', 'Nombre del remitente', 'text', 'educalatina', '2026-09-14 22:55:20', '2026-09-16 16:34:03', NULL),
+(25, 'mail_password', 'Contrasena SMTP', 'password', 'eyJpdiI6IkQzdFVOWG4yK1NGL3R5MWJHU1NQN2c9PSIsInZhbHVlIjoiSFVQQ3N6VW9pK1ZMUWdST2daMWZUWU1mWVozOERvUDZKZkltV3JwTGJxST0iLCJtYWMiOiJlNzEzNGY5MTM1ZmY0NDJkNTQ1NjIzNjZmYTc3ZmVlM2QwZjgyZGJkYmZmMGQzZGU5N2M2YWEwYWYzMzdmNTA1IiwidGFnIjoiIn0=', '2026-09-14 22:55:20', '2026-09-16 16:32:31', NULL),
+(26, 'institution_url', 'Portal web institucional', 'url', 'https://iestpvilcanota.edu.pe', NULL, '2026-10-26 21:40:13', NULL);
 
 -- --------------------------------------------------------
 
@@ -1173,21 +1259,38 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `company_id`, `person_id`, `rol_id`, `email`, `password`, `remember_token`, `reset_password_token`, `is_active`, `last_login`, `avatar`, `attempts`, `last_attempt`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1634, NULL, 739, 1, 'admin@andheuris.com', '$2y$12$lMOsBpJai4fLSMuGfOlXCeDUqiLTI0vlR6Tn06h7cBRF2rUyuxBie', NULL, NULL, 1, NULL, 'profile-photos/uWI70rQvGmwarJhPUX3eCOwXclJtILiBcjp1wLDl.png', 0, NULL, '2026-07-01 10:36:13', '2026-07-08 22:26:14', NULL),
-(1637, NULL, 741, 3, 'springrandalf@gmail.com', '$2y$12$ZnMPaMzdwg4yd.HN7BLWZe27dGo17S2ws37EHPCJrBWHkMCGf/6rG', NULL, NULL, 1, NULL, '/uploads/avatars/avatar_1637_1783456078.png', 0, NULL, '2026-07-07 20:10:19', '2026-07-07 20:27:58', NULL),
-(1638, NULL, 742, 2, 'vera26@gmail.com', '$2y$12$Xy/qKX0JyLuZX9VDLI29zuE90CWEGg5YAWtUdQpPokFqphxd4r4y2', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-07 21:22:27', '2026-07-07 21:22:27', NULL),
-(1642, NULL, 23, 2, 'ana.perez@demo.edu.pe', '$2y$12$gU2TtB72Wh8qANpXkMk/WejVJuYlBKm0mfdfF7bpX.x8dn1h.FHYa', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1643, NULL, 24, 2, 'carlos.rojas@demo.edu.pe', '$2y$12$eIh6bbgbkc9yLwYEy7Z8AO7kfIiv4QOA4OvY5Oa8U.doA5pVoxT96', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1644, NULL, 25, 2, 'maria.torres@demo.edu.pe', '$2y$12$e4AncnFUlWlO.90G5ZllzOoyZc3UE9RClHRtmD6RF2MgfqwLeaSYu', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1645, NULL, 26, 2, 'luis.quispe@demo.edu.pe', '$2y$12$DKJjpVVFp9ZQF/jeE787fO6kCDScPJ3xnjbaveXJRWxH9WOBYBSl2', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1646, NULL, 27, 2, 'rosa.huaman@demo.edu.pe', '$2y$12$UlsVKwTF674l9cq7LA1i/ujFDi6BFfgTuCiJk8mCinFyDQewIn4VK', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1647, NULL, 28, 3, 'juan.mendoza@demo.edu.pe', '$2y$12$PLDk1pZweWp0y6N85e7PveZYh76dmffVpFEfVucOp6xxrriKzOEwK', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1648, NULL, 29, 3, 'valeria.chavez@demo.edu.pe', '$2y$12$pvwT4yDrHwwA6p.XPHKeHOzCDIboq5wmHOFcvgDow7z1Pq/ami9pa', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1649, NULL, 30, 3, 'pedro.garcia@demo.edu.pe', '$2y$12$fZC69CSgzdO0YWX15x2mg.9Mm/xbIOFa8SVv25tupx7w7dH6MXHQ2', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1650, NULL, 31, 3, 'camila.soto@demo.edu.pe', '$2y$12$q6gLHxgD0.dU9LxoH2/GG.CWBRsiJ3CnZlHESs7DhJwkLGabyPf6.', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1651, NULL, 32, 3, 'diego.paredes@demo.edu.pe', '$2y$12$EPDHi1u81TUEcv52QkCktOTbz9qVQV00olBSB4M52UOV3q1X.eUUy', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:27:55', '2026-07-15 14:27:55', NULL),
-(1652, 601, NULL, 4, 'anonlazarus0@gmail.com', '$2y$12$nOr0jiInN3WgIPASFYbaJ.SMSYGpff8yRmGd3SpKIOkkyYZgd./gG', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-07-15 14:57:06', '2026-07-15 14:57:06', NULL),
-(1706, NULL, NULL, 1, 'teststrength@temp.local', '$2y$12$LGu0or6Q6w0RugIDYw4MP.Ds4edST.efVKL4Gz3N9pRFPYVc/OHe6', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-08-07 21:19:53', '2026-08-07 21:19:53', NULL);
+(1634, NULL, 739, 1, 'admin@andheuris.com', '$2y$12$lMOsBpJai4fLSMuGfOlXCeDUqiLTI0vlR6Tn06h7cBRF2rUyuxBie', NULL, NULL, 1, NULL, 'profile-photos/C2cmdHzaVAxiiM8aUONIBDTSVTGd2gsfQFXVTwFE.jpg', 0, NULL, '2026-07-01 10:36:13', '2026-09-16 19:32:29', NULL),
+(2185, NULL, 740, 5, 'springrandalf@gmail.com', '$2y$12$.FUxYT6oM7PD0.VlL0Yid.mu9qkF5FuItvFIh2wvaveVH1.2A6gL2', NULL, NULL, 1, '2026-10-26 20:29:44', '/uploads/avatars/avatar_2185_1792276874.jpeg', 0, NULL, '2026-10-13 21:50:36', '2026-10-26 20:29:44', NULL),
+(2186, NULL, 892, 3, 'andrea.quispe.huaman@example.com', '$2y$12$K3Jrk6XGotTxDyY9L70iEeOQQIqXXI86oNi4P5DqTh9oN4bTP7oZG', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2187, NULL, 893, 3, 'luis.rojas.paredes@example.com', '$2y$12$dB/h2JbPaC4FiCXZS7vbEeGtwbS8hnLwoo3FY3kn/Wo/031B35LX6', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2188, NULL, 894, 3, 'camila.flores.medina@example.com', '$2y$12$h3zKX8AWouZLgJfSs32L/OKpopEtYs8iQg1tVOVWNrf.MxdtktQ2G', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2189, NULL, 895, 3, 'jorge.condori.mamani@example.com', '$2y$12$.XviUdpxTKPoMwDmjmG8EevE2UCno7Fp6oLcvR3WGxMy882AQXfji', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2190, NULL, 896, 3, 'valeria.torres.silva@example.com', '$2y$12$1mkJWoW3pmQCOCeK/v6W5OJDwJzGe2SQpBfDgroI1fay6m7An0sJW', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2191, NULL, 897, 3, 'diego.gutierrez.ramos@example.com', '$2y$12$h9ViCuDDYL9inM8FXlJvIudXP17tAwOl9sE3b0HXr/YftkHaHJjQW', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2192, NULL, 898, 3, 'karla.chavez.salazar@example.com', '$2y$12$ZzfrD3xbttUW8CSytIuewO9n2xIQkVjbOBdamFmLbRW3aJ3fiDi12', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2193, NULL, 899, 3, 'miguel.huaman.cardenas@example.com', '$2y$12$mbCN6txxEPWI5o9u87XU3uSQ9U67mK9k6kLuDMhxGstdGoGmBEjk6', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2194, NULL, 900, 3, 'daniela.garcia.poma@example.com', '$2y$12$EKOA92BzRc6tI4m3Yeonae9jijGxlOpvSacgd7nCAtse8ODXT/B7W', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2195, NULL, 901, 3, 'ricardo.velasquez.pena@example.com', '$2y$12$nt7tWyto4ghLSycLQrqiqeB2NwXLdmlp1vl8BkxaBSkPaio/WPs2q', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2196, NULL, 902, 3, 'luz.castillo.vargas@example.com', '$2y$12$i6nTZOiFGsMrhimg3WU2WePV1/EARxA08LB9TLdQgyoVj9OULFwAi', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2197, NULL, 903, 3, 'cesar.mendoza.yupanqui@example.com', '$2y$12$7CwjlhkYM8R4Fiasvqid.uIOPB8srwzE3Hlo5ckaRayR8PQhNjDjG', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2198, NULL, 904, 3, 'fiorella.ramirez.lopez@example.com', '$2y$12$vURFst.O0n8k4k79n8BBn.1e2Lh2lDW/uZdGWa6CpMsXNDxf0xcu.', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2199, NULL, 905, 3, 'jean.cordova.rivera@example.com', '$2y$12$rU1VxtDJdDSmT/iwZTBf2umH4g5bkEE48uVKnFNqbD/.tF5QyutwC', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2200, NULL, 906, 3, 'nicole.palomino.castro@example.com', '$2y$12$FH8QKRoV0tYRsizJgwV0NuxGRDddKhKrzd6PXaHOv0F/5.Z1ncbfG', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2201, NULL, 907, 3, 'kevin.sanchez.huayta@example.com', '$2y$12$srEQB306OEjL8Lu3lKPmw.nNP6N6oiVaxV8KHTdXdvevueCaQ/Upy', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2202, NULL, 908, 3, 'elena.valdez.ortiz@example.com', '$2y$12$3RpaTnW5BxiYK.jTozrlTON3mgSMrCqO.57QW6PEx3M4N64KL/26O', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2203, NULL, 909, 3, 'bryan.aguilar.rios@example.com', '$2y$12$eQiJg3/TvcBo37i4LlDSouUqU86I.SQnwp4cQvC1NLsU42Apv6jb6', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2204, NULL, 910, 3, 'rocio.fernandez.lujan@example.com', '$2y$12$FmUPjOiC3f7I/4GUhDkrTe/JDVg8VWS9QNJ4jtMjoiJfLyY1pBnT6', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2205, NULL, 911, 3, 'sebastian.paredes.munoz@example.com', '$2y$12$T1CIrYrOJsYwyvX10szTDuUHvdgTmks8886T/TZ08yxobKViP9Eii', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2206, NULL, 912, 2, 'melissa.delgado.acosta@example.com', '$2y$12$UlKqNhAnQnjKnU46aASwre0Y.ZviXLYKON5bAzQiThT0FF7j.zj72', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2207, NULL, 913, 2, 'victor.vasquez.cordova@example.com', '$2y$12$VLHf/SkoVCSt8flXi7QjM.1.EjyV8qhudwPjkJHKXIYNuVMtyZG76', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2208, NULL, 914, 2, 'rosa.zegarra.ponce@example.com', '$2y$12$icI3qkgqrlaPGRW4D5S5UuohpPgyDq7aibRNLmClkNwVD1mply4Km', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2209, NULL, 915, 2, 'alfredo.rodriguez.soto@example.com', '$2y$12$d6UsrmptxP4DAFkhroYcKuXyFl/GnuNDN7cKS982AK.JLqXTjpdVi', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2210, NULL, 916, 2, 'maria.valdivia.peralta@example.com', '$2y$12$g2gWEGlZKYMlXrqzRm8y6e.kjZ8/wYLrz8FESd9oAInEVWyHRN1KK', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2211, NULL, 917, 1, 'maritza.torres.vega@example.com', '$2y$12$okkhZNbX/0miKjtWDOVL9utuVQbQzDEoRgzHd8o7pI3tO7Wk3tq4C', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2212, NULL, 918, 1, 'oscar.alarcon.prado@example.com', '$2y$12$MscUkjG6yW9HyNKJs0CEbuvoa6mejPMTsVtaeVyCgN1bpY.o4WzMu', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2213, NULL, 919, 5, 'samuel.galvez.rojas@example.com', '$2y$12$/eBfl0F3sFh8km/VF0vMJuaziLwjGPu9H.AUlrPjkcMH8RAt98dzm', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2214, NULL, 920, 5, 'brenda.mamani.vilca@example.com', '$2y$12$cHoB7Ju900Yo7DpxkIqFv.9He3lEPnkGlffw9YVYWblaBKW5Q81aK', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL),
+(2215, 674, NULL, 4, 'contacto.innovacion.andina@example.com', '$2y$12$L.YzRUwOtfK0uqx0xozb7uBiVYJUp4YiAlJWYRDquH02/tKlgTCjG', NULL, NULL, 1, NULL, NULL, 0, NULL, '2026-10-13 21:53:12', '2026-10-13 21:53:12', NULL);
 
 -- --------------------------------------------------------
 
@@ -1217,15 +1320,37 @@ INSERT INTO `user_notifications` (`id`, `user_id`, `title`, `message`, `link`, `
 (11, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: sssfs', '/admin/dashboard?tab=applications', '2026-07-08 22:45:59', '2026-07-08 19:39:51', '2026-07-08 22:45:59'),
 (12, 1634, 'Nueva oferta laboral', 'La empresa Innova schools ha publicado la oferta: dsfsdf', '/admin/dashboard?tab=offers', '2026-07-08 22:45:59', '2026-07-08 19:43:05', '2026-07-08 22:45:59'),
 (14, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: dsfsdf', '/admin/dashboard?tab=applications', '2026-07-08 22:45:59', '2026-07-08 19:46:14', '2026-07-08 22:45:59'),
-(15, 1637, 'Estado de postulación actualizado', 'Tu postulación ha sido aceptada por la empresa.', '/student/dashboard?tab=applications', '2026-07-09 03:18:33', '2026-07-08 20:22:07', '2026-07-09 03:18:33'),
 (16, 1634, 'Nueva oferta laboral', 'La empresa Innova schools ha publicado la oferta: adasds', '/admin/dashboard?tab=offers', '2026-07-11 19:06:19', '2026-07-09 02:58:14', '2026-07-11 19:06:19'),
 (18, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: adasds', '/admin/dashboard?tab=applications', '2026-07-11 19:06:19', '2026-07-09 21:22:57', '2026-07-11 19:06:19'),
-(19, 1634, 'Nueva oferta laboral', 'La empresa LOPEZ SAC ha publicado la oferta: Full-stack JAVA', '/admin/dashboard?tab=offers', NULL, '2026-07-15 18:46:20', '2026-07-15 18:46:20'),
-(21, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: Full-stack JAVA', '/admin/dashboard?tab=applications', NULL, '2026-07-15 18:46:51', '2026-07-15 18:46:51'),
-(22, 1634, 'Nueva oferta laboral', 'La empresa LOPEZ SAC ha publicado la oferta: Full-stack JAVA', '/admin/dashboard?tab=offers', NULL, '2026-07-15 20:03:05', '2026-07-15 20:03:05'),
-(23, 1652, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a tu oferta: Full-stack JAVA', '/company/dashboard?tab=applicants', NULL, '2026-07-15 20:12:05', '2026-07-15 20:12:05'),
-(24, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: Full-stack JAVA', '/admin/dashboard?tab=applications', NULL, '2026-07-15 20:12:05', '2026-07-15 20:12:05'),
-(25, 1637, 'Estado de postulación actualizado', 'Tu postulación ha sido en revisión por el administrador.', '/student/dashboard?tab=applications', NULL, '2026-08-21 00:56:11', '2026-08-21 00:56:11');
+(19, 1634, 'Nueva oferta laboral', 'La empresa LOPEZ SAC ha publicado la oferta: Full-stack JAVA', '/admin/dashboard?tab=offers', '2026-09-11 21:28:07', '2026-07-15 18:46:20', '2026-09-11 21:28:07'),
+(21, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: Full-stack JAVA', '/admin/dashboard?tab=applications', '2026-09-11 21:28:07', '2026-07-15 18:46:51', '2026-09-11 21:28:07'),
+(22, 1634, 'Nueva oferta laboral', 'La empresa LOPEZ SAC ha publicado la oferta: Full-stack JAVA', '/admin/dashboard?tab=offers', '2026-09-11 21:28:07', '2026-07-15 20:03:05', '2026-09-11 21:28:07'),
+(24, 1634, 'Nueva postulación', 'El estudiante Alex López Salinas ha postulado a la oferta: Full-stack JAVA', '/admin/dashboard?tab=applications', '2026-09-11 21:28:07', '2026-07-15 20:12:05', '2026-09-11 21:28:07'),
+(26, 1634, 'Nueva oferta laboral', 'La empresa COLIFY S.A.C ha publicado la oferta: ANAISTA DE DATOS', '/admin/dashboard?tab=offers', '2026-09-11 21:28:07', '2026-09-01 03:59:51', '2026-09-11 21:28:07'),
+(28, 1634, 'Nueva postulación', 'El estudiante Diego Armando Paredes López ha postulado a la oferta: ANALISTA DE DATOS', '/admin/dashboard?tab=applications', '2026-09-11 21:28:07', '2026-09-08 02:19:57', '2026-09-11 21:28:07'),
+(30, 1634, 'Nueva postulación', 'El estudiante Kevin Sucari Mamani ha postulado a la oferta: programador php', '/admin/dashboard?tab=applications', '2026-09-11 21:28:07', '2026-09-11 19:15:25', '2026-09-11 21:28:07'),
+(38, 1634, 'Nueva postulación', 'El estudiante Milagros Vilca Ramos ha postulado a la oferta: adsdas', '/admin/dashboard?tab=applications', '2026-09-11 21:28:07', '2026-09-11 19:21:11', '2026-09-11 21:28:07'),
+(47, 1634, 'Nueva postulación', 'El estudiante Juan Pérez García ha postulado a la oferta: ENFERMERA FARMACEUTICA', '/admin/dashboard?tab=applications', NULL, '2026-09-12 01:52:35', '2026-09-12 01:52:35'),
+(55, 1634, 'Nueva postulación', 'El estudiante Andrea Quispe Huamán ha postulado a la oferta: programador php', '/admin/dashboard?tab=applications', NULL, '2026-09-12 02:55:45', '2026-09-12 02:55:45'),
+(63, 1634, 'Nueva postulación', 'El estudiante Jhonatan Coaquira Flores ha postulado a la oferta: ENFERMERA FARMACEUTICA', '/admin/dashboard?tab=applications', NULL, '2026-09-16 01:32:30', '2026-09-16 01:32:30'),
+(72, 1634, 'Nueva postulación', 'El docente María López Torres ha postulado a la oferta: ENFERMERA FARMACEUTICA', '/admin/dashboard?tab=applications', NULL, '2026-09-22 20:02:31', '2026-09-22 20:02:31'),
+(79, 1634, 'Nueva postulación', 'El estudiante Ana Lucía Quispe Mamani ha postulado a la oferta: Desarrollador Web Junior', '/admin/dashboard?tab=applications', NULL, '2026-10-13 22:39:55', '2026-10-13 22:39:55'),
+(87, 1634, 'Nueva postulación', 'El estudiante Ana Lucía Quispe Mamani ha postulado a la oferta: Desarrollador Web Junior', '/admin/dashboard?tab=applications', NULL, '2026-10-13 22:49:50', '2026-10-13 22:49:50'),
+(95, 1634, 'Nueva postulación', 'El estudiante Ana Lucía Quispe Mamani ha postulado a la oferta: Desarrollador Web Junior', '/admin/dashboard?tab=applications', NULL, '2026-10-13 22:52:14', '2026-10-13 22:52:14'),
+(103, 1634, 'Nueva postulación', 'El estudiante Ana Lucía Quispe Mamani ha postulado a la oferta: Desarrollador Web Junior', '/admin/dashboard?tab=applications', NULL, '2026-10-13 22:56:48', '2026-10-13 22:56:48'),
+(104, 1634, 'Nueva postulación', 'El estudiante Estudiante Import Test ha postulado a la oferta: Desarrollador Web Junior', '/admin/dashboard?tab=applications', NULL, '2026-10-14 02:34:45', '2026-10-14 02:34:45'),
+(106, 1634, 'Nueva oferta laboral', 'La empresa Empresa Import SAC ha publicado la oferta: sfafsdf', '/admin/dashboard?tab=offers', NULL, '2026-10-14 02:39:56', '2026-10-14 02:39:56'),
+(108, 1634, 'Nueva postulación', 'El estudiante Estudiante Import Test ha postulado a la oferta: sfafsdf', '/admin/dashboard?tab=applications', NULL, '2026-10-14 02:40:06', '2026-10-14 02:40:06'),
+(110, 2215, 'Nueva postulación', 'El egresado Alexis López ha postulado a tu oferta: Docente en informatica', '/company/dashboard?tab=applicants', NULL, '2026-10-14 02:57:59', '2026-10-14 02:57:59'),
+(111, 1634, 'Nueva postulación', 'El egresado Alexis López ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-14 02:57:59', '2026-10-14 02:57:59'),
+(112, 2211, 'Nueva postulación', 'El egresado Alexis López ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-14 02:57:59', '2026-10-14 02:57:59'),
+(113, 2212, 'Nueva postulación', 'El egresado Alexis López ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-14 02:57:59', '2026-10-14 02:57:59'),
+(114, 2215, 'Nueva postulación', 'El estudiante Andrea Milagros Quispe Huamán ha postulado a tu oferta: Docente en informatica', '/company/dashboard?tab=applicants', NULL, '2026-10-15 21:29:12', '2026-10-15 21:29:12'),
+(115, 1634, 'Nueva postulación', 'El estudiante Andrea Milagros Quispe Huamán ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-15 21:29:12', '2026-10-15 21:29:12'),
+(116, 2211, 'Nueva postulación', 'El estudiante Andrea Milagros Quispe Huamán ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-15 21:29:12', '2026-10-15 21:29:12'),
+(117, 2212, 'Nueva postulación', 'El estudiante Andrea Milagros Quispe Huamán ha postulado a la oferta: Docente en informatica', '/admin/dashboard?tab=applications', NULL, '2026-10-15 21:29:12', '2026-10-15 21:29:12'),
+(118, 2186, 'Estado de postulación actualizado', 'Tu postulación ha sido aceptada por la empresa.', '/student/dashboard?tab=applications', NULL, '2026-10-15 21:32:26', '2026-10-15 21:32:26'),
+(119, 2185, 'Estado de postulación actualizado', 'Tu postulación ha sido aceptada por la empresa.', '/student/dashboard?tab=applications', NULL, '2026-10-16 22:36:52', '2026-10-16 22:36:52');
 
 --
 -- Índices para tablas volcadas
@@ -1400,6 +1525,14 @@ ALTER TABLE `rol_user`
   ADD KEY `rol_user_user_id_foreign` (`user_id`) USING BTREE;
 
 --
+-- Indices de la tabla `saved_offers`
+--
+ALTER TABLE `saved_offers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `saved_offers_user_id_offer_id_unique` (`user_id`,`offer_id`),
+  ADD KEY `saved_offers_offer_id_foreign` (`offer_id`);
+
+--
 -- Indices de la tabla `sessions`
 --
 ALTER TABLE `sessions`
@@ -1464,13 +1597,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT de la tabla `job_opportunity_applications`
 --
 ALTER TABLE `job_opportunity_applications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `job_opportunity_company`
 --
 ALTER TABLE `job_opportunity_company`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=602;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=675;
 
 --
 -- AUTO_INCREMENT de la tabla `job_opportunity_contract_types`
@@ -1488,7 +1621,7 @@ ALTER TABLE `job_opportunity_modalities`
 -- AUTO_INCREMENT de la tabla `job_opportunity_offer`
 --
 ALTER TABLE `job_opportunity_offer`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
 
 --
 -- AUTO_INCREMENT de la tabla `job_opportunity_offer_category`
@@ -1506,13 +1639,13 @@ ALTER TABLE `job_opportunity_offer_state`
 -- AUTO_INCREMENT de la tabla `job_opportunity_offer_state_detail`
 --
 ALTER TABLE `job_opportunity_offer_state_detail`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT de la tabla `job_opportunity_user_cv`
 --
 ALTER TABLE `job_opportunity_user_cv`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `job_opportunity_work_schedules`
@@ -1536,7 +1669,7 @@ ALTER TABLE `menu`
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de la tabla `option`
@@ -1548,13 +1681,13 @@ ALTER TABLE `option`
 -- AUTO_INCREMENT de la tabla `person`
 --
 ALTER TABLE `person`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=796;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=922;
 
 --
 -- AUTO_INCREMENT de la tabla `rol`
 --
 ALTER TABLE `rol`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `rol_option`
@@ -1566,31 +1699,37 @@ ALTER TABLE `rol_option`
 -- AUTO_INCREMENT de la tabla `rol_user`
 --
 ALTER TABLE `rol_user`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1706;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2213;
+
+--
+-- AUTO_INCREMENT de la tabla `saved_offers`
+--
+ALTER TABLE `saved_offers`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `study_programs`
 --
 ALTER TABLE `study_programs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `system_configuration`
 --
 ALTER TABLE `system_configuration`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1707;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2217;
 
 --
 -- AUTO_INCREMENT de la tabla `user_notifications`
 --
 ALTER TABLE `user_notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- Restricciones para tablas volcadas
@@ -1653,6 +1792,13 @@ ALTER TABLE `rol_option`
 ALTER TABLE `rol_user`
   ADD CONSTRAINT `rol_user_rol_id_foreign` FOREIGN KEY (`rol_id`) REFERENCES `rol` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `rol_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `saved_offers`
+--
+ALTER TABLE `saved_offers`
+  ADD CONSTRAINT `saved_offers_offer_id_foreign` FOREIGN KEY (`offer_id`) REFERENCES `job_opportunity_offer` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `saved_offers_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `user`
