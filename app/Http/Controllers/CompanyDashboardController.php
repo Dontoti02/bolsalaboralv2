@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\JobOpportunityOffer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -462,6 +463,7 @@ class CompanyDashboardController extends Controller
             'benefits'         => 'nullable|string',
             'publication_date' => 'required|date',
             'deadline'         => 'nullable|date',
+            'vacancies'        => 'nullable|integer|min:1|max:999',
             'salary'           => 'required|numeric|min:0',
             'salary_currency'  => 'required|string|in:SOLES,DOLARES',
             'address'          => 'required|string|max:255',
@@ -493,6 +495,11 @@ class CompanyDashboardController extends Controller
             $offer->slug       = $slug;
             $offer->country    = 'Perú';
             $offer->state_id   = 2;              // active by default
+            $offer->vacancies  = $request->filled('vacancies') ? (int) $request->input('vacancies') : 1;
+            if ($request->filled('publication_date')) {
+                $offer->publication_date = Carbon::parse($request->publication_date);
+            }
+            $offer->deadline   = $request->filled('deadline') ? Carbon::parse($request->deadline) : null;
 
             // Handle banner image upload for featured landing arch carousel
             if ($request->hasFile('banner_image')) {
@@ -600,6 +607,7 @@ class CompanyDashboardController extends Controller
             'benefits'         => 'nullable|string',
             'publication_date' => 'required|date',
             'deadline'         => 'nullable|date',
+            'vacancies'        => 'nullable|integer|min:1|max:999',
             'salary'           => 'required|numeric|min:0',
             'salary_currency'  => 'required|string|in:SOLES,DOLARES',
             'address'          => 'required|string|max:255',
@@ -630,6 +638,15 @@ class CompanyDashboardController extends Controller
             }
 
             $offer->fill($request->except(['company_id', 'state_id', 'banner_image'])); // never allow company override
+            if ($request->filled('vacancies')) {
+                $offer->vacancies = (int) $request->input('vacancies');
+            }
+            if ($request->filled('publication_date')) {
+                $offer->publication_date = Carbon::parse($request->publication_date);
+            }
+            if ($request->has('deadline')) {
+                $offer->deadline = $request->filled('deadline') ? Carbon::parse($request->deadline) : null;
+            }
 
             // Handle banner image upload or removal
             if ($request->hasFile('banner_image')) {

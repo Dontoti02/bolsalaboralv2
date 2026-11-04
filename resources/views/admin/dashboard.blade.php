@@ -1757,7 +1757,7 @@
                                 <span class="material-symbols-outlined text-[20px]">calendar_month</span>
                                 <span class="text-on-surface">Programación y Vigencia de la Convocatoria</span>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <!-- Fecha de publicación -->
                                 <div class="space-y-1">
                                     <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5"
@@ -1768,7 +1768,7 @@
                                     </label>
                                     <input
                                         class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
-                                        id="offer-pub-date" type="date" required />
+                                        id="offer-pub-date" type="datetime-local" required />
                                     <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[13px] text-primary shrink-0">info</span>
                                         <span>Si es futura, la oferta quedará <strong>programada</strong> y se publicará ese día.</span>
@@ -1784,10 +1784,26 @@
                                     </label>
                                     <input
                                         class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
-                                        id="offer-deadline" type="date" />
+                                        id="offer-deadline" type="datetime-local" />
                                     <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[13px] text-amber-600 shrink-0">alarm</span>
-                                        <span>Al cumplirse la fecha, la convocatoria se <strong>finaliza</strong> y cierra postulaciones.</span>
+                                        <span>Al cumplirse la fecha y hora, la convocatoria se <strong>finaliza</strong> y cierra postulaciones.</span>
+                                    </p>
+                                </div>
+                                <!-- Vacantes disponibles -->
+                                <div class="space-y-1">
+                                    <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5"
+                                        for="offer-vacancies">
+                                        <span class="material-symbols-outlined text-[16px] text-primary">group</span>
+                                        <span>Vacantes disponibles</span>
+                                        <span class="text-error font-bold">*</span>
+                                    </label>
+                                    <input
+                                        class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                        id="offer-vacancies" type="number" min="1" max="999" value="1" required />
+                                    <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px] text-primary shrink-0">badge</span>
+                                        <span>Número de puestos abiertos para la convocatoria.</span>
                                     </p>
                                 </div>
                             </div>
@@ -6031,6 +6047,56 @@
                 });
         }
 
+        // Helper to format Date for datetime-local input (YYYY-MM-DDTHH:mm)
+        function formatForDateTimeLocal(dateStr) {
+            if (!dateStr) return '';
+            const str = String(dateStr).trim();
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)) return str;
+            const d = new Date(str.replace(' ', 'T'));
+            if (isNaN(d.getTime())) {
+                const clean = str.replace(' ', 'T');
+                return clean.length >= 16 ? clean.substring(0, 16) : clean;
+            }
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function getNowForDateTimeLocal() {
+            const d = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function parseOfferDeadline(dateStr) {
+            if (!dateStr) return null;
+            const str = String(dateStr).trim();
+            const timeMatch = str.match(/(?:T|\s)(\d{2}):(\d{2})/);
+            if (timeMatch && !(timeMatch[1] === '00' && timeMatch[2] === '00')) {
+                const d = new Date(str.replace(' ', 'T'));
+                if (!isNaN(d.getTime())) return d;
+            }
+            const parts = str.split('T')[0].split(' ')[0].split('-');
+            if (parts.length === 3) {
+                return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 23, 59, 59, 999);
+            }
+            return new Date(str);
+        }
+
+        function parseOfferPubDate(dateStr) {
+            if (!dateStr) return null;
+            const str = String(dateStr).trim();
+            const timeMatch = str.match(/(?:T|\s)(\d{2}):(\d{2})/);
+            if (timeMatch && !(timeMatch[1] === '00' && timeMatch[2] === '00')) {
+                const d = new Date(str.replace(' ', 'T'));
+                if (!isNaN(d.getTime())) return d;
+            }
+            const parts = str.split('T')[0].split(' ')[0].split('-');
+            if (parts.length === 3) {
+                return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+            }
+            return new Date(str);
+        }
+
         // Render Offers Table rows
         function renderOffersTable(offers) {
             const tbody = document.getElementById('offers-table-body');
@@ -6050,19 +6116,13 @@
                 const now = new Date();
                 let isExpired = (offer.state && offer.state.key === 'finished') || (offer.state_id == 3);
                 if (!isExpired && offer.deadline) {
-                    const dp = String(offer.deadline).split('T')[0].split(' ')[0].split('-');
-                    const deadlineDate = dp.length === 3
-                        ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
-                        : new Date(new Date(offer.deadline).getFullYear(), new Date(offer.deadline).getMonth(), new Date(offer.deadline).getDate(), 23, 59, 59);
-                    if (deadlineDate < now) isExpired = true;
+                    const deadlineDate = parseOfferDeadline(offer.deadline);
+                    if (deadlineDate && deadlineDate < now) isExpired = true;
                 }
                 let isScheduled = false;
                 if (offer.publication_date) {
-                    const pp = String(offer.publication_date).split('T')[0].split(' ')[0].split('-');
-                    const pubDate = pp.length === 3
-                        ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
-                        : new Date(offer.publication_date);
-                    if (pubDate > now) isScheduled = true;
+                    const pubDate = parseOfferPubDate(offer.publication_date);
+                    if (pubDate && pubDate > now) isScheduled = true;
                 }
 
                 let stateClass = 'bg-surface-container-high text-on-surface-variant';
@@ -6149,10 +6209,10 @@
             document.getElementById('form-offer-title').textContent = 'Crear Oferta Laboral';
             document.getElementById('btn-save-offer').textContent = 'Crear Oferta Laboral';
 
-            // Default publication date to today
-            const todayStr = new Date().toISOString().split('T')[0];
-            document.getElementById('offer-pub-date').value = todayStr;
+            // Default publication date to today and local time
+            document.getElementById('offer-pub-date').value = getNowForDateTimeLocal();
             document.getElementById('offer-deadline').value = '';
+            document.getElementById('offer-vacancies').value = '1';
             document.getElementById('offer-external-url').value = '';
 
             document.getElementById('offers-list-view').classList.add('hidden');
@@ -6174,7 +6234,8 @@
             const payload = {
                 title: document.getElementById('offer-title').value,
                 publication_date: document.getElementById('offer-pub-date').value,
-                deadline: document.getElementById('offer-deadline').value,
+                deadline: document.getElementById('offer-deadline').value || null,
+                vacancies: parseInt(document.getElementById('offer-vacancies').value) || 1,
                 external_url: document.getElementById('offer-external-url').value,
                 description: document.getElementById('offer-description').value,
                 requirements: document.getElementById('offer-requirements').value,
@@ -6593,8 +6654,9 @@
                         const offer = data.offer;
                         document.getElementById('form-offer-id').value = offer.id;
                         document.getElementById('offer-title').value = offer.title;
-                        document.getElementById('offer-pub-date').value = offer.publication_date ? offer.publication_date.split('T')[0] : '';
-                        document.getElementById('offer-deadline').value = offer.deadline ? offer.deadline.split('T')[0] : '';
+                        document.getElementById('offer-pub-date').value = offer.publication_date ? formatForDateTimeLocal(offer.publication_date) : '';
+                        document.getElementById('offer-deadline').value = offer.deadline ? formatForDateTimeLocal(offer.deadline) : '';
+                        document.getElementById('offer-vacancies').value = offer.vacancies ? offer.vacancies : 1;
                         document.getElementById('offer-external-url').value = offer.external_url || '';
                         document.getElementById('offer-description').value = offer.description;
                         document.getElementById('offer-requirements').value = offer.requirements;
@@ -6682,7 +6744,7 @@
                         </div>
 
                         <!-- Info Badges Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-md">
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-md">
                             <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
                                 <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Jornada</span>
                                 <span class="font-bold text-body-sm text-on-surface">${scheduleName}</span>
@@ -6696,12 +6758,16 @@
                                 <span class="font-bold text-body-sm text-on-surface text-green-700">${salaryText}</span>
                             </div>
                             <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Vacantes</span>
+                                <span class="font-bold text-body-sm text-primary">${offer.vacancies || 1} ${Number(offer.vacancies || 1) === 1 ? 'vacante' : 'vacantes'}</span>
+                            </div>
+                            <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
                                 <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Publicación</span>
-                                <span class="font-bold text-body-sm text-on-surface">${offer.publication_date ? new Date(offer.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</span>
+                                <span class="font-bold text-body-sm text-on-surface">${offer.publication_date ? new Date(String(offer.publication_date).replace(' ', 'T')).toLocaleString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}</span>
                             </div>
                             <div class="p-md border border-outline-variant rounded-xl bg-surface-container-low">
                                 <span class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">Vencimiento</span>
-                                <span class="font-bold text-body-sm text-on-surface">${offer.deadline ? new Date(offer.deadline).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Abierta'}</span>
+                                <span class="font-bold text-body-sm text-on-surface">${offer.deadline ? new Date(String(offer.deadline).replace(' ', 'T')).toLocaleString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : 'Abierta'}</span>
                             </div>
                         </div>
 

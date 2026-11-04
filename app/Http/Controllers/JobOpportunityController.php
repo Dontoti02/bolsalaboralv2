@@ -11,6 +11,7 @@ use App\Models\JobOpportunityOfferState;
 use App\Models\Company;
 use App\Models\StudyProgram;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -149,6 +150,7 @@ class JobOpportunityController extends Controller
             'benefits' => 'nullable|string',
             'publication_date' => 'required|date',
             'deadline' => 'nullable|date',
+            'vacancies' => 'nullable|integer|min:1|max:999',
             'salary' => 'required|numeric|min:0',
             'salary_currency' => 'required|string|in:SOLES,DOLARES',
             'address' => 'required|string|max:255',
@@ -184,6 +186,11 @@ class JobOpportunityController extends Controller
             $offer->country = 'Perú';
             // Default to vigent/active (2) if not specified
             $offer->state_id = $request->input('state_id', 2);
+            $offer->vacancies = $request->filled('vacancies') ? (int) $request->input('vacancies') : 1;
+            if ($request->filled('publication_date')) {
+                $offer->publication_date = Carbon::parse($request->publication_date);
+            }
+            $offer->deadline = $request->filled('deadline') ? Carbon::parse($request->deadline) : null;
             $offer->save();
 
             // Record initial state in state detail table
@@ -256,6 +263,7 @@ class JobOpportunityController extends Controller
             'benefits' => 'nullable|string',
             'publication_date' => 'required|date',
             'deadline' => 'nullable|date',
+            'vacancies' => 'nullable|integer|min:1|max:999',
             'salary' => 'required|numeric|min:0',
             'salary_currency' => 'required|string|in:SOLES,DOLARES',
             'address' => 'required|string|max:255',
@@ -293,6 +301,15 @@ class JobOpportunityController extends Controller
             }
 
             $offer->fill($request->all());
+            if ($request->filled('vacancies')) {
+                $offer->vacancies = (int) $request->input('vacancies');
+            }
+            if ($request->filled('publication_date')) {
+                $offer->publication_date = Carbon::parse($request->publication_date);
+            }
+            if ($request->has('deadline')) {
+                $offer->deadline = $request->filled('deadline') ? Carbon::parse($request->deadline) : null;
+            }
             $offer->save();
 
             DB::commit();

@@ -220,6 +220,7 @@ CREATE TABLE `job_opportunity_offer` (
   `benefits` text DEFAULT NULL,
   `salary` decimal(10,2) NOT NULL,
   `salary_currency` varchar(255) NOT NULL,
+  `vacancies` int(10) UNSIGNED NOT NULL DEFAULT 1,
   `attachments` varchar(255) DEFAULT NULL,
   `banner_image` varchar(500) DEFAULT NULL,
   `external_url` varchar(500) DEFAULT NULL,
@@ -460,7 +461,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (27, '2026_09_15_000001_add_egresado_role_to_rol_table', 10),
 (28, '2026_10_15_201546_add_banner_image_to_job_opportunity_offer_table', 11),
 (29, '2026_10_15_214500_add_cover_image_to_job_opportunity_company_table', 12),
-(30, '2026_10_16_174954_add_external_url_to_job_opportunity_offer_table', 13);
+(30, '2026_10_16_174954_add_external_url_to_job_opportunity_offer_table', 13),
+(31, '2026_11_04_000001_add_vacancies_to_job_opportunity_offer_table', 14);
 
 -- --------------------------------------------------------
 
@@ -1669,7 +1671,7 @@ ALTER TABLE `menu`
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `option`

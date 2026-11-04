@@ -663,33 +663,47 @@
                             <span class="material-symbols-outlined text-[20px]">calendar_month</span>
                             <span class="text-on-surface">Programación y Vigencia de la Convocatoria</span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Fecha de publicación -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Fecha y hora de publicación -->
                             <div class="space-y-1">
                                 <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5" for="co-offer-pub-date">
                                     <span class="material-symbols-outlined text-[16px] text-primary">schedule_send</span>
-                                    <span>Fecha de publicación</span>
+                                    <span>Fecha y hora de publicación</span>
                                     <span class="text-error font-bold">*</span>
                                 </label>
                                 <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
-                                    id="co-offer-pub-date" type="date" required />
+                                    id="co-offer-pub-date" type="datetime-local" required />
                                 <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[13px] text-primary shrink-0">info</span>
-                                    <span>Si es fecha futura, la oferta se mantendrá <strong>programada</strong> hasta ese día.</span>
+                                    <span>Si es fecha futura, la oferta se mantendrá <strong>programada</strong> hasta esa hora.</span>
                                 </p>
                             </div>
-                            <!-- Fecha límite (Vencimiento) -->
+                            <!-- Fecha y hora límite (Vencimiento) -->
                             <div class="space-y-1">
                                 <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5" for="co-offer-deadline">
                                     <span class="material-symbols-outlined text-[16px] text-primary">event_busy</span>
-                                    <span>Fecha límite (Vencimiento)</span>
+                                    <span>Fecha y hora límite</span>
                                     <span class="text-[11px] text-on-surface-variant font-normal">(Opcional)</span>
                                 </label>
                                 <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
-                                    id="co-offer-deadline" type="date" />
+                                    id="co-offer-deadline" type="datetime-local" />
                                 <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[13px] text-amber-600 shrink-0">alarm</span>
-                                    <span>Al llegar la fecha, la vacante se dará por <strong>finalizada</strong> automáticamente.</span>
+                                    <span>Al llegar la fecha y hora, la vacante se <strong>finaliza</strong> automáticamente.</span>
+                                </p>
+                            </div>
+                            <!-- Vacantes disponibles -->
+                            <div class="space-y-1">
+                                <label class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5" for="co-offer-vacancies">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">group</span>
+                                    <span>Vacantes disponibles</span>
+                                    <span class="text-error font-bold">*</span>
+                                </label>
+                                <input class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                                    id="co-offer-vacancies" type="number" min="1" max="999" value="1" required />
+                                <p class="text-[11px] text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-primary shrink-0">badge</span>
+                                    <span>Número de puestos abiertos para la convocatoria.</span>
                                 </p>
                             </div>
                         </div>
@@ -1929,20 +1943,14 @@
                     const now = new Date();
                     let isExpired = (stateId === 3);
                     if (!isExpired && o.deadline) {
-                        const dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
-                        const deadlineDate = dp.length === 3
-                            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
-                            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
-                        if (deadlineDate < now) isExpired = true;
+                        const deadlineDate = parseOfferDeadline(o.deadline);
+                        if (deadlineDate && deadlineDate < now) isExpired = true;
                     }
 
                     let isScheduled = false;
                     if (o.publication_date) {
-                        const pp = String(o.publication_date).split('T')[0].split(' ')[0].split('-');
-                        const pubDate = pp.length === 3
-                            ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
-                            : new Date(o.publication_date);
-                        if (pubDate > now) isScheduled = true;
+                        const pubDate = parseOfferPubDate(o.publication_date);
+                        if (pubDate && pubDate > now) isScheduled = true;
                     }
 
                     let displayStateLbl = stateLbl;
@@ -1997,13 +2005,68 @@
             });
     }
 
+    function formatForDateTimeLocal(dateStr) {
+        if (!dateStr) return '';
+        const str = String(dateStr).trim();
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)) return str;
+        const d = new Date(str.replace(' ', 'T'));
+        if (isNaN(d.getTime())) {
+            const clean = str.replace(' ', 'T');
+            return clean.length >= 16 ? clean.substring(0, 16) : clean;
+        }
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function getNowForDateTimeLocal() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function parseOfferDeadline(dateStr) {
+        if (!dateStr) return null;
+        const str = String(dateStr).trim();
+        const timeMatch = str.match(/(?:T|\s)(\d{2}):(\d{2})/);
+        if (timeMatch && !(timeMatch[1] === '00' && timeMatch[2] === '00')) {
+            const d = new Date(str.replace(' ', 'T'));
+            if (!isNaN(d.getTime())) return d;
+        }
+        const parts = str.split('T')[0].split(' ')[0].split('-');
+        if (parts.length === 3) {
+            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 23, 59, 59, 999);
+        }
+        return new Date(str);
+    }
+
+    function parseOfferPubDate(dateStr) {
+        if (!dateStr) return null;
+        const str = String(dateStr).trim();
+        const timeMatch = str.match(/(?:T|\s)(\d{2}):(\d{2})/);
+        if (timeMatch && !(timeMatch[1] === '00' && timeMatch[2] === '00')) {
+            const d = new Date(str.replace(' ', 'T'));
+            if (!isNaN(d.getTime())) return d;
+        }
+        const parts = str.split('T')[0].split(' ')[0].split('-');
+        if (parts.length === 3) {
+            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+        }
+        return new Date(str);
+    }
+
     function formatPreviewDate(dateStr) {
         if (!dateStr) return null;
-        const parts = String(dateStr).split('T')[0].split(' ')[0].split('-');
+        const str = String(dateStr).trim();
+        const parts = str.split('T')[0].split(' ')[0].split('-');
+        let formatted = str;
         if (parts.length === 3) {
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
-        return String(dateStr);
+        const timeMatch = str.match(/(?:T|\s)(\d{2}:\d{2})/);
+        if (timeMatch && timeMatch[1] !== '00:00') {
+            formatted += ` ${timeMatch[1]}`;
+        }
+        return formatted;
     }
 
     function openCompanyOfferPreview(id) {
@@ -2035,20 +2098,14 @@
         const stateLabels = { 1: 'Borrador', 2: 'Activa', 3: 'Finalizada', 4: 'Pausada', 5: 'Archivada' };
         let isExpired = (stateId === 3);
         if (!isExpired && o.deadline) {
-            const dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
-            const deadlineDate = dp.length === 3
-                ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
-                : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
-            if (deadlineDate < now) isExpired = true;
+            const deadlineDate = parseOfferDeadline(o.deadline);
+            if (deadlineDate && deadlineDate < now) isExpired = true;
         }
 
         let isScheduled = false;
         if (o.publication_date) {
-            const pp = String(o.publication_date).split('T')[0].split(' ')[0].split('-');
-            const pubDate = pp.length === 3
-                ? new Date(Number(pp[0]), Number(pp[1]) - 1, Number(pp[2]), 0, 0, 0)
-                : new Date(o.publication_date);
-            if (pubDate > now) isScheduled = true;
+            const pubDate = parseOfferPubDate(o.publication_date);
+            if (pubDate && pubDate > now) isScheduled = true;
         }
 
         const statusBadge = document.getElementById('cop-status-badge');
@@ -2192,8 +2249,9 @@
     function showCreateOfferForm() {
         document.getElementById('company-form-offer-id').value = '';
         document.getElementById('company-offer-form').reset();
-        document.getElementById('co-offer-pub-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('co-offer-pub-date').value = getNowForDateTimeLocal();
         document.getElementById('co-offer-deadline').value = '';
+        document.getElementById('co-offer-vacancies').value = '1';
         document.getElementById('co-offer-external-url').value = '';
         document.getElementById('company-form-offer-title').textContent = 'Crear Oferta Laboral';
         document.getElementById('co-btn-save-offer').textContent = 'Crear Oferta Laboral';
@@ -2268,6 +2326,7 @@
         formData.append('benefits',         document.getElementById('co-offer-benefits').value);
         formData.append('publication_date', document.getElementById('co-offer-pub-date').value);
         formData.append('deadline',         document.getElementById('co-offer-deadline').value);
+        formData.append('vacancies',        document.getElementById('co-offer-vacancies').value || '1');
         formData.append('external_url',     document.getElementById('co-offer-external-url').value);
         formData.append('salary',           document.getElementById('co-offer-salary').value);
         formData.append('salary_currency',  document.getElementById('co-offer-currency').value);
@@ -2326,8 +2385,9 @@
                 document.getElementById('co-offer-description').value   = o.description || '';
                 document.getElementById('co-offer-requirements').value  = o.requirements || '';
                 document.getElementById('co-offer-benefits').value      = o.benefits || '';
-                document.getElementById('co-offer-pub-date').value      = o.publication_date ? o.publication_date.split('T')[0] : '';
-                document.getElementById('co-offer-deadline').value      = o.deadline ? o.deadline.split('T')[0] : '';
+                document.getElementById('co-offer-pub-date').value      = o.publication_date ? formatForDateTimeLocal(o.publication_date) : '';
+                document.getElementById('co-offer-deadline').value      = o.deadline ? formatForDateTimeLocal(o.deadline) : '';
+                document.getElementById('co-offer-vacancies').value     = o.vacancies ? o.vacancies : 1;
                 document.getElementById('co-offer-external-url').value  = o.external_url || '';
                 document.getElementById('co-offer-salary').value        = o.salary || 0;
                 document.getElementById('co-offer-currency').value      = o.salary_currency || 'SOLES';

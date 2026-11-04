@@ -32,6 +32,7 @@ class JobOpportunityOffer extends Model
         'benefits',
         'salary',
         'salary_currency',
+        'vacancies',
         'attachments',
         'address',
         'department',
@@ -56,6 +57,7 @@ class JobOpportunityOffer extends Model
         'publication_date' => 'datetime',
         'deadline' => 'datetime',
         'salary' => 'decimal:2',
+        'vacancies' => 'integer',
     ];
 
     /**

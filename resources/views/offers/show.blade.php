@@ -1388,7 +1388,7 @@
                     <div class="stat-highlight-item">
                         <span class="stat-highlight-label">Fecha límite</span>
                         <span class="stat-highlight-val">
-                            {{ $offer->deadline ? \Carbon\Carbon::parse($offer->deadline)->format('d M Y') : 'Convocatoria abierta' }}
+                            {{ $offer->deadline ? ($offer->deadline->format('H:i') !== '00:00' ? \Carbon\Carbon::parse($offer->deadline)->format('d M Y, h:i A') : \Carbon\Carbon::parse($offer->deadline)->format('d M Y')) : 'Convocatoria abierta' }}
                         </span>
                     </div>
                 </div>
@@ -1486,7 +1486,7 @@
                         <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;">
                             <span class="material-symbols-outlined" style="font-size:32px;color:#d97706;display:block;margin:0 auto 6px;">schedule</span>
                             <div style="font-size:15px;font-weight:800;color:#92400e;">Oferta Programada</div>
-                            <div style="font-size:12.5px;color:#b45309;margin-top:4px;line-height:1.4;">La convocatoria abrirá el {{ $offer->publication_date ? $offer->publication_date->format('d/m/Y') : '' }}.</div>
+                            <div style="font-size:12.5px;color:#b45309;margin-top:4px;line-height:1.4;">La convocatoria abrirá el {{ $offer->publication_date ? ($offer->publication_date->format('H:i') !== '00:00' ? $offer->publication_date->format('d/m/Y H:i') : $offer->publication_date->format('d/m/Y')) : '' }}.</div>
                         </div>
                         <button type="button" class="btn-apply-main" disabled style="background:#9ca3af;cursor:not-allowed;opacity:0.8;box-shadow:none;">
                             <span class="material-symbols-outlined">schedule</span>
@@ -1568,7 +1568,7 @@
                             Fecha límite
                         </span>
                         <span class="sidebar-meta-val">
-                            {{ $offer->deadline ? \Carbon\Carbon::parse($offer->deadline)->format('d/m/Y') : 'Abierta' }}
+                            {{ $offer->deadline ? ($offer->deadline->format('H:i') !== '00:00' ? \Carbon\Carbon::parse($offer->deadline)->format('d/m/Y H:i') : \Carbon\Carbon::parse($offer->deadline)->format('d/m/Y')) : 'Abierta' }}
                         </span>
                     </div>
                 </div>

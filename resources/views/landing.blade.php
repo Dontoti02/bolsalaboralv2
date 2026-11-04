@@ -2247,6 +2247,21 @@ function showAllCompanies() {
     showToast('Mostrando todas las ofertas disponibles');
 }
 
+function parseLandingDeadline(dateStr) {
+    if (!dateStr) return null;
+    var str = String(dateStr).trim();
+    var timeMatch = str.match(/(?:T|\s)(\d{2}):(\d{2})/);
+    if (timeMatch && !(timeMatch[1] === '00' && timeMatch[2] === '00')) {
+        var d = new Date(str.replace(' ', 'T'));
+        if (!isNaN(d.getTime())) return d;
+    }
+    var parts = str.split('T')[0].split(' ')[0].split('-');
+    if (parts.length === 3) {
+        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 23, 59, 59, 999);
+    }
+    return new Date(str);
+}
+
 // ── Render Card ─────────────────────────────────────────────────────────────
 function renderCard(o) {
     var co = o.company || {};
@@ -2280,18 +2295,9 @@ function renderCard(o) {
     // Cierre / Vencimiento
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
-    var deadlineDateObj = null;
-    if (o.deadline) {
-        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
-        if (dp.length === 3) {
-            deadlineDateObj = new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59);
-        } else {
-            var dFallback = new Date(o.deadline);
-            deadlineDateObj = new Date(dFallback.getFullYear(), dFallback.getMonth(), dFallback.getDate(), 23, 59, 59);
-        }
-        if (!isExpired && deadlineDateObj < now) {
-            isExpired = true;
-        }
+    var deadlineDateObj = parseLandingDeadline(o.deadline);
+    if (!isExpired && deadlineDateObj && deadlineDateObj < now) {
+        isExpired = true;
     }
 
     var closeHtml = 'Convocatoria abierta';
@@ -2423,13 +2429,8 @@ function openOpportunityDetail(id) {
     // Cierre / Vencimiento
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
-    if (!isExpired && o.deadline) {
-        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
-        var deadlineEnd = dp.length === 3
-            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
-            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
-        if (deadlineEnd < now) isExpired = true;
-    }
+    var deadlineEnd = parseLandingDeadline(o.deadline);
+    if (!isExpired && deadlineEnd && deadlineEnd < now) isExpired = true;
 
     // Status banner & badge
     var statusBanner = document.getElementById('m-status-banner');
@@ -2532,13 +2533,8 @@ function openPostularModal(offer) {
     // Check expiration
     var now = new Date();
     var isExpired = (o.state_id === 3) || (o.state && o.state.key === 'finished');
-    if (!isExpired && o.deadline) {
-        var dp = String(o.deadline).split('T')[0].split(' ')[0].split('-');
-        var deadlineEnd = dp.length === 3
-            ? new Date(Number(dp[0]), Number(dp[1]) - 1, Number(dp[2]), 23, 59, 59)
-            : new Date(new Date(o.deadline).getFullYear(), new Date(o.deadline).getMonth(), new Date(o.deadline).getDate(), 23, 59, 59);
-        if (deadlineEnd < now) isExpired = true;
-    }
+    var deadlineEnd = parseLandingDeadline(o.deadline);
+    if (!isExpired && deadlineEnd && deadlineEnd < now) isExpired = true;
     if (isExpired) {
         showToast('Esta convocatoria ha finalizado y ya no recibe postulaciones.');
         return;
