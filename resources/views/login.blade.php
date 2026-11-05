@@ -362,10 +362,16 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-ruc">RUC (11 dígitos)</label>
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-ruc">RUC (11 dígitos)</label>
+                                <span id="ruc-status" class="text-[11px] font-medium hidden"></span>
+                            </div>
                             <div class="relative">
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">fingerprint</span>
-                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-ruc" name="ruc" placeholder="20123456789" type="text" minlength="11" maxlength="11" pattern="\d{11}" required />
+                                <input class="w-full pl-9 pr-10 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-ruc" name="ruc" placeholder="20123456789" type="text" minlength="11" maxlength="11" pattern="\d{11}" required />
+                                <button type="button" id="btn-consultar-ruc" title="Consultar en SUNAT" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]" id="icon-consultar-ruc">search</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -447,10 +453,16 @@
                     <!-- Documento DNI & Teléfono en Grid Responsivo -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
-                            <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-dni">DNI (8 dígitos)</label>
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs sm:text-sm text-on-surface-variant block font-medium" for="reg-grad-dni">DNI (8 dígitos)</label>
+                                <span id="dni-status" class="text-[11px] font-medium hidden"></span>
+                            </div>
                             <div class="relative">
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
-                                <input class="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-dni" name="document_number" placeholder="Ej. 45678912" type="text" minlength="8" maxlength="8" pattern="\d{8}" required />
+                                <input class="w-full pl-9 pr-10 py-2.5 sm:py-2 bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all text-base sm:text-sm placeholder-outline" id="reg-grad-dni" name="document_number" placeholder="Ej. 45678912" type="text" minlength="8" maxlength="8" pattern="\d{8}" required />
+                                <button type="button" id="btn-consultar-dni" title="Consultar en RENIEC" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-purple-600 hover:text-purple-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]" id="icon-consultar-dni">search</span>
+                                </button>
                             </div>
                         </div>
 
@@ -838,10 +850,148 @@
         });
     }
 
+    // Consulta SUNAT (RUC) en Registro Empresa
+    function consultarRucLogin() {
+        const rucInput = document.getElementById('reg-ruc');
+        const nameInput = document.getElementById('reg-name');
+        const statusSpan = document.getElementById('ruc-status');
+        const icon = document.getElementById('icon-consultar-ruc');
+        const ruc = rucInput ? rucInput.value.trim() : '';
+
+        if (!/^\d{11}$/.test(ruc)) {
+            if (statusSpan) {
+                statusSpan.textContent = 'Ingrese 11 dígitos';
+                statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+            }
+            return;
+        }
+
+        if (icon) {
+            icon.textContent = 'autorenew';
+            icon.classList.add('animate-spin');
+        }
+        if (statusSpan) {
+            statusSpan.textContent = 'Consultando SUNAT...';
+            statusSpan.className = 'text-[11px] font-medium text-emerald-600 block';
+        }
+
+        fetch(`/consultas/ruc/${ruc}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    if (nameInput) {
+                        nameInput.value = res.data.razon_social || res.data.nombre || '';
+                    }
+                    if (statusSpan) {
+                        const estado = res.data.estado ? res.data.estado : 'ACTIVO';
+                        const cond = res.data.condicion ? res.data.condicion : 'HABIDO';
+                        statusSpan.textContent = `✓ SUNAT: ${estado} (${cond})`;
+                        statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block';
+                    }
+                } else {
+                    if (statusSpan) {
+                        statusSpan.textContent = res.message || 'No encontrado en SUNAT';
+                        statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                    }
+                }
+            })
+            .catch(() => {
+                if (statusSpan) {
+                    statusSpan.textContent = 'Error al consultar SUNAT';
+                    statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                }
+            })
+            .finally(() => {
+                if (icon) {
+                    icon.textContent = 'search';
+                    icon.classList.remove('animate-spin');
+                }
+            });
+    }
+
+    // Consulta RENIEC (DNI) en Registro Egresado
+    function consultarDniLogin() {
+        const dniInput = document.getElementById('reg-grad-dni');
+        const nameInput = document.getElementById('reg-grad-names');
+        const statusSpan = document.getElementById('dni-status');
+        const icon = document.getElementById('icon-consultar-dni');
+        const dni = dniInput ? dniInput.value.trim() : '';
+
+        if (!/^\d{8}$/.test(dni)) {
+            if (statusSpan) {
+                statusSpan.textContent = 'Ingrese 8 dígitos';
+                statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+            }
+            return;
+        }
+
+        if (icon) {
+            icon.textContent = 'autorenew';
+            icon.classList.add('animate-spin');
+        }
+        if (statusSpan) {
+            statusSpan.textContent = 'Consultando RENIEC...';
+            statusSpan.className = 'text-[11px] font-medium text-purple-600 block';
+        }
+
+        fetch(`/consultas/dni/${dni}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    if (nameInput) {
+                        nameInput.value = res.data.nombre_completo || `${res.data.nombres} ${res.data.apellido_paterno} ${res.data.apellido_materno}`.trim();
+                    }
+                    if (statusSpan) {
+                        statusSpan.textContent = '✓ RENIEC Verificado';
+                        statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block';
+                    }
+                } else {
+                    if (statusSpan) {
+                        statusSpan.textContent = res.message || 'No encontrado en RENIEC';
+                        statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                    }
+                }
+            })
+            .catch(() => {
+                if (statusSpan) {
+                    statusSpan.textContent = 'Error al consultar RENIEC';
+                    statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                }
+            })
+            .finally(() => {
+                if (icon) {
+                    icon.textContent = 'search';
+                    icon.classList.remove('animate-spin');
+                }
+            });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const formScrollContainer = document.getElementById('form-scroll-container');
         if (formScrollContainer) {
             formScrollContainer.scrollTop = 0;
+        }
+
+        const btnRuc = document.getElementById('btn-consultar-ruc');
+        const inputRuc = document.getElementById('reg-ruc');
+        if (btnRuc) btnRuc.addEventListener('click', consultarRucLogin);
+        if (inputRuc) {
+            inputRuc.addEventListener('input', function() {
+                if (this.value.trim().length === 11) {
+                    consultarRucLogin();
+                }
+            });
+        }
+
+        const btnDni = document.getElementById('btn-consultar-dni');
+        const inputDni = document.getElementById('reg-grad-dni');
+        if (btnDni) btnDni.addEventListener('click', consultarDniLogin);
+        if (inputDni) {
+            inputDni.addEventListener('input', function() {
+                if (this.value.trim().length === 8) {
+                    consultarDniLogin();
+                }
+            });
         }
 
         const togglePassword = document.getElementById('toggle-password');

@@ -19,6 +19,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobOpportunityController;
+use App\Http\Controllers\ConsultaDocumentoController;
+
+// Consultas seguras a RENIEC y SUNAT (con Rate Limiting)
+Route::middleware(['throttle:60,1'])->group(function () {
+    Route::get('/consultas/dni/{dni}', [ConsultaDocumentoController::class, 'consultarDni'])->name('consultas.dni');
+    Route::get('/consultas/ruc/{ruc}', [ConsultaDocumentoController::class, 'consultarRuc'])->name('consultas.ruc');
+});
+
 
 // Landing Page pública (acceso para visitantes y postulantes)
 Route::get('/', [LandingController::class, 'index'])->name('landing');

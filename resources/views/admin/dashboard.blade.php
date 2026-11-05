@@ -2214,12 +2214,21 @@
                             <!-- RUC y Email -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                                 <div class="space-y-xs">
-                                    <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                                        for="comp-ruc">RUC</label>
-                                    <input
-                                        class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
-                                        id="comp-ruc" name="ruc" placeholder="Ej. 20123456789" type="text"
-                                        maxlength="11" required />
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-label-sm text-label-sm text-on-surface-variant block"
+                                            for="comp-ruc">RUC</label>
+                                        <span id="comp-ruc-status" class="text-[11px] font-medium hidden"></span>
+                                    </div>
+                                    <div class="relative">
+                                        <input
+                                            class="w-full pl-4 pr-10 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-sm text-body-sm"
+                                            id="comp-ruc" name="ruc" placeholder="Ej. 20123456789" type="text"
+                                            maxlength="11" required />
+                                        <button type="button" id="btn-admin-consultar-ruc" title="Consultar en SUNAT"
+                                            class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-primary hover:text-primary-dark transition-colors">
+                                            <span class="material-symbols-outlined text-[18px]" id="icon-admin-consultar-ruc">search</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="space-y-xs">
                                     <label class="font-label-sm text-label-sm text-on-surface-variant block"
@@ -3218,11 +3227,20 @@
 
                     <!-- Documento de identidad -->
                     <div class="space-y-xs">
-                        <label class="font-label-sm text-label-sm text-on-surface-variant block"
-                            for="form-doc-number">Documento de identidad</label>
-                        <input
-                            class="w-full px-4 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
-                            id="form-doc-number" placeholder="Ej. 48293041" type="text" required />
+                        <div class="flex items-center justify-between">
+                            <label class="font-label-sm text-label-sm text-on-surface-variant block"
+                                for="form-doc-number">Documento de identidad</label>
+                            <span id="form-doc-status" class="text-[11px] font-medium hidden"></span>
+                        </div>
+                        <div class="relative">
+                            <input
+                                class="w-full pl-4 pr-10 py-2.5 bg-background border border-outline-variant rounded-xl focus:ring-2 focus:ring-student-accent/20 focus:border-student-accent outline-none transition-all font-body-sm text-body-sm"
+                                id="form-doc-number" placeholder="Ej. 48293041" type="text" required />
+                            <button type="button" id="btn-admin-consultar-doc" title="Consultar en RENIEC / SUNAT"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-primary hover:text-primary-dark transition-colors">
+                                <span class="material-symbols-outlined text-[18px]" id="icon-admin-consultar-doc">search</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Programa de Estudios (Solo para Estudiantes y Egresados) -->
@@ -3935,6 +3953,8 @@
             document.getElementById('form-user-id').value = '';
             const spSelect = document.getElementById('form-study-program');
             if (spSelect) spSelect.value = '';
+            const docStatus = document.getElementById('form-doc-status');
+            if (docStatus) docStatus.classList.add('hidden');
             handleRoleChange(document.getElementById('form-role').value);
 
             const modal = document.getElementById('create-user-modal');
@@ -3955,6 +3975,8 @@
             document.getElementById('form-role').value = roleId;
             document.getElementById('form-doc-type').value = docType;
             document.getElementById('form-doc-number').value = docNumber;
+            const docStatus = document.getElementById('form-doc-status');
+            if (docStatus) docStatus.classList.add('hidden');
             const spSelect = document.getElementById('form-study-program');
             if (spSelect) spSelect.value = studyProgramId || '';
             handleRoleChange(roleId);
@@ -3967,6 +3989,124 @@
                 toggleCreateModal();
             }
         }
+
+        // Consulta RENIEC o SUNAT en Modal de Usuario (Admin)
+        function consultarDocAdmin() {
+            const docTypeSelect = document.getElementById('form-doc-type');
+            const docInput = document.getElementById('form-doc-number');
+            const namesInput = document.getElementById('form-names');
+            const statusSpan = document.getElementById('form-doc-status');
+            const icon = document.getElementById('icon-admin-consultar-doc');
+
+            const docType = docTypeSelect ? docTypeSelect.value : 'DNI';
+            const num = docInput ? docInput.value.trim() : '';
+
+            if (docType === 'DNI') {
+                if (!/^\d{8}$/.test(num)) {
+                    if (statusSpan) {
+                        statusSpan.textContent = 'DNI debe tener 8 dígitos';
+                        statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+                    }
+                    return;
+                }
+
+                if (icon) {
+                    icon.textContent = 'autorenew';
+                    icon.classList.add('animate-spin');
+                }
+                if (statusSpan) {
+                    statusSpan.textContent = 'Consultando RENIEC...';
+                    statusSpan.className = 'text-[11px] font-medium text-primary block';
+                }
+
+                fetch(`/consultas/dni/${num}`)
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success && res.data) {
+                            if (namesInput) {
+                                namesInput.value = res.data.nombre_completo || `${res.data.nombres} ${res.data.apellido_paterno} ${res.data.apellido_materno}`.trim();
+                            }
+                            if (statusSpan) {
+                                statusSpan.textContent = '✓ RENIEC Verificado';
+                                statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block';
+                            }
+                        } else {
+                            if (statusSpan) {
+                                statusSpan.textContent = res.message || 'No encontrado en RENIEC';
+                                statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        if (statusSpan) {
+                            statusSpan.textContent = 'Error al consultar RENIEC';
+                            statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                        }
+                    })
+                    .finally(() => {
+                        if (icon) {
+                            icon.textContent = 'search';
+                            icon.classList.remove('animate-spin');
+                        }
+                    });
+
+            } else if (docType === 'RUC') {
+                if (!/^\d{11}$/.test(num)) {
+                    if (statusSpan) {
+                        statusSpan.textContent = 'RUC debe tener 11 dígitos';
+                        statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+                    }
+                    return;
+                }
+
+                if (icon) {
+                    icon.textContent = 'autorenew';
+                    icon.classList.add('animate-spin');
+                }
+                if (statusSpan) {
+                    statusSpan.textContent = 'Consultando SUNAT...';
+                    statusSpan.className = 'text-[11px] font-medium text-primary block';
+                }
+
+                fetch(`/consultas/ruc/${num}`)
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success && res.data) {
+                            if (namesInput) {
+                                namesInput.value = res.data.razon_social || res.data.nombre || '';
+                            }
+                            if (statusSpan) {
+                                const estado = res.data.estado ? res.data.estado : 'ACTIVO';
+                                statusSpan.textContent = `✓ SUNAT: ${estado}`;
+                                statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block';
+                            }
+                        } else {
+                            if (statusSpan) {
+                                statusSpan.textContent = res.message || 'No encontrado en SUNAT';
+                                statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        if (statusSpan) {
+                            statusSpan.textContent = 'Error al consultar SUNAT';
+                            statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                        }
+                    })
+                    .finally(() => {
+                        if (icon) {
+                            icon.textContent = 'search';
+                            icon.classList.remove('animate-spin');
+                        }
+                    });
+            } else {
+                if (statusSpan) {
+                    statusSpan.textContent = 'Consulta automática no disponible para CE';
+                    statusSpan.className = 'text-[11px] font-medium text-on-surface-variant block';
+                }
+            }
+        }
+
 
         // Modal Import Toggle
         function toggleImportModal() {
@@ -7573,6 +7713,9 @@
             if (form) form.reset();
             document.getElementById('form-company-id').value = '';
 
+            const rucStatus = document.getElementById('comp-ruc-status');
+            if (rucStatus) rucStatus.classList.add('hidden');
+
             const passwordInput = document.getElementById('comp-password');
             const passwordLabel = document.getElementById('comp-password-label');
             const passwordHelp = document.getElementById('comp-password-help');
@@ -7591,6 +7734,70 @@
             document.getElementById('companies-form-title').textContent = 'Registrar Empresa';
             document.getElementById('btn-save-company').textContent = 'Registrar Empresa';
         }
+
+        // Consulta SUNAT en Formulario de Empresa (Admin)
+        function consultarRucEmpresaAdmin() {
+            const rucInput = document.getElementById('comp-ruc');
+            const nameInput = document.getElementById('comp-name');
+            const addressInput = document.getElementById('comp-address');
+            const statusSpan = document.getElementById('comp-ruc-status');
+            const icon = document.getElementById('icon-admin-consultar-ruc');
+            const ruc = rucInput ? rucInput.value.trim() : '';
+
+            if (!/^\d{11}$/.test(ruc)) {
+                if (statusSpan) {
+                    statusSpan.textContent = 'Ingrese 11 dígitos';
+                    statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+                }
+                return;
+            }
+
+            if (icon) {
+                icon.textContent = 'autorenew';
+                icon.classList.add('animate-spin');
+            }
+            if (statusSpan) {
+                statusSpan.textContent = 'Consultando SUNAT...';
+                statusSpan.className = 'text-[11px] font-medium text-primary block';
+            }
+
+            fetch(`/consultas/ruc/${ruc}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        if (nameInput) {
+                            nameInput.value = res.data.razon_social || res.data.nombre || '';
+                        }
+                        if (addressInput && (res.data.direccion_completa || res.data.direccion)) {
+                            addressInput.value = res.data.direccion_completa || res.data.direccion;
+                        }
+                        if (statusSpan) {
+                            const estado = res.data.estado ? res.data.estado : 'ACTIVO';
+                            const cond = res.data.condicion ? res.data.condicion : 'HABIDO';
+                            statusSpan.textContent = `✓ SUNAT: ${estado} (${cond})`;
+                            statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block';
+                        }
+                    } else {
+                        if (statusSpan) {
+                            statusSpan.textContent = res.message || 'No encontrado en SUNAT';
+                            statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (statusSpan) {
+                        statusSpan.textContent = 'Error al consultar SUNAT';
+                        statusSpan.className = 'text-[11px] font-medium text-red-500 block';
+                    }
+                })
+                .finally(() => {
+                    if (icon) {
+                        icon.textContent = 'search';
+                        icon.classList.remove('animate-spin');
+                    }
+                });
+        }
+
 
         // Submit Company Form (Creates or Updates)
         function handleCompanyFormSubmit(event) {
@@ -8083,6 +8290,31 @@
                     fileInput.files = files;
                     handleExcelFileSelect(fileInput);
                 }, false);
+            }
+
+            // Listeners para consultas automáticas RENIEC / SUNAT
+            const btnDocAdmin = document.getElementById('btn-admin-consultar-doc');
+            const inputDocAdmin = document.getElementById('form-doc-number');
+            if (btnDocAdmin) btnDocAdmin.addEventListener('click', consultarDocAdmin);
+            if (inputDocAdmin) {
+                inputDocAdmin.addEventListener('input', function() {
+                    const docType = document.getElementById('form-doc-type') ? document.getElementById('form-doc-type').value : 'DNI';
+                    const val = this.value.trim();
+                    if ((docType === 'DNI' && val.length === 8) || (docType === 'RUC' && val.length === 11)) {
+                        consultarDocAdmin();
+                    }
+                });
+            }
+
+            const btnCompRucAdmin = document.getElementById('btn-admin-consultar-ruc');
+            const inputCompRucAdmin = document.getElementById('comp-ruc');
+            if (btnCompRucAdmin) btnCompRucAdmin.addEventListener('click', consultarRucEmpresaAdmin);
+            if (inputCompRucAdmin) {
+                inputCompRucAdmin.addEventListener('input', function() {
+                    if (this.value.trim().length === 11) {
+                        consultarRucEmpresaAdmin();
+                    }
+                });
             }
 
             // Restore the last section visited after refreshing the page.

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'consultas_peru' => [
+        'base_url' => env('CONSULTAS_PERU_BASE_URL', 'https://ww2.desarrollo21.pe'),
+        'token' => env('CONSULTAS_PERU_TOKEN'),
+    ],
+
 ];
