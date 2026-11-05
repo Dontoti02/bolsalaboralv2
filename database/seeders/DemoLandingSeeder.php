@@ -19,6 +19,7 @@ class DemoLandingSeeder extends Seeder
                 'ruc'         => '20512345601',
                 'email'       => 'rrhh@techperu.pe',
                 'phone'       => '01-456-7890',
+                'mailbox'     => 'rrhh@techperu.pe',
                 'description' => 'Empresa líder en desarrollo de software e innovación tecnológica en Perú. Contamos con más de 200 colaboradores.',
                 'website'     => 'https://techperu.pe',
                 'address'     => 'Av. Javier Prado Este 4200, San Isidro',
@@ -32,6 +33,7 @@ class DemoLandingSeeder extends Seeder
                 'ruc'         => '20512345602',
                 'email'       => 'talentos@grupoandino.com.pe',
                 'phone'       => '01-234-5678',
+                'mailbox'     => 'talentos@grupoandino.com.pe',
                 'description' => 'Conglomerado comercial con presencia en retail, logística y distribución a nivel nacional.',
                 'website'     => 'https://grupoandino.com.pe',
                 'address'     => 'Av. La Marina 2000, San Miguel',
@@ -45,6 +47,7 @@ class DemoLandingSeeder extends Seeder
                 'ruc'         => '20512345603',
                 'email'       => 'empleo@innova.pe',
                 'phone'       => '01-789-1234',
+                'mailbox'     => 'empleo@innova.pe',
                 'description' => 'Agencia de marketing digital especializada en estrategias SEO, SEM y redes sociales para empresas latinoamericanas.',
                 'website'     => 'https://innova.pe',
                 'address'     => 'Calle Las Camelias 790, San Isidro',
@@ -58,6 +61,7 @@ class DemoLandingSeeder extends Seeder
                 'ruc'         => '20512345604',
                 'email'       => 'capital.humano@finanzaspro.pe',
                 'phone'       => '01-321-6549',
+                'mailbox'     => 'capital.humano@finanzaspro.pe',
                 'description' => 'Consultora financiera con más de 15 años brindando soluciones contables, tributarias y de auditoría.',
                 'website'     => 'https://finanzaspro.pe',
                 'address'     => 'Jr. Lampa 801, Cercado de Lima',
@@ -71,6 +75,7 @@ class DemoLandingSeeder extends Seeder
                 'ruc'         => '20512345605',
                 'email'       => 'rrhh@saludtotal.pe',
                 'phone'       => '01-654-9870',
+                'mailbox'     => 'rrhh@saludtotal.pe',
                 'description' => 'Red de clínicas y centros médicos con cobertura en Lima, Arequipa y Cusco.',
                 'website'     => 'https://saludtotal.pe',
                 'address'     => 'Av. Salaverry 1801, Jesús María',
@@ -83,12 +88,19 @@ class DemoLandingSeeder extends Seeder
 
         $companyIds = [];
         foreach ($companies as $company) {
-            $id = DB::table('job_opportunity_company')->insertGetId($company);
-            $companyIds[] = $id;
+            $existing = DB::table('job_opportunity_company')->where('ruc', $company['ruc'])->first();
+            if ($existing) {
+                $companyIds[] = $existing->id;
+            } else {
+                $id = DB::table('job_opportunity_company')->insertGetId($company);
+                $companyIds[] = $id;
+            }
         }
 
-        // También incluir la empresa que ya existe (id 592)
-        $companyIds[] = 592;
+        // Incluir empresa existente en la base de datos si existe, o usar la primera
+        $otherCompany = DB::table('job_opportunity_company')->whereNotIn('id', $companyIds)->first();
+        $fallbackCompanyId = $otherCompany ? $otherCompany->id : $companyIds[0];
+        $companyIds[] = $fallbackCompanyId;
 
         // ── 2. Estado activo = id 2 (key='active') ─────────────────────────
         $activeStateId = 2;
@@ -109,6 +121,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Trabajo remoto 100%\n- Seguro médico privado\n- Capacitaciones pagadas\n- 14 sueldos al año",
                 'salary'           => 4500.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(1),
                 'deadline'         => $now->copy()->addDays(30),
                 'address'          => 'Av. Javier Prado Este 4200',
@@ -116,7 +129,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[0],
-                'location_id'      => 1, // Remoto
+                'modality_id'      => 1, // Remoto
                 'state_id'         => $activeStateId,
                 'category_id'      => 1, // Informatica
                 'work_schedule_id' => 1, // Jornada Completa
@@ -132,6 +145,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Horario flexible\n- Laptop de última generación\n- Stock options\n- Ambiente startup dinámico",
                 'salary'           => 3800.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(2),
                 'deadline'         => $now->copy()->addDays(25),
                 'address'          => 'San Isidro, Lima',
@@ -139,7 +153,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[0],
-                'location_id'      => 3, // Híbrido
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 1, // Informatica
                 'work_schedule_id' => 1, // Jornada Completa
@@ -155,6 +169,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- 100% Remoto\n- Seguro médico premium\n- Bono anual por desempeño\n- Días libres adicionales",
                 'salary'           => 5500.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(3),
                 'deadline'         => null,
                 'address'          => 'Remoto',
@@ -162,7 +177,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[0],
-                'location_id'      => 1, // Remoto
+                'modality_id'      => 1, // Remoto
                 'state_id'         => $activeStateId,
                 'category_id'      => 4, // Tecnologia
                 'work_schedule_id' => 1, // Jornada Completa
@@ -180,6 +195,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Sueldo competitivo\n- Seguro médico\n- Descuentos en productos del grupo\n- Línea de carrera",
                 'salary'           => 1800.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(4),
                 'deadline'         => $now->copy()->addDays(20),
                 'address'          => 'Av. La Marina 2000, San Miguel',
@@ -187,7 +203,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[1],
-                'location_id'      => 2, // Presencial
+                'modality_id'      => 2, // Presencial
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 1, // Jornada Completa
@@ -203,6 +219,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Vehículo asignado\n- Gastos de representación\n- Seguro médico familiar\n- Bono trimestral",
                 'salary'           => 3200.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(5),
                 'deadline'         => $now->copy()->addDays(15),
                 'address'          => 'Callao Industrial',
@@ -210,7 +227,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Callao',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[1],
-                'location_id'      => 2, // Presencial
+                'modality_id'      => 2, // Presencial
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 1, // Jornada Completa
@@ -228,6 +245,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Trabajo híbrido 3/2\n- Capacitaciones internacionales\n- Membresía a plataformas premium\n- Ambiente creativo y joven",
                 'salary'           => 2800.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(2),
                 'deadline'         => $now->copy()->addDays(21),
                 'address'          => 'Calle Las Camelias 790',
@@ -235,7 +253,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[2],
-                'location_id'      => 3, // Híbrido
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 2, // Marketing
                 'work_schedule_id' => 1, // Jornada Completa
@@ -251,6 +269,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- 100% Remoto\n- Horario flexible\n- Acceso a herramientas premium\n- Comisiones por resultados",
                 'salary'           => 2000.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(1),
                 'deadline'         => $now->copy()->addDays(28),
                 'address'          => 'Remoto',
@@ -258,7 +277,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[2],
-                'location_id'      => 1, // Remoto
+                'modality_id'      => 1, // Remoto
                 'state_id'         => $activeStateId,
                 'category_id'      => 2, // Marketing
                 'work_schedule_id' => 3, // Jornada Parcial
@@ -274,6 +293,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Beca de S/ 1,200 mensual\n- Horario de prácticas flexible\n- Constancia al finalizar\n- Posibilidad de contrato",
                 'salary'           => 1200.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(3),
                 'deadline'         => $now->copy()->addDays(14),
                 'address'          => 'San Isidro, Lima',
@@ -281,7 +301,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[2],
-                'location_id'      => 3, // Híbrido
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 2, // Marketing
                 'work_schedule_id' => 2, // Becas/Prácticas
@@ -299,6 +319,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Sueldo competitivo según experiencia\n- Seguro médico\n- Capacitaciones tributarias\n- Horario L-V 8am-6pm",
                 'salary'           => 3500.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(6),
                 'deadline'         => $now->copy()->addDays(18),
                 'address'          => 'Jr. Lampa 801, Cercado de Lima',
@@ -306,7 +327,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[3],
-                'location_id'      => 2, // Presencial
+                'modality_id'      => 2, // Presencial
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 1, // Jornada Completa
@@ -322,6 +343,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Plan de carrera estructurado\n- Mentoría directa con socios\n- Gastos de movilidad\n- Bono por proyecto",
                 'salary'           => 2400.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(4),
                 'deadline'         => $now->copy()->addDays(22),
                 'address'          => 'Jr. Lampa 801',
@@ -329,7 +351,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[3],
-                'location_id'      => 3, // Híbrido
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 1, // Jornada Completa
@@ -347,6 +369,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Seguro SCTR\n- Uniforme incluido\n- Alimentación\n- Capacitaciones constantes",
                 'salary'           => 1700.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(7),
                 'deadline'         => $now->copy()->addDays(10),
                 'address'          => 'Av. Salaverry 1801, Jesús María',
@@ -354,7 +377,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[4],
-                'location_id'      => 2, // Presencial
+                'modality_id'      => 2, // Presencial
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 4, // Por Horas
@@ -370,6 +393,7 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Sueldo acorde al mercado\n- Seguro médico familiar\n- Horario L-V\n- Acceso a plataformas médicas",
                 'salary'           => 4000.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(2),
                 'deadline'         => $now->copy()->addDays(30),
                 'address'          => 'Jesús María, Lima',
@@ -377,7 +401,7 @@ class DemoLandingSeeder extends Seeder
                 'province'         => 'Lima',
                 'country'          => 'Perú',
                 'company_id'       => $companyIds[4],
-                'location_id'      => 3, // Híbrido
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 1, // Informatica
                 'work_schedule_id' => 1, // Jornada Completa
@@ -395,14 +419,15 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Sueldo competitivo\n- Productos Alicorp\n- EPS premium\n- Bono por desempeño anual",
                 'salary'           => 4200.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(1),
                 'deadline'         => $now->copy()->addDays(25),
                 'address'          => 'La Victoria, Lima',
                 'department'       => 'Lima',
                 'province'         => 'Lima',
                 'country'          => 'Perú',
-                'company_id'       => 592,
-                'location_id'      => 3, // Híbrido
+                'company_id'       => $companyIds[5],
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 4, // Tecnologia
                 'work_schedule_id' => 1, // Jornada Completa
@@ -418,14 +443,15 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Paquete de compensación total\n- EPS para toda la familia\n- Fondo de pensiones\n- Participación en utilidades",
                 'salary'           => 7500.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(5),
                 'deadline'         => $now->copy()->addDays(15),
                 'address'          => 'Av. Argentina 4793, Callao',
                 'department'       => 'Lima',
                 'province'         => 'Callao',
                 'country'          => 'Perú',
-                'company_id'       => 592,
-                'location_id'      => 2, // Presencial
+                'company_id'       => $companyIds[5],
+                'modality_id'      => 2, // Presencial
                 'state_id'         => $activeStateId,
                 'category_id'      => 3, // Administrativo
                 'work_schedule_id' => 1, // Jornada Completa
@@ -441,14 +467,15 @@ class DemoLandingSeeder extends Seeder
                 'benefits'         => "- Asignación económica de S/ 1,500\n- Seguro de accidentes\n- Línea de carrera al terminar\n- Descuentos en productos Alicorp",
                 'salary'           => 1500.00,
                 'salary_currency'  => 'SOLES',
+                'vacancies'        => 2,
                 'publication_date' => $now->copy()->subDays(0),
                 'deadline'         => $now->copy()->addDays(12),
                 'address'          => 'La Victoria, Lima',
                 'department'       => 'Lima',
                 'province'         => 'Lima',
                 'country'          => 'Perú',
-                'company_id'       => 592,
-                'location_id'      => 3, // Híbrido
+                'company_id'       => $companyIds[5],
+                'modality_id'      => 3, // Híbrido
                 'state_id'         => $activeStateId,
                 'category_id'      => 1, // Informatica
                 'work_schedule_id' => 2, // Becas/Prácticas
@@ -460,13 +487,20 @@ class DemoLandingSeeder extends Seeder
 
         // ── 3. Insertar ofertas y sus estados ──────────────────────────────
         foreach ($offers as $offer) {
-            $offerId = DB::table('job_opportunity_offer')->insertGetId($offer);
-            DB::table('job_opportunity_offer_state_detail')->insert([
-                'offer_id'   => $offerId,
-                'state_id'   => $activeStateId,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            $existingOffer = DB::table('job_opportunity_offer')
+                ->where('company_id', $offer['company_id'])
+                ->where('title', $offer['title'])
+                ->first();
+
+            if (!$existingOffer) {
+                $offerId = DB::table('job_opportunity_offer')->insertGetId($offer);
+                DB::table('job_opportunity_offer_state_detail')->insert([
+                    'offer_id'   => $offerId,
+                    'state_id'   => $activeStateId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
         }
 
         $this->command->info('✅ Demo data insertado: 5 empresas + 15 ofertas activas.');

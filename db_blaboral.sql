@@ -243,9 +243,9 @@ CREATE TABLE `job_opportunity_offer` (
 -- Volcado de datos para la tabla `job_opportunity_offer`
 --
 
-INSERT INTO `job_opportunity_offer` (`id`, `title`, `slug`, `description`, `requirements`, `publication_date`, `deadline`, `benefits`, `salary`, `salary_currency`, `attachments`, `banner_image`, `external_url`, `address`, `department`, `province`, `country`, `company_id`, `modality_id`, `state_id`, `category_id`, `work_schedule_id`, `contract_type_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(111, 'Docente en informatica', 'docente-en-informatica', 'adwda', 'awdwa', '2026-10-15 00:00:00', NULL, NULL, 2500.00, 'SOLES', NULL, '/uploads/offers/banners/banner_1792097929_c94TzRxr.png', NULL, 'Urb Los Jardines', 'Loreto', 'Putumayo', 'Perú', 674, 2, 2, 1, 1, 1, '2026-10-13 21:55:54', '2026-10-15 20:58:49', NULL),
-(112, 'sfsfsfd', 'sfsfsfd', 'sdfsdfdsf', 'sfdfdsd', '2026-10-15 00:00:00', NULL, NULL, 2496.00, 'SOLES', NULL, NULL, NULL, 'sdfsdsdfsdd', 'Loreto', 'Ucayali', 'Perú', 674, 1, 2, 1, 1, 1, '2026-10-15 21:26:14', '2026-10-15 21:35:20', '2026-10-15 21:35:20');
+INSERT INTO `job_opportunity_offer` (`id`, `title`, `slug`, `description`, `requirements`, `publication_date`, `deadline`, `benefits`, `salary`, `salary_currency`, `vacancies`, `attachments`, `banner_image`, `external_url`, `address`, `department`, `province`, `country`, `company_id`, `modality_id`, `state_id`, `category_id`, `work_schedule_id`, `contract_type_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(111, 'Docente en informatica', 'docente-en-informatica', 'adwda', 'awdwa', '2026-10-15 00:00:00', NULL, NULL, 2500.00, 'SOLES', 1, NULL, '/uploads/offers/banners/banner_1792097929_c94TzRxr.png', NULL, 'Urb Los Jardines', 'Loreto', 'Putumayo', 'Perú', 674, 2, 2, 1, 1, 1, '2026-10-13 21:55:54', '2026-10-15 20:58:49', NULL),
+(112, 'sfsfsfd', 'sfsfsfd', 'sdfsdfdsf', 'sfdfdsd', '2026-10-15 00:00:00', NULL, NULL, 2496.00, 'SOLES', 1, NULL, NULL, NULL, 'sdfsdsdfsdd', 'Loreto', 'Ucayali', 'Perú', 674, 1, 2, 1, 1, 1, '2026-10-15 21:26:14', '2026-10-15 21:35:20', '2026-10-15 21:35:20');
 
 -- --------------------------------------------------------
 

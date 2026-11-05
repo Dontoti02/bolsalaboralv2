@@ -3071,7 +3071,7 @@
 
     <!-- Global Floating Actions Dropdown (3 puntos) -->
     <div id="offer-actions-dropdown"
-        class="fixed hidden bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 w-48 transition-all duration-150">
+        class="fixed hidden bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl z-[9999] py-2 w-48 max-h-[85vh] overflow-y-auto transition-opacity duration-150">
         <div
             class="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 border-b border-outline-variant/50">
             Acciones</div>
@@ -3122,7 +3122,7 @@
 
     <!-- Global Floating Company Actions Dropdown (3 puntos) -->
     <div id="company-actions-dropdown"
-        class="fixed hidden bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 w-52 transition-all duration-150">
+        class="fixed hidden bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl z-[9999] py-2 w-52 max-h-[85vh] overflow-y-auto transition-opacity duration-150">
         <div
             class="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 border-b border-outline-variant/50">
             Acciones de Empresa</div>
@@ -6366,27 +6366,83 @@
                 });
         }
 
+        // Dynamic positioning helper for floating fixed dropdowns (3 puntos)
+        function positionFloatingDropdown(dropdown, triggerBtn) {
+            dropdown.style.visibility = 'hidden';
+            dropdown.classList.remove('hidden');
+
+            const btnRect = triggerBtn.getBoundingClientRect();
+            const dropdownRect = dropdown.getBoundingClientRect();
+            const dropdownWidth = dropdownRect.width || 192;
+            const dropdownHeight = dropdownRect.height || 280;
+
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+            const margin = 8;
+            const spacing = 4;
+
+            // Horizontal alignment: right edge of dropdown aligns with right edge of button
+            let left = btnRect.right - dropdownWidth;
+            if (left + dropdownWidth > viewportWidth - margin) {
+                left = viewportWidth - dropdownWidth - margin;
+            }
+            if (left < margin) {
+                left = margin;
+            }
+
+            // Vertical alignment: default below button; flip above if insufficient space
+            let top = btnRect.bottom + spacing;
+            const spaceBelow = viewportHeight - btnRect.bottom - margin;
+            const spaceAbove = btnRect.top - margin;
+
+            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                top = btnRect.top - dropdownHeight - spacing;
+                if (top < margin) {
+                    top = margin;
+                    dropdown.style.maxHeight = `${Math.max(120, btnRect.top - spacing - margin)}px`;
+                }
+            } else {
+                if (spaceBelow < dropdownHeight) {
+                    dropdown.style.maxHeight = `${Math.max(120, spaceBelow)}px`;
+                }
+            }
+
+            dropdown.style.top = `${Math.round(top)}px`;
+            dropdown.style.left = `${Math.round(left)}px`;
+            dropdown.style.visibility = 'visible';
+        }
+
         // Contextual Actions dropdown (3 puntos)
         function toggleOfferActions(event, id) {
             event.stopPropagation();
+            const dropdown = document.getElementById('offer-actions-dropdown');
+            if (!dropdown) return;
+
+            if (!dropdown.classList.contains('hidden') && currentOfferId === id) {
+                closeOfferActions();
+                return;
+            }
+
             currentOfferId = id;
             const btn = event.currentTarget;
-            const rect = btn.getBoundingClientRect();
-            const dropdown = document.getElementById('offer-actions-dropdown');
-
-            dropdown.style.top = `${rect.bottom + window.scrollY + 5}px`;
-            dropdown.style.left = `${rect.left + window.scrollX - 150}px`;
-            dropdown.classList.remove('hidden');
+            positionFloatingDropdown(dropdown, btn);
 
             document.addEventListener('click', closeOfferActions);
+            window.addEventListener('resize', closeOfferActions, { passive: true });
+            window.addEventListener('scroll', closeOfferActions, { passive: true, capture: true });
         }
 
         function closeOfferActions() {
             const dropdown = document.getElementById('offer-actions-dropdown');
             if (dropdown) {
                 dropdown.classList.add('hidden');
+                dropdown.style.visibility = '';
+                dropdown.style.maxHeight = '';
             }
             document.removeEventListener('click', closeOfferActions);
+            window.removeEventListener('resize', closeOfferActions);
+            window.removeEventListener('scroll', closeOfferActions, { capture: true });
         }
 
         // Handles contextual clicks
@@ -7299,10 +7355,16 @@
         // Toggle Company Actions menu
         function toggleCompanyActions(event, id, isVerified) {
             event.stopPropagation();
+            const dropdown = document.getElementById('company-actions-dropdown');
+            if (!dropdown) return;
+
+            if (!dropdown.classList.contains('hidden') && currentCompanyId === id) {
+                closeCompanyActions();
+                return;
+            }
+
             currentCompanyId = id;
             const btn = event.currentTarget;
-            const rect = btn.getBoundingClientRect();
-            const dropdown = document.getElementById('company-actions-dropdown');
 
             // Update menu text & icon based on state
             const verifyText = dropdown.querySelector('#comp-verify-menu-text');
@@ -7315,19 +7377,23 @@
                 verifyIcon.textContent = 'verified_user';
             }
 
-            dropdown.style.top = `${rect.bottom + window.scrollY + 5}px`;
-            dropdown.style.left = `${rect.left + window.scrollX - 170}px`;
-            dropdown.classList.remove('hidden');
+            positionFloatingDropdown(dropdown, btn);
 
             document.addEventListener('click', closeCompanyActions);
+            window.addEventListener('resize', closeCompanyActions, { passive: true });
+            window.addEventListener('scroll', closeCompanyActions, { passive: true, capture: true });
         }
 
         function closeCompanyActions() {
             const dropdown = document.getElementById('company-actions-dropdown');
             if (dropdown) {
                 dropdown.classList.add('hidden');
+                dropdown.style.visibility = '';
+                dropdown.style.maxHeight = '';
             }
             document.removeEventListener('click', closeCompanyActions);
+            window.removeEventListener('resize', closeCompanyActions);
+            window.removeEventListener('scroll', closeCompanyActions, { capture: true });
         }
 
         // Handle company dropdown actions
