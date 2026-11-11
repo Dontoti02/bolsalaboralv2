@@ -173,6 +173,7 @@ class JobOpportunityController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             $slug = Str::slug($request->title);
@@ -286,6 +287,7 @@ class JobOpportunityController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             // Update slug if title changed
@@ -354,6 +356,7 @@ class JobOpportunityController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             $offer->state_id = $request->state_id;
@@ -430,6 +433,7 @@ class JobOpportunityController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             JobOpportunityOffer::whereIn('id', $request->ids)->delete();

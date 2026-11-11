@@ -10,6 +10,8 @@ class DemoLandingSeeder extends Seeder
 {
     public function run(): void
     {
+        \App\Models\JobOpportunityOffer::ensureSchemaCompatibility();
+
         $now = Carbon::now();
 
         // ── 1. Insertar empresas de prueba ──────────────────────────────────

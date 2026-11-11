@@ -304,6 +304,7 @@ class CompanyDashboardController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             $company->name = $request->name;
@@ -482,6 +483,7 @@ class CompanyDashboardController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             $slug      = Str::slug($request->title);
@@ -626,6 +628,7 @@ class CompanyDashboardController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             if ($offer->title !== $request->title) {
@@ -703,6 +706,7 @@ class CompanyDashboardController extends Controller
         }
 
         try {
+            JobOpportunityOffer::ensureSchemaCompatibility();
             DB::beginTransaction();
 
             // Toggle: active(2) → finished(3), anything else → active(2)

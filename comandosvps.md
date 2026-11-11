@@ -60,7 +60,15 @@ Verificar que Vite genero el build correctamente:
 ls -la public/build/manifest.json
 ```
 
-## 8. Limpiar cache de Laravel
+## 8. Ejecutar migraciones de base de datos
+
+Asegura que todas las tablas y columnas nuevas (como external_url, banner_image, vacancies) estén aplicadas en la base de datos:
+
+```bash
+php artisan migrate --force
+```
+
+## 9. Limpiar cache de Laravel
 
 ```bash
 php artisan optimize:clear
@@ -71,7 +79,7 @@ php artisan cache:clear
 php artisan config:cache
 ```
 
-## 9. Corregir permisos de archivos
+## 10. Corregir permisos de archivos
 
 ```bash
 chown -R istpcaco:istpcaco /home/istpcaco/iestpcoloniadelcaco_lravel
@@ -82,7 +90,7 @@ chmod 755 public
 chmod 644 public/index.php
 ```
 
-## 10. Reiniciar servicios del servidor
+## 11. Reiniciar servicios del servidor
 
 ```bash
 /scripts/php_fpm_config --rebuild
@@ -97,7 +105,7 @@ Si el PHP-FPM no inicia correctamente, usar:
 /scripts/restartsrv_httpd
 ```
 
-## 11. Verificar que la web este funcionando
+## 12. Verificar que la web este funcionando
 
 ```bash
 curl -I https://blaboral.iestpcoloniadelcaco.edu.pe
@@ -116,6 +124,7 @@ curl -I https://blaboral.iestpcoloniadelcaco.edu.pe/admin/dashboard
 | Actualizar codigo | `git pull origin $(git branch --show-current)` |
 | Dependencias PHP | `composer install --no-dev --optimize-autoloader` |
 | Compilar frontend | `npm run build` |
+| Migrar base de datos | `php artisan migrate --force` |
 | Limpiar cache | `php artisan optimize:clear` |
 | Permisos | `chmod -R 775 storage bootstrap/cache` |
 | Reiniciar servicios | `/scripts/restartsrv_apache_php_fpm` |

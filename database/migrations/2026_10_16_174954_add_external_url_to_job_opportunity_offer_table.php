@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('job_opportunity_offer', function (Blueprint $table) {
-            $table->string('external_url', 500)->nullable()->after('banner_image');
-        });
+        if (Schema::hasTable('job_opportunity_offer')) {
+            Schema::table('job_opportunity_offer', function (Blueprint $table) {
+                if (!Schema::hasColumn('job_opportunity_offer', 'external_url')) {
+                    $table->string('external_url', 500)->nullable();
+                }
+            });
+        }
     }
 
     /**
@@ -21,8 +25,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('job_opportunity_offer', function (Blueprint $table) {
-            $table->dropColumn('external_url');
-        });
+        if (Schema::hasTable('job_opportunity_offer')) {
+            Schema::table('job_opportunity_offer', function (Blueprint $table) {
+                if (Schema::hasColumn('job_opportunity_offer', 'external_url')) {
+                    $table->dropColumn('external_url');
+                }
+            });
+        }
     }
 };
